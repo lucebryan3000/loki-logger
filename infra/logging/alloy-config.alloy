@@ -1,0 +1,52 @@
+logging {
+  level = "info"
+}
+
+discovery.docker "all" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Docker logs -> Loki, exclude observability stack itself and grafana/* images
+loki.source.docker "dockerlogs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.all.targets
+  forward_to = [loki.process.main.receiver]
+}
+
+// journald -> Loki (minimal; if journald not mounted/persistent, will still try /run/log/journal)
+loki.source.journal "journald" {
+  forward_to = [loki.process.main.receiver]
+}
+
+// File tail: tool sink + telemetry-as-logs
+local.file_match "tool_sink" {
+  path_targets = [{ "__path__" = "/host/home/luce/_logs/*.log" }]
+}
+loki.source.file "tool_sink" {
+  targets    = local.file_match.tool_sink.targets
+  forward_to = [loki.process.main.receiver]
+}
+
+local.file_match "telemetry" {
+  path_targets = [{ "__path__" = "/host/home/luce/_telemetry/*.jsonl" }]
+}
+loki.source.file "telemetry" {
+  targets    = local.file_match.telemetry.targets
+  forward_to = [loki.process.main.receiver]
+}
+
+loki.process "main" {
+  stage.static_labels {
+    values = {
+      env = "sandbox",
+    }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
