@@ -1,0 +1,38 @@
+groups:
+  - name: loki_logging_v1
+    rules:
+      - alert: TargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prometheus target down"
+          description: "Target {{ $labels.job }} at {{ $labels.instance }} is down."
+
+      - alert: NodeDiskSpaceLow
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) < 0.10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space low (<10%)"
+          description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is below 10% free."
+
+      - alert: NodeMemoryHigh
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memory usage high (>90%)"
+          description: "Host {{ $labels.instance }} memory usage above 90%."
+
+      - alert: NodeCPUHigh
+        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU usage high (>90%)"
+          description: "Host {{ $labels.instance }} CPU usage above 90%."
