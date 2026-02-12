@@ -1,0 +1,3 @@
+{"ts": "2026-02-12T18:05:33Z", "kind": "telemetry", "source": "telemetry_writer", "host": "codeswarm", "seq": 1770919533, "value": 10, "msg": "telemetry tick"}
+{"ts": "2026-02-12T18:05:43Z", "kind": "telemetry", "source": "telemetry_writer", "host": "codeswarm", "seq": 1770919543, "value": 59, "msg": "telemetry tick"}
+{"ts": "2026-02-12T18:05:53Z", "kind": "telemetry", "source": "telemetry_writer", "host": "codeswarm", "seq": 1770919553, "value": 55, "msg": "telemetry tick"}
