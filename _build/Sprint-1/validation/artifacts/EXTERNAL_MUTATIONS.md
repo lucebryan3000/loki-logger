@@ -14,3 +14,12 @@
 - After: 3
 - Runtime (inspect): 3
 - Evidence dir: /home/luce/apps/loki-logging/temp/.artifacts/prism/evidence/20260212T234329Z
+
+## Prompt 10 / Phase 8 — Tighten local logging (20260212T234903Z)
+- File: /home/luce/apps/vLLM/docker-compose.yml
+- Service: codeswarm-mcp
+- Change: logging.options.max-file -> "3"
+- Before: 3
+- After: 3
+- Runtime (inspect): 3
+- Evidence dir: /home/luce/apps/loki-logging/temp/.artifacts/prism/evidence/20260212T234903Z
