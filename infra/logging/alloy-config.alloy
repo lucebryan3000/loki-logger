@@ -52,3 +52,23 @@ loki.write "default" {
     url = "http://loki:3100/loki/api/v1/push"
   }
 }
+
+# --- CodeSwarm MCP logs (Phase B) ---
+local.file_match "codeswarm_mcp" {
+  path_targets = [{ "__path__" = "/host/home/luce/apps/vLLM/_data/mcp-logs/*.log" }]
+}
+
+loki.source.file "codeswarm_mcp" {
+  targets       = local.file_match.codeswarm_mcp.targets
+  tail_from_end = true
+  forward_to    = [loki.process.codeswarm.receiver]
+}
+
+loki.process "codeswarm" {
+  stage.static_labels {
+    values = {
+      log_source = "codeswarm_mcp",
+    }
+  }
+  forward_to = [loki.write.default.receiver]
+}
