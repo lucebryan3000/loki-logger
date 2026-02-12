@@ -1,0 +1,23 @@
+0719ab7 prompt-exec: Loki-prompt-8 20260212T233344Z
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/blocks.index.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/blocks/block001.sh
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/blocks/block002.sh
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/env.sh
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/git.diff.cached.names.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/git.diff.names.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/git.head.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/git.status.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/manifest.txt
+R100	_build/Sprint-1/Prompts/Loki-prompt-8.md	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/prompt.md
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233321Z/warnings.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/blocks.index.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/blocks/block001.sh
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/blocks/block002.sh
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/env.sh
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/git.diff.cached.names.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/git.diff.names.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/git.head.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/git.status.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/manifest.txt
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/prompt.md
+A	scripts/prompt-exec/evidence/Loki-prompt-8/20260212T233344Z/warnings.txt
