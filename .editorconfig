@@ -1,0 +1,261 @@
+# ============================================================================
+# EditorConfig - Cross-Editor Configuration
+# ============================================================================
+# Ensures consistent code formatting across editors and IDEs
+# Reference: https://EditorConfig.org
+#
+# PROFILES: This file contains sections for all setup profiles:
+#   - PROFILE:STARTER - Minimal patterns for quick projects
+#   - PROFILE:STANDARD - Common patterns for open-source projects
+#   - PROFILE:PROFESSIONAL - Extended patterns for production
+#   - PROFILE:ENTERPRISE - Comprehensive patterns for large teams
+# ============================================================================
+
+root = true
+
+# ============================================================================
+# UNIVERSAL RULES (All Profiles)
+# ============================================================================
+# Global settings required for all profiles
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# ============================================================================
+# WEB & JAVASCRIPT ECOSYSTEM
+# ============================================================================
+
+# JavaScript, TypeScript, JSX, TSX
+[*.{js,jsx,ts,tsx,mjs,cjs}]
+indent_style = space
+indent_size = 2
+
+# JSON, JSON5, JSONC
+[*.{json,json5,jsonc}]
+indent_style = space
+indent_size = 2
+
+# Web formats (HTML, CSS, SCSS, LESS)
+[*.{html,htm,css,scss,sass,less}]
+indent_style = space
+indent_size = 2
+
+# YAML and YML
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+# Keep long YAML lines intact
+insert_final_newline = true
+
+# ============================================================================
+# MARKDOWN & DOCUMENTATION
+# ============================================================================
+
+[*.md]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+[*.rst]
+indent_style = space
+indent_size = 3
+
+[*.adoc]
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# PYTHON
+# ============================================================================
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.{pyx,pyi}]
+indent_style = space
+indent_size = 4
+
+# ============================================================================
+# RUST
+# ============================================================================
+
+[*.rs]
+indent_style = space
+indent_size = 4
+
+[Cargo.toml]
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# GO
+# ============================================================================
+
+[*.go]
+indent_style = tab
+
+[go.mod]
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# JAVA
+# ============================================================================
+
+[*.java]
+indent_style = space
+indent_size = 4
+
+[*.gradle]
+indent_style = space
+indent_size = 4
+
+# ============================================================================
+# C / C++ / OBJECTIVE-C
+# ============================================================================
+
+[*.{c,cc,cpp,cxx,h,hpp,hxx}]
+indent_style = space
+indent_size = 4
+
+# ============================================================================
+# C# / .NET
+# ============================================================================
+
+[*.{cs,csx,vb,vbx}]
+indent_style = space
+indent_size = 4
+
+# ============================================================================
+# RUBY
+# ============================================================================
+
+[*.rb]
+indent_style = space
+indent_size = 2
+
+[*.erb]
+indent_style = space
+indent_size = 2
+
+[Gemfile]
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# PHP
+# ============================================================================
+
+[*.php]
+indent_style = space
+indent_size = 4
+
+# ============================================================================
+# SHELL SCRIPTS
+# ============================================================================
+
+[*.{sh,bash,zsh}]
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# DOCKER
+# ============================================================================
+
+[Dockerfile*]
+indent_style = space
+indent_size = 2
+
+[docker-compose*.yml]
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# BUILD CONFIGURATION FILES
+# ============================================================================
+
+[Makefile*]
+indent_style = tab
+
+[*.mk]
+indent_style = tab
+
+[CMakeLists.txt]
+indent_style = space
+indent_size = 2
+
+[*.cmake]
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# CONFIGURATION FILES
+# ============================================================================
+
+[.editorconfig]
+indent_style = space
+indent_size = 2
+
+[.gitignore]
+indent_style = space
+indent_size = 2
+
+[.gitattributes]
+indent_style = space
+indent_size = 2
+
+[.env*]
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# MONOREPO & WORKSPACE FILES
+# ============================================================================
+
+[lerna.json]
+indent_style = space
+indent_size = 2
+
+[package.json]
+indent_style = space
+indent_size = 2
+
+[tsconfig*.json]
+indent_style = space
+indent_size = 2
+
+[.babelrc*]
+indent_style = space
+indent_size = 2
+
+[eslintrc*]
+indent_style = space
+indent_size = 2
+
+# ============================================================================
+# DATA & CONFIG FORMATS
+# ============================================================================
+
+[*.{toml,ini,cfg,conf}]
+indent_style = space
+indent_size = 2
+
+[*.xml]
+indent_style = space
+indent_size = 2
+
+[*.csv]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+[*.tsv]
+indent_style = tab
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+# End of .editorconfig
+# Last reviewed: 2026-02-10
