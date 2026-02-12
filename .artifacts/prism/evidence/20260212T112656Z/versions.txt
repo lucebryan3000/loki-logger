@@ -1,4 +1,0 @@
-date_utc=2026-02-12T11:26:56+00:00
-uname=Linux codeswarm 6.14.0-37-generic #37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
-docker=29.2.1
-compose=Docker Compose version v5.0.2

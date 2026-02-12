@@ -1,0 +1,3 @@
+## main...origin/main [ahead 2]
+ D _build/Sprint-1/Prompts/Loki-porompt-4.1.md
+?? scripts/prompt-exec/evidence/Loki-prompt-7/

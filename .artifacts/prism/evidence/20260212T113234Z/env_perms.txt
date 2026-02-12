@@ -1,1 +1,0 @@
-600 luce:luce infra/logging/.env

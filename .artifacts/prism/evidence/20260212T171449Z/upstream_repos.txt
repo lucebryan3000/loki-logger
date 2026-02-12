@@ -1,4 +1,0 @@
-grafana|https://github.com/grafana/grafana.git
-loki|https://github.com/grafana/loki.git
-alloy|https://github.com/grafana/alloy.git
-prometheus|https://github.com/prometheus/prometheus.git

@@ -1,7 +1,0 @@
-NAME                                  IMAGE                              COMMAND                  SERVICE         CREATED         STATUS                          PORTS
-infra_observability-alloy-1           grafana/alloy:v1.2.1               "/bin/alloy run --se…"   alloy           5 minutes ago   Restarting (1) 31 seconds ago   
-infra_observability-cadvisor-1        gcr.io/cadvisor/cadvisor:v0.49.1   "/usr/bin/cadvisor -…"   cadvisor        5 minutes ago   Up 5 minutes (healthy)          8080/tcp
-infra_observability-grafana-1         grafana/grafana:11.1.0             "/run.sh"                grafana         5 minutes ago   Up 5 minutes                    127.0.0.1:9001->3000/tcp
-infra_observability-loki-1            grafana/loki:3.0.0                 "/usr/bin/loki -conf…"   loki            5 minutes ago   Up 2 minutes                    3100/tcp
-infra_observability-node_exporter-1   prom/node-exporter:v1.8.1          "/bin/node_exporter …"   node_exporter   5 minutes ago   Up 5 minutes                    9100/tcp
-infra_observability-prometheus-1      prom/prometheus:v2.52.0            "/bin/prometheus --c…"   prometheus      2 minutes ago   Up 2 minutes                    127.0.0.1:9004->9090/tcp

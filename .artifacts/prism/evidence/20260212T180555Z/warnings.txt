@@ -1,1 +1,0 @@
-WARN: Loki query did not contain expected telemetry text yet; check Alloy tailing and retry later.

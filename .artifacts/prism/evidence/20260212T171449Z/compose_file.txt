@@ -1,1 +1,0 @@
-COMPOSE_FILE=/home/luce/apps/loki-logging/infra/logging/docker-compose.observability.yml
