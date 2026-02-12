@@ -1,0 +1,2 @@
+FAIL: git working tree not clean. Commit/stash manually before running this prompt.
+FAIL: git working tree not clean. Commit/stash manually before running this prompt.

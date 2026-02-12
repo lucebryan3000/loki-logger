@@ -1,0 +1,38 @@
+prompt_path=/home/luce/apps/loki-logging/_build/Sprint-1/Prompts/Loki-prompt-1.md
+run_utc=20260212T112400Z
+repo_root=/home/luce/apps/loki-logging
+git_head=3faef5fc0b992d862cb3c4a18f6ab10304b1db7c
+prompt_sha256=3835528f9b6684c6cdca621b31a4887c3a0f6cc6dcbbb0e0b99c66425bf15605
+preflight_req_tools=
+==> Running /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/blocks/block001.sh
+exit_code[block001]=2
+ran_block=block001
+duration_s[block001]=0
+RETRYING_ONCE: block001 (rc=2). Output: /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/out/block001.out.txt
+exit_code_retry[block001]=2
+FAILED: block001 (rc=2). Output: /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/out/block001.out.txt
+==> Running /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/blocks/block001.sh
+exit_code[block001]=0
+ran_block=block001
+duration_s[block001]=0
+last_successful_block=1
+==> Running /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/blocks/block002.sh
+exit_code[block002]=1
+ran_block=block002
+duration_s[block002]=0
+RETRYING_ONCE: block002 (rc=1). Output: /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/out/block002.out.txt
+exit_code_retry[block002]=1
+FAILED: block002 (rc=1). Output: /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/out/block002.out.txt
+==> Running /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/blocks/block001.sh
+exit_code[block001]=0
+ran_block=block001
+duration_s[block001]=0
+derived_evid=/home/luce/apps/loki-logging/.artifacts/prism/evidence/20260212T112745Z
+last_successful_block=1
+==> Running /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/blocks/block002.sh
+exit_code[block002]=1
+ran_block=block002
+duration_s[block002]=0
+RETRYING_ONCE: block002 (rc=1). Output: /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/out/block002.out.txt
+exit_code_retry[block002]=1
+FAILED: block002 (rc=1). Output: /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-1/20260212T112400Z/out/block002.out.txt
