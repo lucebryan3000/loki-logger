@@ -1,0 +1,5 @@
+## main...origin/main [ahead 4]
+ M scripts/prompt-exec/evidence/Loki-prompt-5/20260212T214803Z/manifest.txt
+?? scripts/prompt-exec/evidence/Loki-prompt-5/20260212T214803Z/git.commit.summary.txt
+?? scripts/prompt-exec/evidence/Loki-prompt-5/20260212T214803Z/git.diff.cached.namestatus.txt
+?? scripts/prompt-exec/evidence/Loki-prompt-5/20260212T214953Z/
