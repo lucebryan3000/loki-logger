@@ -24,6 +24,7 @@ local.file_match "tool_sink" {
 }
 loki.source.file "tool_sink" {
   targets    = local.file_match.tool_sink.targets
+  tail_from_end = true
   forward_to = [loki.process.main.receiver]
 }
 
@@ -32,6 +33,7 @@ local.file_match "telemetry" {
 }
 loki.source.file "telemetry" {
   targets    = local.file_match.telemetry.targets
+  tail_from_end = true
   forward_to = [loki.process.main.receiver]
 }
 
