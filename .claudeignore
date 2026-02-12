@@ -31,6 +31,7 @@ secrets.yml
 # Build artifacts (generated, not source)
 _build/
 !_build/README.md
+.artifacts/
 
 # ============================================================================
 # PROFILE:STARTER BEGIN - Quick MVPs & Prototypes

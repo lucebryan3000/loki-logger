@@ -51,6 +51,7 @@ _build/
 !_build/README.md
 _private/
 !_private/README.md
+.artifacts/
 
 # Claude/Codex directories (completely local, not for version control)
 .claude/*
