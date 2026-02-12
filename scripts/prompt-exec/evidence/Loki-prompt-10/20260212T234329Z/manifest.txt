@@ -1,0 +1,12 @@
+prompt_path=/home/luce/apps/loki-logging/_build/Sprint-1/Prompts/Loki-prompt-10.md
+run_utc=20260212T234329Z
+repo_root=/home/luce/apps/loki-logging
+git_head=9539df70ae0bfa11663efbbe779f3bd8f377298d
+prompt_sha256=6ea698f54dfc1a66092378003f7c70bcd04585808cf2e1d6c3c8cbeb906b4271
+warn_count=0
+==> Running /home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-10/20260212T234329Z/blocks/block001.sh
+exit_code[block001]=127
+FAILED=block001
+retry_exit_code=1
+retry2_exit_code=0
+moved_prompt_to=/home/luce/apps/loki-logging/_build/Sprint-1/Prompts/completed/Loki-prompt-10.md
