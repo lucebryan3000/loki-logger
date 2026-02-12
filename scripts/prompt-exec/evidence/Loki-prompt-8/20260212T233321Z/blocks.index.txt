@@ -1,0 +1,5 @@
+total 20
+drwxrwxr-x 2 luce luce 4096 Feb 12 17:33 .
+drwxrwxr-x 4 luce luce 4096 Feb 12 17:33 ..
+-rw-rw-r-- 1 luce luce  954 Feb 12 17:33 block001.sh
+-rw-rw-r-- 1 luce luce 6075 Feb 12 17:33 block002.sh
