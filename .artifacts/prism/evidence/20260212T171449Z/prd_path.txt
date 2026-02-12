@@ -1,0 +1,1 @@
+PRD_PATH=/home/luce/apps/loki-logging/_build/Sprint-1/Loki-logging-1.md

@@ -1,0 +1,1 @@
+OUT=/home/luce/apps/loki-logging/_build/Sprint-1/validation/bridge_20260212T171449Z

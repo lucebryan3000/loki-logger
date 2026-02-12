@@ -1,0 +1,1 @@
+Created Decision Ledger: /home/luce/apps/loki-logging/_build/Sprint-1/validation/artifacts/DECISION_LEDGER.md

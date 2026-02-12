@@ -1,0 +1,181 @@
+name: infra_observability
+services:
+  alloy:
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/alloy/config.alloy
+    depends_on:
+      loki:
+        condition: service_started
+        required: true
+    image: grafana/alloy:v1.2.1
+    networks:
+      obs: null
+    restart: unless-stopped
+    user: "0:0"
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /run/log/journal
+        target: /run/log/journal
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /var/log/journal
+        target: /var/log/journal
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home
+        target: /host/home
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/luce/apps/loki-logging/infra/logging/alloy-config.alloy
+        target: /etc/alloy/config.alloy
+        read_only: true
+        bind: {}
+  cadvisor:
+    devices:
+      - source: /dev/kmsg
+        target: /dev/kmsg
+        permissions: rwm
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    networks:
+      obs: null
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /var/run
+        target: /var/run
+        bind: {}
+      - type: bind
+        source: /sys
+        target: /sys
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /var/lib/docker/
+        target: /var/lib/docker
+        read_only: true
+        bind: {}
+  grafana:
+    depends_on:
+      loki:
+        condition: service_started
+        required: true
+      prometheus:
+        condition: service_started
+        required: true
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: rvo_tsWRVzRY1wUJ2pC_LzeUukruEEEs
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_SECRET_KEY: 57000e351d9494155362b401f2cf360cf47597495955025b68c0e008274c57c0
+      GF_SERVER_HTTP_PORT: "3000"
+      GRAFANA_ADMIN_PASSWORD: rvo_tsWRVzRY1wUJ2pC_LzeUukruEEEs
+      GRAFANA_ADMIN_USER: admin
+      GRAFANA_SECRET_KEY: 57000e351d9494155362b401f2cf360cf47597495955025b68c0e008274c57c0
+    image: grafana/grafana:11.1.0
+    networks:
+      obs: null
+    ports:
+      - mode: ingress
+        host_ip: 127.0.0.1
+        target: 3000
+        published: "9001"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: grafana-data
+        target: /var/lib/grafana
+        volume: {}
+      - type: bind
+        source: /home/luce/apps/loki-logging/infra/logging/grafana/provisioning
+        target: /etc/grafana/provisioning
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /home/luce/apps/loki-logging/infra/logging/grafana/dashboards
+        target: /var/lib/grafana/dashboards
+        read_only: true
+        bind: {}
+  loki:
+    command:
+      - -config.file=/etc/loki/loki-config.yml
+    image: grafana/loki:3.0.0
+    networks:
+      obs: null
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: loki-data
+        target: /loki
+        volume: {}
+      - type: bind
+        source: /home/luce/apps/loki-logging/infra/logging/loki-config.yml
+        target: /etc/loki/loki-config.yml
+        read_only: true
+        bind: {}
+  node_exporter:
+    command:
+      - --path.rootfs=/host
+    image: prom/node-exporter:v1.8.1
+    networks:
+      obs: null
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /
+        target: /host
+        read_only: true
+        bind:
+          propagation: rslave
+  prometheus:
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+    image: prom/prometheus:v2.52.0
+    networks:
+      obs: null
+    ports:
+      - mode: ingress
+        host_ip: 127.0.0.1
+        target: 9090
+        published: "9004"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: prometheus-data
+        target: /prometheus
+        volume: {}
+      - type: bind
+        source: /home/luce/apps/loki-logging/infra/logging/prometheus/prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+        read_only: true
+        bind: {}
+networks:
+  obs:
+    name: obs
+    driver: bridge
+volumes:
+  grafana-data:
+    name: infra_observability_grafana-data
+  loki-data:
+    name: infra_observability_loki-data
+  prometheus-data:
+    name: infra_observability_prometheus-data

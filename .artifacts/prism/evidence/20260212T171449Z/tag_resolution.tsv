@@ -1,0 +1,5 @@
+component	repo_url	image	expected_tag	resolved_sha
+grafana	https://github.com/grafana/grafana.git	grafana/grafana:11.1.0	v11.1.0	5b85c4c2fcf5d32d4f68aaef345c53096359b2f1
+loki	https://github.com/grafana/loki.git	grafana/loki:3.0.0	v3.0.0	b4f7181c7aa9484e66976e8a933111a9b85ea8c2
+alloy	https://github.com/grafana/alloy.git	grafana/alloy:v1.2.1	v1.2.1	e83e8af406b19c11b102b76f21142f7561a77036
+prometheus	https://github.com/prometheus/prometheus.git	prom/prometheus:v2.52.0	v2.52.0	879d80922a227c37df502e7315fad8ceb10a986d
