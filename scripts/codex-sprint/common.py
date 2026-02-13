@@ -1,9 +1,27 @@
 #!/usr/bin/env python3
+"""Common utilities for codex-sprint evolution/recall tooling.
+
+This module is intentionally importable by other scripts and also executable as a
+standalone helper for quick diagnostics.
+
+Primary responsibilities:
+- Discover legacy run trees from `temp/codex/...` and `temp/.artifacts/...`
+- Normalize prompt labels into stable slugs
+- Assign short run IDs (`rNNNN`) per prompt slug
+- Write JSON / JSONL payloads deterministically
+- Compute simple tree metrics for footprint comparisons
+
+CLI quick use:
+- `python3 common.py summary --repo-root /path/to/repo`
+- `python3 common.py list-runs --prompt loki-prompt-13 --limit 10`
+"""
+
 from __future__ import annotations
 
+import argparse
 import json
 import re
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
@@ -43,12 +61,18 @@ class TreeMetrics:
 
 
 def slugify(raw: str) -> str:
+    """Convert arbitrary labels into lowercase filesystem-safe slugs."""
     s = re.sub(r"[^a-z0-9]+", "-", raw.lower())
     s = re.sub(r"-+", "-", s).strip("-")
     return s or "unknown"
 
 
 def parse_run_sort_epoch(run_name: str, run_dir: Path) -> float:
+    """Best-effort timestamp extraction from run folder names.
+
+    We prioritize encoded UTC timestamps in folder names; if absent, we fall back
+    to directory mtime.
+    """
     m = TS_RE.search(run_name)
     if m:
         raw = m.group(1)
@@ -65,6 +89,7 @@ def parse_run_sort_epoch(run_name: str, run_dir: Path) -> float:
 
 
 def list_files(run_dir: Path) -> tuple[list[str], int]:
+    """Return sorted file list (relative paths) and total byte size for a run."""
     files: list[str] = []
     total = 0
     for p in sorted(run_dir.rglob("*")):
@@ -80,6 +105,7 @@ def list_files(run_dir: Path) -> tuple[list[str], int]:
 
 
 def detect_prism_prompt_slug(run_dir: Path) -> str:
+    """Infer prompt slug for prism evidence directories from early NDJSON entries."""
     events = run_dir / "events.ndjson"
     if events.is_file():
         try:
@@ -103,6 +129,7 @@ def detect_prism_prompt_slug(run_dir: Path) -> str:
 
 
 def collect_legacy_runs(repo_root: Path) -> list[LegacyRun]:
+    """Collect legacy runs from both codex and prism evidence roots."""
     runs: list[LegacyRun] = []
 
     codex_roots = [
@@ -163,6 +190,7 @@ def collect_legacy_runs(repo_root: Path) -> list[LegacyRun]:
 
 
 def assign_short_run_ids(runs: Iterable[LegacyRun]) -> list[LegacyRun]:
+    """Assign deterministic `rNNNN` IDs per prompt slug in chronological order."""
     counters: dict[str, int] = {}
     out: list[LegacyRun] = []
     for run in runs:
@@ -176,17 +204,20 @@ def assign_short_run_ids(runs: Iterable[LegacyRun]) -> list[LegacyRun]:
 
 
 def append_jsonl(path: Path, obj: dict) -> None:
+    """Append one JSON object per line to path (creates parent dirs)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(obj, ensure_ascii=True, sort_keys=True) + "\n")
 
 
 def write_json(path: Path, obj: dict | list) -> None:
+    """Write canonical pretty JSON with trailing newline."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, indent=2, ensure_ascii=True, sort_keys=False) + "\n", encoding="utf-8")
 
 
 def tree_metrics(root: Path) -> TreeMetrics:
+    """Compute simple footprint stats for a directory tree."""
     dirs = 0
     files = 0
     small = 0
@@ -213,4 +244,81 @@ def tree_metrics(root: Path) -> TreeMetrics:
 
 
 def now_utc_iso() -> str:
+    """Current UTC timestamp in compact ISO format used across outputs."""
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+# ----- Optional CLI for diagnostics ------------------------------------------------------------
+
+def _cmd_summary(repo_root: Path) -> int:
+    runs = assign_short_run_ids(collect_legacy_runs(repo_root))
+    prompt_counts: dict[str, int] = {}
+    family_counts: dict[str, int] = {}
+    for run in runs:
+        prompt_counts[run.prompt_slug] = prompt_counts.get(run.prompt_slug, 0) + 1
+        family_counts[run.source_family] = family_counts.get(run.source_family, 0) + 1
+
+    payload = {
+        "repo_root": str(repo_root),
+        "run_count": len(runs),
+        "prompt_count": len(prompt_counts),
+        "source_families": family_counts,
+        "top_prompts": [
+            {"prompt_slug": k, "runs": prompt_counts[k]}
+            for k in sorted(prompt_counts.keys(), key=lambda x: (-prompt_counts[x], x))[:20]
+        ],
+    }
+    print(json.dumps(payload, indent=2, ensure_ascii=True, sort_keys=False))
+    return 0
+
+
+def _cmd_list_runs(repo_root: Path, prompt_filter: str, limit: int) -> int:
+    runs = assign_short_run_ids(collect_legacy_runs(repo_root))
+    emitted = 0
+    for run in runs:
+        if prompt_filter and prompt_filter not in run.prompt_slug:
+            continue
+        print(json.dumps(run.to_dict(), ensure_ascii=True, sort_keys=True))
+        emitted += 1
+        if emitted >= limit:
+            break
+    return 0
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    epilog = """Examples:
+  python3 common.py summary --repo-root /home/luce/apps/loki-logging
+  python3 common.py list-runs --prompt loki-prompt-13 --limit 10
+"""
+    p = argparse.ArgumentParser(
+        description="Common utilities for codex-sprint evolution tooling.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
+    p.add_argument("--repo-root", default=".", help="Repository root (default: current directory)")
+
+    sp = p.add_subparsers(dest="cmd", required=True)
+    sp.add_parser("summary", help="Print run/prompt summary from legacy evidence roots")
+
+    p_runs = sp.add_parser("list-runs", help="Print discovered runs as JSON lines")
+    p_runs.add_argument("--prompt", default="", help="Optional prompt slug substring filter")
+    p_runs.add_argument("--limit", type=int, default=200, help="Max number of rows to print")
+    return p
+
+
+def main(argv: list[str]) -> int:
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    repo_root = Path(args.repo_root).resolve()
+
+    if args.cmd == "summary":
+        return _cmd_summary(repo_root)
+    if args.cmd == "list-runs":
+        return _cmd_list_runs(repo_root, args.prompt.strip().lower(), max(1, args.limit))
+    return 2
+
+
+if __name__ == "__main__":
+    import sys
+
+    raise SystemExit(main(sys.argv[1:]))

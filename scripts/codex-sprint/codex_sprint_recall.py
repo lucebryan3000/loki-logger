@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+"""Unified recall helper for flat codex-sprint indexes.
+
+Commands:
+- `summary`: file locations + lightweight counts/sizes
+- `latest`: latest prompt state rows from `state.latest.json`
+- `find`: filtered scan across one or all JSONL indexes
+
+This is the main machine-facing recall entrypoint used by shell wrappers and
+skills when quick lookups are needed.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -8,6 +19,7 @@ from pathlib import Path
 
 
 def _iter_jsonl(path: Path):
+    """Yield parsed JSON rows from a JSONL path, skipping malformed lines."""
     if not path.is_file():
         return
     with path.open("r", encoding="utf-8") as fh:
@@ -22,6 +34,7 @@ def _iter_jsonl(path: Path):
 
 
 def _matches(row: dict, prompt_q: str, run_q: str, file_q: str, status_q: str) -> bool:
+    """Apply deterministic AND filters used by `find` command."""
     prompt = str(row.get("prompt_slug", "")).lower()
     run = " ".join(
         [
@@ -51,6 +64,7 @@ def _matches(row: dict, prompt_q: str, run_q: str, file_q: str, status_q: str) -
 
 
 def cmd_latest(root: Path, prompt_q: str, limit: int) -> int:
+    """Print latest prompt state rows from `state.latest.json`."""
     latest_path = root / "state.latest.json"
     if not latest_path.is_file():
         print(f"missing file: {latest_path}", file=sys.stderr)
@@ -75,6 +89,7 @@ def cmd_latest(root: Path, prompt_q: str, limit: int) -> int:
 
 
 def cmd_find(root: Path, index: str, prompt_q: str, run_q: str, file_q: str, status_q: str, limit: int) -> int:
+    """Search one or more indexes and print matching rows as JSON lines."""
     index_map = {
         "state": root / "state.jsonl",
         "history": root / "history.jsonl",
@@ -92,6 +107,7 @@ def cmd_find(root: Path, index: str, prompt_q: str, run_q: str, file_q: str, sta
         for row in _iter_jsonl(p):
             if not _matches(row, prompt_q, run_q, file_q, status_q):
                 continue
+            # Include source index for multi-index scans to preserve provenance.
             out = {"index": idx, **row}
             print(json.dumps(out, ensure_ascii=True, sort_keys=True))
             printed += 1
@@ -101,6 +117,7 @@ def cmd_find(root: Path, index: str, prompt_q: str, run_q: str, file_q: str, sta
 
 
 def cmd_summary(root: Path) -> int:
+    """Print root paths plus line counts (jsonl) / byte size (json files)."""
     files = ["state.jsonl", "history.jsonl", "runs.jsonl", "artifacts.jsonl", "catalog.json", "state.latest.json"]
     payload = {"root": str(root), "files": {}, "counts": {}}
 
@@ -119,26 +136,60 @@ def cmd_summary(root: Path) -> int:
     return 0
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description="Recall helper for flat codex-sprint indexes")
-    ap.add_argument("--root", default="temp/codex-sprint", help="codex-sprint root")
+def _build_parser() -> argparse.ArgumentParser:
+    epilog = """Examples:
+  python3 scripts/codex-sprint/codex_sprint_recall.py summary
+  python3 scripts/codex-sprint/codex_sprint_recall.py latest --prompt loki-prompt-13 --limit 10
+  python3 scripts/codex-sprint/codex_sprint_recall.py find --index runs --status failed
+  python3 scripts/codex-sprint/codex_sprint_recall.py find --index all --file manifest.txt --limit 25
+"""
+    ap = argparse.ArgumentParser(
+        description="Unified recall helper for flat codex-sprint state/history/runs/artifacts indexes.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
+    ap.add_argument(
+        "--root",
+        default="temp/codex-sprint",
+        help="Codex-sprint root containing flat index files (default: temp/codex-sprint).",
+    )
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    p_latest = sub.add_parser("latest", help="Show latest state entries")
-    p_latest.add_argument("--prompt", default="", help="prompt slug substring")
-    p_latest.add_argument("--limit", type=int, default=50)
+    p_latest = sub.add_parser(
+        "latest",
+        help="Show latest state rows from state.latest.json",
+        description="Print latest prompt state rows, optionally filtered by prompt slug substring.",
+    )
+    p_latest.add_argument("--prompt", default="", help="Case-insensitive prompt slug substring filter.")
+    p_latest.add_argument("--limit", type=int, default=50, help="Maximum rows to print (default: 50).")
 
-    p_find = sub.add_parser("find", help="Find records in one or all indexes")
-    p_find.add_argument("--index", choices=["state", "history", "runs", "artifacts", "all"], default="all")
-    p_find.add_argument("--prompt", default="", help="prompt slug substring")
-    p_find.add_argument("--run", default="", help="run id/key/ref substring")
-    p_find.add_argument("--file", default="", help="file name/path substring")
-    p_find.add_argument("--status", default="", help="exact status filter")
-    p_find.add_argument("--limit", type=int, default=100)
+    p_find = sub.add_parser(
+        "find",
+        help="Search one or more JSONL indexes",
+        description="Search state/history/runs/artifacts indexes with deterministic AND filters.",
+    )
+    p_find.add_argument(
+        "--index",
+        choices=["state", "history", "runs", "artifacts", "all"],
+        default="all",
+        help="Index to scan (default: all).",
+    )
+    p_find.add_argument("--prompt", default="", help="Case-insensitive prompt slug substring filter.")
+    p_find.add_argument("--run", default="", help="Case-insensitive run id/key/ref substring filter.")
+    p_find.add_argument("--file", default="", help="Case-insensitive file name/path substring filter.")
+    p_find.add_argument("--status", default="", help="Case-insensitive exact status match filter.")
+    p_find.add_argument("--limit", type=int, default=100, help="Maximum rows to print (default: 100).")
 
-    sub.add_parser("summary", help="Show index sizes and basic counts")
+    sub.add_parser(
+        "summary",
+        help="Show index file paths plus quick counts/sizes",
+        description="Print index file locations and lightweight row/byte metrics.",
+    )
+    return ap
 
-    args = ap.parse_args()
+
+def main() -> int:
+    args = _build_parser().parse_args()
     root = Path(args.root)
 
     if args.cmd == "latest":

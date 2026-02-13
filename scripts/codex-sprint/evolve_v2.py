@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+"""Build codex-sprint evolution v2.
+
+v2 keeps append-only state/history logs and adds a flat artifact blob strategy:
+- run summaries go to `runs/<prompt-slug>--<rNNNN>.json`
+- per-prompt and global history/state indexes are JSONL
+- run artifacts are copied into `blobs/<prompt-slug>/` as
+  `<rNNNN>__<flattened-original-path>`
+
+This model reduces deep folder churn while preserving artifact bytes.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -17,12 +28,14 @@ from common import (
 
 
 def safe_blob_name(rel_path: str) -> str:
+    """Flatten relative paths into filesystem-safe file names."""
     flattened = rel_path.replace("/", "__")
     flattened = re.sub(r"[^A-Za-z0-9._-]+", "-", flattened)
     return flattened.strip("-") or "artifact.bin"
 
 
 def build_v2(repo_root: Path, out_root: Path) -> dict:
+    """Materialize the v2 layout and return a summary payload."""
     runs = assign_short_run_ids(collect_legacy_runs(repo_root))
 
     for d in ("state", "history", "blobs", "runs", "catalog"):
@@ -63,6 +76,7 @@ def build_v2(repo_root: Path, out_root: Path) -> dict:
             base = safe_blob_name(rel)
             dst = prompt_blob_dir / f"{run.run_id}__{base}"
             suffix = 1
+            # Preserve every artifact even if flattened names collide.
             while dst.exists():
                 collision_count += 1
                 dst = prompt_blob_dir / f"{run.run_id}__{suffix:02d}__{base}"
@@ -132,11 +146,34 @@ def build_v2(repo_root: Path, out_root: Path) -> dict:
     return summary
 
 
+def _build_parser() -> argparse.ArgumentParser:
+    epilog = """Examples:
+  python3 scripts/codex-sprint/evolve_v2.py
+  python3 scripts/codex-sprint/evolve_v2.py --repo-root /home/luce/apps/loki-logging --out temp/codex-sprint
+"""
+    ap = argparse.ArgumentParser(
+        description=(
+            "Build codex-sprint evolution v2 with append-only indexes and "
+            "flattened artifact blobs."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
+    ap.add_argument(
+        "--repo-root",
+        default=".",
+        help="Repository root used to discover legacy evidence trees (default: current directory).",
+    )
+    ap.add_argument(
+        "--out",
+        default="temp/codex-sprint",
+        help="Destination root for v2 output (default: temp/codex-sprint).",
+    )
+    return ap
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Build codex-sprint evolution v2")
-    ap.add_argument("--repo-root", default=".", help="Repo root")
-    ap.add_argument("--out", default="temp/codex-sprint", help="Output root")
-    args = ap.parse_args()
+    args = _build_parser().parse_args()
 
     repo_root = Path(args.repo_root).resolve()
     out_root = Path(args.out).resolve()

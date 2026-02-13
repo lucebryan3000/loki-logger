@@ -1,4 +1,18 @@
 #!/usr/bin/env python3
+"""Build codex-sprint evolution v4-flat (single-file indexes).
+
+v4-flat is the compact production layout used under `temp/codex-sprint/`.
+It writes:
+- `state.jsonl` and `state.latest.json`
+- `history.jsonl`
+- `runs.jsonl`
+- `artifacts.jsonl`
+- `catalog.json`, `schema.json`, and `SUMMARY.json`
+
+Artifacts remain in their original source locations; this script indexes them
+with file metadata plus sha256 to support reliable search/recall.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -16,6 +30,7 @@ from common import (
 
 
 def sha256_file(path: Path) -> str:
+    """Return the sha256 hex digest for a file path."""
     h = hashlib.sha256()
     with path.open("rb") as fh:
         while True:
@@ -27,6 +42,7 @@ def sha256_file(path: Path) -> str:
 
 
 def detect_status(src_dir: Path) -> str:
+    """Infer run status from known evidence markers."""
     manifest = src_dir / "manifest.txt"
     if manifest.is_file():
         text = manifest.read_text(encoding="utf-8", errors="ignore")
@@ -49,6 +65,7 @@ def detect_status(src_dir: Path) -> str:
 
 
 def build_v3(repo_root: Path, out_root: Path) -> dict:
+    """Materialize the v4-flat layout and return a summary payload."""
     runs = assign_short_run_ids(collect_legacy_runs(repo_root))
     out_root.mkdir(parents=True, exist_ok=True)
 
@@ -136,6 +153,7 @@ Compact machine-readable evidence layout with append-only single-file indexes.
         append_jsonl(state_log, state_row)
         state_latest_map[run.prompt_slug] = state_row
 
+        # Artifact index is append-only and points to original source files.
         for rel in run.files:
             src = src_dir / rel
             artifact_entry = {
@@ -220,11 +238,34 @@ Compact machine-readable evidence layout with append-only single-file indexes.
     return summary
 
 
+def _build_parser() -> argparse.ArgumentParser:
+    epilog = """Examples:
+  python3 scripts/codex-sprint/evolve_v3.py
+  python3 scripts/codex-sprint/evolve_v3.py --repo-root /home/luce/apps/loki-logging --out temp/codex-sprint
+"""
+    ap = argparse.ArgumentParser(
+        description=(
+            "Build codex-sprint evolution v4-flat with append-only single-file "
+            "indexes for state/history/runs/artifacts."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
+    ap.add_argument(
+        "--repo-root",
+        default=".",
+        help="Repository root used to discover legacy evidence trees (default: current directory).",
+    )
+    ap.add_argument(
+        "--out",
+        default="temp/codex-sprint",
+        help="Destination root for v4-flat output (default: temp/codex-sprint).",
+    )
+    return ap
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Build codex-sprint evolution v4-flat")
-    ap.add_argument("--repo-root", default=".", help="Repo root")
-    ap.add_argument("--out", default="temp/codex-sprint", help="Output root")
-    args = ap.parse_args()
+    args = _build_parser().parse_args()
 
     repo_root = Path(args.repo_root).resolve()
     out_root = Path(args.out).resolve()

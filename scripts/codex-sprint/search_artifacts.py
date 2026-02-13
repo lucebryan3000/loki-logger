@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""Search `temp/codex-sprint/artifacts.jsonl` with simple substring filters.
+
+This helper is intentionally narrow: it only searches artifact rows and emits
+matching rows as JSON lines for easy piping into `jq` or other tools.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -7,14 +13,34 @@ import sys
 from pathlib import Path
 
 
+def _build_parser() -> argparse.ArgumentParser:
+    epilog = """Examples:
+  python3 scripts/codex-sprint/search_artifacts.py --prompt loki-prompt-13 --file manifest.txt
+  python3 scripts/codex-sprint/search_artifacts.py --run r0012 --limit 20
+"""
+    ap = argparse.ArgumentParser(
+        description="Search the flat artifact index (`artifacts.jsonl`) by prompt/file/run substrings.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
+    ap.add_argument(
+        "--root",
+        default="temp/codex-sprint",
+        help="Codex-sprint root containing `artifacts.jsonl` (default: temp/codex-sprint).",
+    )
+    ap.add_argument("--prompt", default="", help="Case-insensitive prompt slug substring filter.")
+    ap.add_argument(
+        "--file",
+        default="",
+        help="Case-insensitive file name or relative-path substring filter.",
+    )
+    ap.add_argument("--run", default="", help="Case-insensitive run id/key substring filter.")
+    ap.add_argument("--limit", type=int, default=100, help="Maximum rows to print (default: 100).")
+    return ap
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Search temp/codex-sprint/artifacts.jsonl")
-    ap.add_argument("--root", default="temp/codex-sprint", help="codex-sprint root")
-    ap.add_argument("--prompt", default="", help="prompt slug substring match")
-    ap.add_argument("--file", default="", help="artifact file name or rel path substring match")
-    ap.add_argument("--run", default="", help="run id or run key substring match")
-    ap.add_argument("--limit", type=int, default=100, help="max rows to print")
-    args = ap.parse_args()
+    args = _build_parser().parse_args()
 
     root = Path(args.root)
     index_path = root / "artifacts.jsonl"
@@ -44,6 +70,7 @@ def main() -> int:
             run_id = str(row.get("run_id", "")).lower()
             run_key = str(row.get("run_key", "")).lower()
 
+            # Keep matching rules deterministic and transparent: simple AND filters.
             if prompt_q and prompt_q not in prompt_slug:
                 continue
             if file_q and file_q not in file_name and file_q not in rel_path:

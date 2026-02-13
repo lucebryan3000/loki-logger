@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+"""Search any flat codex-sprint JSONL index.
+
+Supported indexes:
+- artifacts.jsonl
+- runs.jsonl
+- history.jsonl
+- state.jsonl
+
+Rows are emitted as JSON lines for downstream automation.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -8,6 +19,7 @@ from pathlib import Path
 
 
 def iter_jsonl(path: Path):
+    """Yield parsed JSON objects from a JSONL file and skip malformed rows."""
     if not path.is_file():
         return
     with path.open("r", encoding="utf-8") as fh:
@@ -22,6 +34,7 @@ def iter_jsonl(path: Path):
 
 
 def matches(row: dict, prompt_q: str, run_q: str, file_q: str, status_q: str) -> bool:
+    """Return True when a row satisfies all active filters."""
     prompt = str(row.get("prompt_slug", "")).lower()
     run = " ".join([str(row.get("run_id", "")), str(row.get("run_key", "")), str(row.get("run_ref", ""))]).lower()
     file_text = " ".join([str(row.get("file_name", "")), str(row.get("rel_path", "")), str(row.get("source_rel", ""))]).lower()
@@ -38,16 +51,38 @@ def matches(row: dict, prompt_q: str, run_q: str, file_q: str, status_q: str) ->
     return True
 
 
+def _build_parser() -> argparse.ArgumentParser:
+    epilog = """Examples:
+  python3 scripts/codex-sprint/search_records.py --index runs --prompt loki-prompt-13
+  python3 scripts/codex-sprint/search_records.py --index state --status failed --limit 20
+  python3 scripts/codex-sprint/search_records.py --index artifacts --file manifest.txt --run r0007
+"""
+    ap = argparse.ArgumentParser(
+        description="Search flat codex-sprint JSONL indexes with consistent substring filters.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
+    ap.add_argument(
+        "--root",
+        default="temp/codex-sprint",
+        help="Codex-sprint root containing flat indexes (default: temp/codex-sprint).",
+    )
+    ap.add_argument(
+        "--index",
+        choices=["artifacts", "runs", "history", "state"],
+        default="artifacts",
+        help="Index to search (default: artifacts).",
+    )
+    ap.add_argument("--prompt", default="", help="Case-insensitive prompt slug substring filter.")
+    ap.add_argument("--run", default="", help="Case-insensitive run id/key/ref substring filter.")
+    ap.add_argument("--file", default="", help="Case-insensitive file name/path substring filter.")
+    ap.add_argument("--status", default="", help="Case-insensitive exact status match filter.")
+    ap.add_argument("--limit", type=int, default=100, help="Maximum rows to print (default: 100).")
+    return ap
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Search flat codex-sprint JSONL indexes")
-    ap.add_argument("--root", default="temp/codex-sprint", help="codex-sprint root")
-    ap.add_argument("--index", choices=["artifacts", "runs", "history", "state"], default="artifacts")
-    ap.add_argument("--prompt", default="", help="prompt slug substring")
-    ap.add_argument("--run", default="", help="run id/key/ref substring")
-    ap.add_argument("--file", default="", help="file name/path substring (artifacts)")
-    ap.add_argument("--status", default="", help="exact status filter")
-    ap.add_argument("--limit", type=int, default=100)
-    args = ap.parse_args()
+    args = _build_parser().parse_args()
 
     root = Path(args.root)
     index_map = {
@@ -69,6 +104,7 @@ def main() -> int:
 
     count = 0
     for row in iter_jsonl(path):
+        # Deterministic AND semantics across all active filters.
         if not matches(row, prompt_q, run_q, file_q, status_q):
             continue
         print(json.dumps(row, ensure_ascii=True, sort_keys=True))
