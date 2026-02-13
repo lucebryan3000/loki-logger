@@ -8,6 +8,7 @@ set -euo pipefail
 #
 # The script also captures per-phase logs and snapshots to
 # `temp/codex-sprint-phases/`, then syncs helper scripts into final output.
+# A deterministic verify gate runs after each phase and fails closed.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd -P)"
@@ -33,6 +34,7 @@ Options:
 Outputs:
   <phase-log-dir>/baseline_metrics.json
   <phase-log-dir>/phaseN.run.log
+  <phase-log-dir>/phaseN.verify.log
   <phase-log-dir>/phaseN.summary.json
   <phase-log-dir>/phaseN.dirs.txt
   <phase-log-dir>/phaseN.files.txt
@@ -105,11 +107,24 @@ PY
 run_phase() {
   local phase="$1"
   local script="${SCRIPT_DIR}/evolve.py"
+  local verify_script="${SCRIPT_DIR}/verify.py"
 
   echo "== codex-sprint phase ${phase} =="
-  rm -rf "${OUT_DIR}"
   python3 "${script}" --phase "${phase}" --repo-root "${REPO_ROOT}" --out "${OUT_DIR}" \
+    --atomic yes --incremental yes \
     | tee "${PHASE_LOG_DIR}/phase${phase}.run.log"
+
+  # For final phase, sync helper/runtime files first so verify can enforce
+  # manifest and canonical file presence deterministically.
+  if [[ "${phase}" == "3" && "${SKIP_SYNC}" -eq 0 ]]; then
+    local sync_helpers_sh="${SCRIPT_DIR}/sync_helpers_to_prod.sh"
+    if [[ -x "${sync_helpers_sh}" ]]; then
+      "${sync_helpers_sh}" --repo-root "${REPO_ROOT}" --prod-root "${OUT_DIR}" >/dev/null
+    fi
+  fi
+
+  python3 "${verify_script}" --root "${OUT_DIR}" --phase "${phase}" \
+    | tee "${PHASE_LOG_DIR}/phase${phase}.verify.log"
 
   cp "${OUT_DIR}/SUMMARY.json" "${PHASE_LOG_DIR}/phase${phase}.summary.json"
   find "${OUT_DIR}" -maxdepth 3 -type d | sort > "${PHASE_LOG_DIR}/phase${phase}.dirs.txt"
@@ -121,10 +136,5 @@ write_baseline_metrics
 run_phase 1
 run_phase 2
 run_phase 3
-
-SYNC_HELPERS_SH="${SCRIPT_DIR}/sync_helpers_to_prod.sh"
-if [[ "${SKIP_SYNC}" -eq 0 && -x "${SYNC_HELPERS_SH}" ]]; then
-  "${SYNC_HELPERS_SH}" --repo-root "${REPO_ROOT}" --prod-root "${OUT_DIR}" >/dev/null
-fi
 
 echo "completed all phases; final output retained at ${OUT_DIR}"

@@ -1,0 +1,15 @@
+ANTI_PATTERNS.md
+README.md
+codex_sprint.config.json
+codex_sprint.py
+codex_sprint_recall.py
+codex_sprint_recall.sh
+common.py
+evolve.py
+run_evolutions.sh
+schema_contract.py
+search_artifacts.py
+search_records.py
+sync.allowlist
+sync_helpers_to_prod.sh
+verify.py

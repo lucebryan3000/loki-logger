@@ -20,9 +20,11 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 import shutil
 from pathlib import Path
+from typing import Any
 
 from common import (
     append_jsonl,
@@ -115,9 +117,138 @@ def render_output_readme() -> str:
     return README_FALLBACK
 
 
-def build_phase1(repo_root: Path, out_root: Path) -> dict:
+def _run_key_for_ledger(prompt_slug: str, source_family: str, source_run_path: str) -> str:
+    """Deterministic run identity key used for stable run-id assignment."""
+    return f"{prompt_slug}|{source_family}|{source_run_path}"
+
+
+def _parse_run_seq(run_id: str) -> int:
+    m = re.match(r"^r(\d{4})$", run_id)
+    if not m:
+        return 0
+    return int(m.group(1))
+
+
+def assign_short_run_ids_stable(runs: list, ledger_path: Path) -> list:
+    """Assign stable per-prompt short run IDs, persisted in ledger."""
+    old: dict[str, Any] = {}
+    if ledger_path.is_file():
+        try:
+            parsed = json.loads(ledger_path.read_text(encoding="utf-8"))
+            if isinstance(parsed, dict):
+                old = parsed
+        except json.JSONDecodeError:
+            old = {}
+
+    prompts_state = old.get("prompts", {}) if isinstance(old.get("prompts"), dict) else {}
+    # Normalize prompt ledger for deterministic updates.
+    normalized_prompts: dict[str, dict[str, Any]] = {}
+    for slug, payload in prompts_state.items():
+        if not isinstance(payload, dict):
+            continue
+        entries = payload.get("entries", {})
+        if not isinstance(entries, dict):
+            entries = {}
+        max_seq = 0
+        for run_id in entries.values():
+            if isinstance(run_id, str):
+                max_seq = max(max_seq, _parse_run_seq(run_id))
+        normalized_prompts[slug] = {
+            "next_seq": max(max_seq + 1, int(payload.get("next_seq", 1)) if isinstance(payload.get("next_seq"), int) else 1),
+            "entries": {str(k): str(v) for k, v in entries.items() if isinstance(v, str)},
+        }
+
+    out: list = []
+    for run in runs:
+        slug = run.prompt_slug
+        prompt_state = normalized_prompts.setdefault(slug, {"next_seq": 1, "entries": {}})
+        key = _run_key_for_ledger(run.prompt_slug, run.source_family, run.source_run_path)
+        run_id = prompt_state["entries"].get(key)
+        if not run_id:
+            seq = int(prompt_state["next_seq"])
+            run_id = f"r{seq:04d}"
+            prompt_state["entries"][key] = run_id
+            prompt_state["next_seq"] = seq + 1
+        run_seq = _parse_run_seq(run_id)
+        run.run_seq = run_seq
+        run.run_id = run_id
+        run.run_key = f"{run.prompt_slug}--{run.run_id}"
+        out.append(run)
+
+    ledger_obj = {
+        "version": "v1",
+        "updated_utc": now_utc_iso(),
+        "prompts": {k: normalized_prompts[k] for k in sorted(normalized_prompts.keys())},
+    }
+    write_json(ledger_path, ledger_obj)
+    return out
+
+
+def collect_runs(repo_root: Path, ledger_path: Path | None) -> list:
+    """Collect runs and assign short IDs either statelessly or from a persisted ledger."""
+    runs = collect_legacy_runs(repo_root)
+    if ledger_path is None:
+        return assign_short_run_ids(runs)
+    return assign_short_run_ids_stable(runs, ledger_path)
+
+
+def build_source_snapshot(runs: list) -> dict[str, Any]:
+    """Deterministic source snapshot used for incremental no-change fast path."""
+    rows = []
+    for run in runs:
+        rows.append(
+            {
+                "prompt_slug": run.prompt_slug,
+                "source_family": run.source_family,
+                "source_run_path": run.source_run_path,
+                "source_run_label": run.source_run_label,
+                "file_count": run.file_count,
+                "total_bytes": run.total_bytes,
+                "sort_epoch": run.sort_epoch,
+            }
+        )
+    rows.sort(key=lambda x: (x["prompt_slug"], x["source_family"], x["source_run_path"], x["source_run_label"]))
+    return {"version": "v1", "run_count": len(rows), "runs": rows}
+
+
+def should_skip_incremental(out_root: Path, snapshot: dict[str, Any]) -> bool:
+    """Return True when phase-3 output can be reused with no rebuild."""
+    required = [
+        out_root / "state.jsonl",
+        out_root / "state.latest.json",
+        out_root / "history.jsonl",
+        out_root / "runs.jsonl",
+        out_root / "artifacts.jsonl",
+        out_root / "catalog.json",
+        out_root / "schema.json",
+        out_root / "SUMMARY.json",
+        out_root / "README.md",
+    ]
+    if not all(p.is_file() and p.stat().st_size > 0 for p in required):
+        return False
+    snapshot_path = out_root / "source_snapshot.json"
+    if not snapshot_path.is_file():
+        return False
+    try:
+        current = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return False
+    return current == snapshot
+
+
+def promote_staging(stage_root: Path, out_root: Path) -> None:
+    """Atomically-ish promote staging output to target root with one backup slot."""
+    previous = out_root.parent / f"{out_root.name}.previous"
+    if previous.exists():
+        shutil.rmtree(previous)
+    if out_root.exists():
+        out_root.rename(previous)
+    stage_root.rename(out_root)
+
+
+def build_phase1(repo_root: Path, out_root: Path, ledger_path: Path | None = None) -> dict:
     """Build v1 layout: copied run trees + prompt-level state/history files."""
-    runs = assign_short_run_ids(collect_legacy_runs(repo_root))
+    runs = collect_runs(repo_root, ledger_path)
 
     (out_root / "catalog").mkdir(parents=True, exist_ok=True)
     (out_root / "prompts").mkdir(parents=True, exist_ok=True)
@@ -194,9 +325,9 @@ def build_phase1(repo_root: Path, out_root: Path) -> dict:
     return summary
 
 
-def build_phase2(repo_root: Path, out_root: Path) -> dict:
+def build_phase2(repo_root: Path, out_root: Path, ledger_path: Path | None = None) -> dict:
     """Build v2 layout: append logs plus flattened artifact blob copies."""
-    runs = assign_short_run_ids(collect_legacy_runs(repo_root))
+    runs = collect_runs(repo_root, ledger_path)
 
     for d in ("state", "history", "blobs", "runs", "catalog"):
         (out_root / d).mkdir(parents=True, exist_ok=True)
@@ -305,9 +436,28 @@ def build_phase2(repo_root: Path, out_root: Path) -> dict:
     return summary
 
 
-def build_phase3(repo_root: Path, out_root: Path) -> dict:
+def build_phase3(
+    repo_root: Path,
+    out_root: Path,
+    ledger_path: Path | None = None,
+    incremental: str = "yes",
+    incremental_root: Path | None = None,
+) -> dict:
     """Build v4-flat layout: single-file append-only indexes."""
-    runs = assign_short_run_ids(collect_legacy_runs(repo_root))
+    runs = collect_runs(repo_root, ledger_path)
+    snapshot = build_source_snapshot(runs)
+    check_root = incremental_root if incremental_root is not None else out_root
+    if incremental == "yes" and should_skip_incremental(check_root, snapshot):
+        summary = {
+            "evolution": "v4-flat",
+            "created_utc": now_utc_iso(),
+            "source_run_count": len(runs),
+            "source_prompt_count": len({r.prompt_slug for r in runs}),
+            "indexed_artifacts": sum(r.file_count for r in runs),
+            "skipped_no_changes": True,
+            "output_path": str(check_root),
+        }
+        return summary
     out_root.mkdir(parents=True, exist_ok=True)
 
     state_log = out_root / "state.jsonl"
@@ -461,6 +611,7 @@ def build_phase3(repo_root: Path, out_root: Path) -> dict:
         "output_metrics": metrics.to_dict(),
     }
     write_json(out_root / "SUMMARY.json", summary)
+    write_json(out_root / "source_snapshot.json", snapshot)
     return summary
 
 
@@ -471,16 +622,38 @@ PHASE_BUILDERS = {
 }
 
 
-def run_phase(phase: str, repo_root: Path, out_root: Path) -> dict:
+def run_phase(
+    phase: str,
+    repo_root: Path,
+    out_root: Path,
+    ledger_path: Path | None,
+    incremental: str,
+    incremental_root: Path | None = None,
+    display_out: Path | None = None,
+) -> dict:
     """Run one phase by id and print canonical completion line."""
     version, fn = PHASE_BUILDERS[phase]
-    summary = fn(repo_root, out_root)
+    if phase == "3":
+        summary = fn(
+            repo_root,
+            out_root,
+            ledger_path=ledger_path,
+            incremental=incremental,
+            incremental_root=incremental_root,
+        )
+    else:
+        summary = fn(repo_root, out_root, ledger_path=ledger_path)
+    if summary.get("skipped_no_changes"):
+        shown = display_out if display_out is not None else out_root
+        print(f"v4-flat incremental skip: no source changes detected; reused output at {shown}")
+        return summary
+    shown = display_out if display_out is not None else out_root
     if version in ("v1", "v2"):
-        print(f"{version} complete: runs={summary['source_run_count']} files={summary['copied_files']} out={out_root}")
+        print(f"{version} complete: runs={summary['source_run_count']} files={summary['copied_files']} out={shown}")
     else:
         print(
             "v4-flat complete: "
-            f"runs={summary['source_run_count']} indexed_artifacts={summary['indexed_artifacts']} out={out_root}"
+            f"runs={summary['source_run_count']} indexed_artifacts={summary['indexed_artifacts']} out={shown}"
         )
     return summary
 
@@ -521,6 +694,26 @@ def _build_parser() -> argparse.ArgumentParser:
         default="yes",
         help="When --phase all, remove --out before each phase (default: yes).",
     )
+    ap.add_argument(
+        "--atomic",
+        choices=["yes", "no"],
+        default="yes",
+        help="Build into staging path and promote on success (default: yes).",
+    )
+    ap.add_argument(
+        "--incremental",
+        choices=["yes", "no"],
+        default="yes",
+        help="For phase 3, skip rebuild when source snapshot is unchanged (default: yes).",
+    )
+    ap.add_argument(
+        "--ledger-path",
+        default="",
+        help=(
+            "Stable run-id ledger path. Default uses sibling <out>.run_id_ledger.json when empty. "
+            "Set to `none` to disable stable ledger behavior."
+        ),
+    )
     return ap
 
 
@@ -528,17 +721,51 @@ def main() -> int:
     args = _build_parser().parse_args()
     repo_root = Path(args.repo_root).resolve()
     out_root = Path(args.out).resolve()
+    ledger_path: Path | None
+    if args.ledger_path.strip().lower() == "none":
+        ledger_path = None
+    elif args.ledger_path.strip():
+        ledger_path = Path(args.ledger_path).resolve()
+    else:
+        ledger_path = out_root.parent / f"{out_root.name}.run_id_ledger.json"
+
+    def _phase_target(phase: str) -> Path:
+        if args.atomic == "no":
+            return out_root
+        stage = out_root.parent / f".staging.{out_root.name}.phase{phase}"
+        if stage.exists():
+            shutil.rmtree(stage)
+        return stage
+
+    def _run_single_phase(phase: str) -> None:
+        target = _phase_target(phase)
+        target.mkdir(parents=True, exist_ok=True)
+        summary = run_phase(
+            phase,
+            repo_root,
+            target,
+            ledger_path=ledger_path,
+            incremental=args.incremental,
+            incremental_root=out_root if (args.atomic == "yes" and phase == "3") else None,
+            display_out=out_root if args.atomic == "yes" else target,
+        )
+        if summary.get("skipped_no_changes"):
+            if args.atomic == "yes" and target.exists():
+                shutil.rmtree(target)
+            return
+        if args.atomic == "yes":
+            promote_staging(target, out_root)
 
     if args.phase == "all":
         for phase in ("1", "2", "3"):
-            if args.clean_between == "yes" and out_root.exists():
+            if args.clean_between == "yes" and out_root.exists() and args.atomic == "no":
                 shutil.rmtree(out_root)
-            out_root.mkdir(parents=True, exist_ok=True)
-            run_phase(phase, repo_root, out_root)
+            _run_single_phase(phase)
         return 0
 
-    out_root.mkdir(parents=True, exist_ok=True)
-    run_phase(args.phase, repo_root, out_root)
+    if args.clean_between == "yes" and out_root.exists() and args.atomic == "no":
+        shutil.rmtree(out_root)
+    _run_single_phase(args.phase)
     return 0
 
 

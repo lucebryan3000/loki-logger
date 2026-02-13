@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd -P)"
 PROD_ROOT="${REPO_ROOT}/temp/codex-sprint"
 DEV_DIR="${REPO_ROOT}/scripts/codex-sprint"
+ALLOWLIST_PATH="${DEV_DIR}/sync.allowlist"
 MODE="all"
 PRUNE=1
 
@@ -20,8 +21,9 @@ Copy codex-sprint scripts from dev to prod and write `helpers.manifest.json`.
 Options:
   --repo-root <path>   Repository root (default: inferred from script location)
   --prod-root <path>   Destination root (default: <repo>/temp/codex-sprint)
+  --allowlist <path>   Canonical file allowlist (default: scripts/codex-sprint/sync.allowlist)
   --mode helpers|all   Sync mode:
-                         all     = all top-level *.py/*.sh + README.md under scripts/codex-sprint (default)
+                         all     = files from allowlist (default)
                          helpers = recall/search helper scripts only
   --no-prune           Keep extra old script/readme files in prod root (default: prune stale)
   -h, --help           Show this help and exit
@@ -43,6 +45,11 @@ while [[ $# -gt 0 ]]; do
     --prod-root)
       [[ $# -ge 2 ]] || { echo "--prod-root requires a value" >&2; exit 2; }
       PROD_ROOT="${2:-}"
+      shift 2
+      ;;
+    --allowlist)
+      [[ $# -ge 2 ]] || { echo "--allowlist requires a value" >&2; exit 2; }
+      ALLOWLIST_PATH="${2:-}"
       shift 2
       ;;
     --mode)
@@ -69,6 +76,7 @@ done
 REPO_ROOT="$(cd "${REPO_ROOT}" && pwd -P)"
 PROD_ROOT="$(realpath -m "${PROD_ROOT}")"
 DEV_DIR="${REPO_ROOT}/scripts/codex-sprint"
+ALLOWLIST_PATH="$(realpath -m "${ALLOWLIST_PATH}")"
 
 case "${MODE}" in
   helpers|all) ;;
@@ -95,6 +103,12 @@ copy_readme() {
   install -m 0644 "${src}" "${dst}"
 }
 
+copy_data() {
+  local src="$1"
+  local dst="$2"
+  install -m 0644 "${src}" "${dst}"
+}
+
 collect_sources() {
   if [[ "${MODE}" == "helpers" ]]; then
     cat <<'EOF'
@@ -104,20 +118,31 @@ search_records.py
 search_artifacts.py
 EOF
   else
-    {
-      printf '%s\n' "README.md"
-      find "${DEV_DIR}" -maxdepth 1 -type f \( -name "*.py" -o -name "*.sh" \) -printf "%f\n"
-    } | sort -u
+    if [[ ! -f "${ALLOWLIST_PATH}" ]]; then
+      echo "missing allowlist file: ${ALLOWLIST_PATH}" >&2
+      return 2
+    fi
+    awk '
+      {
+        gsub(/^[ \t]+|[ \t]+$/, "", $0);
+        if ($0 == "" || $0 ~ /^#/) next;
+        print $0;
+      }
+    ' "${ALLOWLIST_PATH}" | sort -u
   fi
 }
 
 mapfile -t FILE_LIST < <(collect_sources)
+[[ "${#FILE_LIST[@]}" -gt 0 ]] || { echo "no files selected for sync" >&2; exit 2; }
 for name in "${FILE_LIST[@]}"; do
   [[ -n "${name}" ]] || continue
+  [[ -f "${DEV_DIR}/${name}" ]] || { echo "allowlisted file missing in dev dir: ${DEV_DIR}/${name}" >&2; exit 2; }
   if [[ "${name}" == "README.md" ]]; then
     copy_readme "${DEV_DIR}/${name}" "${PROD_ROOT}/${name}"
-  else
+  elif [[ "${name}" == *.py || "${name}" == *.sh ]]; then
     copy_exec "${DEV_DIR}/${name}" "${PROD_ROOT}/${name}"
+  else
+    copy_data "${DEV_DIR}/${name}" "${PROD_ROOT}/${name}"
   fi
 done
 
@@ -138,7 +163,7 @@ if [[ "${PRUNE}" -eq 1 ]]; then
   done
 fi
 
-python3 - <<'PY' "${REPO_ROOT}" "${PROD_ROOT}" "${MODE}" "${PRUNE}" "${DEV_DIR}" "${FILE_LIST[@]}"
+python3 - <<'PY' "${REPO_ROOT}" "${PROD_ROOT}" "${MODE}" "${PRUNE}" "${DEV_DIR}" "${ALLOWLIST_PATH}" "${FILE_LIST[@]}"
 import hashlib
 import json
 import sys
@@ -150,7 +175,8 @@ prod_root = Path(sys.argv[2])
 mode = sys.argv[3]
 prune = sys.argv[4] == "1"
 dev_dir = Path(sys.argv[5])
-names = sys.argv[6:]
+allowlist_path = Path(sys.argv[6])
+names = sys.argv[7:]
 
 rows = []
 for name in names:
@@ -170,6 +196,7 @@ manifest = {
     "synced_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "mode": mode,
     "prune": prune,
+    "allowlist": str(allowlist_path),
     "repo_root": str(repo_root),
     "prod_root": str(prod_root),
     "files": rows,
