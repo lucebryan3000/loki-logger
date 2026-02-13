@@ -40,12 +40,6 @@ loki.source.file "telemetry" {
 // CodeSwarm MCP logs (vLLM host bind)
 local.file_match "codeswarm_mcp" {
   path_targets = [{ "__path__" = "/host/home/luce/apps/vLLM/_data/mcp-logs/*.log" }]
-
-  file_match {
-    enabled     = true
-    sync_period = "2s"
-  }
-
 }
 
 
@@ -55,10 +49,10 @@ loki.source.file "codeswarm_mcp" {
   forward_to    = [loki.process.codeswarm.receiver]
 }
 
-loki.process "main" {
+ loki.process "main" {
   stage.static_labels {
     values = {
-      env = "sandbox"
+      env = "sandbox",
     }
   }
   forward_to = [loki.write.default.receiver]
@@ -67,8 +61,8 @@ loki.process "main" {
 loki.process "codeswarm" {
   stage.static_labels {
     values = {
-      env        = "sandbox"
-      log_source = "codeswarm_mcp"
+      env        = "sandbox",
+      log_source = "codeswarm_mcp",
     }
   }
   forward_to = [loki.write.default.receiver]

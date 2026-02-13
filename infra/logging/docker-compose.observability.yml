@@ -52,7 +52,7 @@ services:
     volumes:
       - prometheus-data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./infra/logging/prometheus/rules:/etc/prometheus/rules:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
     networks: [obs]
     restart: unless-stopped
 
