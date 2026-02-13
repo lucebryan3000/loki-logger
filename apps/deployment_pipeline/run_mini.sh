@@ -80,6 +80,7 @@ wipe_state() {
   rm -f "$PROMPTS_DIR/.prompt-pipeline.state"
   rm -f "$PROMPTS_DIR/.prompt-pipeline.failed"
   rm -f "$PROMPTS_DIR/.prompt-pipeline.log.jsonl"
+  rm -f "$PROMPTS_DIR/.prompt-pipeline.summary.json"
   rm -f "$PROMPTS_DIR/.prompt-pipeline.pending.preview.txt"
   rm -f "$PROMPTS_DIR/.prompt-pipeline.plan.txt"
   rm -f "$PROMPTS_DIR/.prompt-pipeline.resume.env"

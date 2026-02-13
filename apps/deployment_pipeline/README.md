@@ -56,6 +56,7 @@ rm -f apps/deployment_pipeline/out/phase1.txt apps/deployment_pipeline/out/phase
 rm -f apps/deployment_pipeline/prompts/.prompt-pipeline.state
 rm -f apps/deployment_pipeline/prompts/.prompt-pipeline.failed
 rm -f apps/deployment_pipeline/prompts/.prompt-pipeline.log.jsonl
+rm -f apps/deployment_pipeline/prompts/.prompt-pipeline.summary.json
 rm -f apps/deployment_pipeline/prompts/.prompt-pipeline.pending.preview.txt
 rm -f apps/deployment_pipeline/prompts/.prompt-pipeline.plan.txt
 rm -f apps/deployment_pipeline/prompts/.prompt-pipeline.resume.env
@@ -79,6 +80,7 @@ Use this isolated canary root to validate fail-fast and parking behavior:
 
 ```bash
 rm -f apps/deployment_pipeline/canary/.prompt-pipeline.*
+rm -f apps/deployment_pipeline/canary/.prompt-pipeline.summary.json
 rm -rf apps/deployment_pipeline/canary/logs
 
 PIPELINE_FAIL_FAST_THRESHOLD=1 \\
