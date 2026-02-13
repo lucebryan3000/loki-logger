@@ -152,6 +152,7 @@ prism_init() {
   export PRISM_HISTORY_LOG="${CODEX_SPRINT_ROOT}/history/${CODEX_PROMPT_SLUG}.jsonl"
   export PRISM_ALL_HISTORY_LOG="${CODEX_SPRINT_ROOT}/history/all-runs.jsonl"
   export PRISM_CATALOG_JSON="${CODEX_SPRINT_ROOT}/catalog/prompts.json"
+  export PRISM_ARTIFACTS_JSONL="${CODEX_SPRINT_ROOT}/artifacts.jsonl"
 
   export RUN_SEQ
   RUN_SEQ="$(python3 - "${PRISM_STATE_LATEST}" <<'PY'
@@ -206,6 +207,8 @@ PY
     prompt_slug="${CODEX_PROMPT_SLUG}"
 
   prism_store_update "running"
+  prism_append_artifact "${PRISM_EXEC_LOG}" ""
+  prism_append_artifact "${PRISM_EVENTS}" ""
 }
 
 # Append JSON object per line (NDJSON). Avoid jq dependency.
@@ -243,6 +246,79 @@ prism_cmd() {
   return "$rc"
 }
 
+prism_append_artifact() {
+  local f="$1"
+  local sha="${2:-}"
+  [ -f "${f}" ] || return 0
+  python3 - \
+    "${PRISM_ARTIFACTS_JSONL}" \
+    "${CODEX_PROMPT_SLUG}" \
+    "${CODEX_PROMPT_NAME}" \
+    "${RUN_ID}" \
+    "${RUN_SEQ}" \
+    "${RUN_KEY}" \
+    "${PRISM_EVID_DIR}" \
+    "${RUN_UTC}" \
+    "${f}" \
+    "${sha}" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+(
+    index_path,
+    prompt_slug,
+    prompt_name,
+    run_id,
+    run_seq_raw,
+    run_key,
+    run_dir,
+    run_utc,
+    file_path,
+    sha,
+) = sys.argv[1:11]
+
+run_seq = int(run_seq_raw) if run_seq_raw.isdigit() else 0
+p = Path(file_path)
+run_dir_path = Path(run_dir)
+
+try:
+    rel = p.resolve().relative_to(run_dir_path.resolve()).as_posix()
+except Exception:
+    rel = str(p)
+
+if not sha:
+    h = hashlib.sha256()
+    with p.open("rb") as fh:
+        while True:
+            chunk = fh.read(1024 * 1024)
+            if not chunk:
+                break
+            h.update(chunk)
+    sha = h.hexdigest()
+
+row = {
+    "prompt_slug": prompt_slug,
+    "prompt_name": prompt_name,
+    "run_id": run_id,
+    "run_seq": run_seq,
+    "run_key": run_key,
+    "run_dir": run_dir,
+    "run_utc": run_utc,
+    "file_name": p.name,
+    "rel_path": rel,
+    "bytes": p.stat().st_size,
+    "sha256": sha,
+}
+
+idx = Path(index_path)
+idx.parent.mkdir(parents=True, exist_ok=True)
+with idx.open("a", encoding="utf-8") as fh:
+    fh.write(json.dumps(row, ensure_ascii=True, sort_keys=True) + "\n")
+PY
+}
+
 # Hashes appended into events.ndjson (no separate hash files)
 prism_hash() {
   for f in "$@"; do
@@ -250,6 +326,7 @@ prism_hash() {
       local h
       h="$(sha256sum "$f" | awk '{print $1}')"
       prism_event sha file="$f" sha256="$h"
+      prism_append_artifact "$f" "$h"
     else
       prism_event sha_missing file="$f"
     fi

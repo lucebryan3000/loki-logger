@@ -78,8 +78,9 @@ def should_copy(rel_path: str) -> bool:
 def build_v3(repo_root: Path, out_root: Path) -> dict:
     runs = assign_short_run_ids(collect_legacy_runs(repo_root))
 
-    for d in ("state", "history", "runs", "catalog", "artifacts"):
+    for d in ("state", "history", "runs", "catalog"):
         (out_root / d).mkdir(parents=True, exist_ok=True)
+    artifacts_index_path = out_root / "artifacts.jsonl"
 
     readme = """# codex-sprint v3
 
@@ -90,7 +91,7 @@ Compact machine-readable evidence layout.
 - `history/<slug>.jsonl`: append-only run summaries per prompt
 - `history/all-runs.jsonl`: append-only global run summaries
 - `runs/<slug>--<rNNNN>/`: focused run bundle with high-signal files + artifact manifest
-- `artifacts/<slug>.jsonl`: append-only artifact index (sha256 + size + source path)
+- `artifacts.jsonl`: append-only artifact index (sha256 + size + source path)
 - `catalog/prompts.json`: compact query index for prompts and counts
 """
     (out_root / "README.md").write_text(readme, encoding="utf-8")
@@ -107,7 +108,7 @@ Compact machine-readable evidence layout.
                 "history_prompt": "history/<slug>.jsonl",
                 "history_global": "history/all-runs.jsonl",
                 "run_bundle": "runs/<slug>--<rNNNN>/",
-                "artifact_index": "artifacts/<slug>.jsonl",
+                "artifact_index": "artifacts.jsonl",
                 "catalog": "catalog/prompts.json",
             },
         },
@@ -140,6 +141,8 @@ Compact machine-readable evidence layout.
                 "prompt_slug": run.prompt_slug,
                 "run_id": run.run_id,
                 "run_key": run.run_key,
+                "file_name": Path(rel).name,
+                "rel_path": rel,
                 "source_rel": rel,
                 "source_abs": str(src),
                 "bytes": size,
@@ -147,7 +150,7 @@ Compact machine-readable evidence layout.
                 "copied_rel": copied_rel,
             }
             artifact_manifest.append(artifact_entry)
-            append_jsonl(out_root / "artifacts" / f"{run.prompt_slug}.jsonl", artifact_entry)
+            append_jsonl(artifacts_index_path, artifact_entry)
             indexed_artifacts += 1
 
         status = detect_status(src_dir)
@@ -219,6 +222,7 @@ Compact machine-readable evidence layout.
         "source_run_count": len(runs),
         "source_prompt_count": len(prompt_rows),
         "indexed_artifacts": indexed_artifacts,
+        "artifact_index_path": str(artifacts_index_path),
         "copied_high_signal_files": copied_high_signal_files,
         "output_metrics": metrics.to_dict(),
     }
