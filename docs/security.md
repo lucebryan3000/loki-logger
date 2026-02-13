@@ -38,7 +38,7 @@ These services have **no exposed ports** and are only accessible from the `obs` 
 
 ### Environment Variables (.env)
 
-**Location:** `infra/logging/.env`
+**Location:** `.env`
 
 **Required secrets:**
 - `GRAFANA_ADMIN_USER` — Grafana admin username
@@ -48,17 +48,17 @@ These services have **no exposed ports** and are only accessible from the `obs` 
 **Security requirements:**
 ```bash
 # File permissions must be 600 (owner read/write only)
-ls -l infra/logging/.env
+ls -l .env
 # Expected: -rw------- 1 luce luce
 
 # Verify not committed to git
-git check-ignore infra/logging/.env
-# Expected: infra/logging/.env (should be gitignored)
+git check-ignore .env
+# Expected: .env (should be gitignored)
 ```
 
 **If permissions are wrong:**
 ```bash
-chmod 600 infra/logging/.env
+chmod 600 .env
 ```
 
 ### Secret Values Never Logged
@@ -76,7 +76,7 @@ grep -r "GRAFANA_ADMIN_PASSWORD" temp/evidence/
 # Expected: no matches
 
 # Logs should not contain passwords
-docker logs infra_observability-grafana-1 2>&1 | grep -i password
+docker logs logging-grafana-1 2>&1 | grep -i password
 # Expected: no plaintext passwords (masked or omitted)
 ```
 
@@ -105,11 +105,11 @@ head -c 32 /dev/urandom | base64
 
 **Change admin password:**
 ```bash
-docker exec -it infra_observability-grafana-1 \
+docker exec -it logging-grafana-1 \
   grafana cli admin reset-admin-password <new-password>
 
 # Update .env to match
-nano infra/logging/.env
+nano .env
 ```
 
 **Add additional users (Grafana UI):**
@@ -199,7 +199,7 @@ Alloy requires access to `/var/run/docker.sock` to read container logs.
 **Verification:**
 ```bash
 # Check socket mount is read-only
-docker inspect infra_observability-alloy-1 | grep -A5 docker.sock
+docker inspect logging-alloy-1 | grep -A5 docker.sock
 # Expected: "RW": false
 ```
 
@@ -286,7 +286,7 @@ See [maintenance.md](maintenance.md#upgrades) for version compatibility.
 **cAdvisor runs as privileged** (requires host-level metrics):
 ```yaml
 services:
-  cadvisor:
+  docker-metrics:
     privileged: true
 ```
 
@@ -355,17 +355,17 @@ Before deploying to shared/production environment:
    NEW_PASS=$(openssl rand -base64 16)
 
    # Update Grafana
-   docker exec -it infra_observability-grafana-1 \
+   docker exec -it logging-grafana-1 \
      grafana cli admin reset-admin-password "$NEW_PASS"
 
    # Update .env
-   nano infra/logging/.env
+   nano .env
    # Set GRAFANA_ADMIN_PASSWORD="$NEW_PASS"
    ```
 
 2. **Check access logs:**
    ```bash
-   docker logs infra_observability-grafana-1 | grep -i login
+   docker logs logging-grafana-1 | grep -i login
    ```
 
 3. **Verify network bindings:**

@@ -45,14 +45,14 @@ docker compose -f infra/logging/docker-compose.observability.yml logs -f
 
 **Single service logs:**
 ```bash
-docker logs -f infra_observability-alloy-1
-docker logs -f infra_observability-loki-1
-docker logs -f infra_observability-grafana-1
+docker logs -f logging-alloy-1
+docker logs -f logging-loki-1
+docker logs -f logging-grafana-1
 ```
 
 **Last 100 lines:**
 ```bash
-docker logs --tail 100 infra_observability-alloy-1
+docker logs --tail 100 logging-alloy-1
 ```
 
 ### Restarting Services
@@ -123,7 +123,7 @@ docker compose -f infra/logging/docker-compose.observability.yml up -d --force-r
 
 **Specific container:**
 ```logql
-{env="sandbox", container_name="infra_observability-grafana-1"}
+{env="sandbox", container_name="logging-grafana-1"}
 ```
 
 **All Grafana containers:**
@@ -208,8 +208,8 @@ up
 
 **Expected output:**
 - `up{job="prometheus"} = 1`
-- `up{job="node_exporter"} = 1`
-- `up{job="cadvisor"} = 1`
+- `up{job="host-monitor"} = 1`
+- `up{job="docker-metrics"} = 1`
 
 **Failed targets:**
 ```promql
@@ -311,29 +311,29 @@ temp/evidence/loki-<timestamp>/
 open http://127.0.0.1:9001
 
 # Credentials from .env
-grep GRAFANA_ADMIN infra/logging/.env
+grep GRAFANA_ADMIN .env
 ```
 
 ### Common Admin Tasks
 
 **Reset admin password:**
 ```bash
-docker exec -it infra_observability-grafana-1 grafana cli admin reset-admin-password <new-password>
+docker exec -it logging-grafana-1 grafana cli admin reset-admin-password <new-password>
 ```
 
 **List users:**
 ```bash
-docker exec -it infra_observability-grafana-1 grafana cli admin users list
+docker exec -it logging-grafana-1 grafana cli admin users list
 ```
 
 **Backup dashboards:**
 ```bash
-docker cp infra_observability-grafana-1:/var/lib/grafana /tmp/grafana-backup
+docker cp logging-grafana-1:/var/lib/grafana /tmp/grafana-backup
 ```
 
 **Restore dashboards:**
 ```bash
-docker cp /tmp/grafana-backup/. infra_observability-grafana-1:/var/lib/grafana
+docker cp /tmp/grafana-backup/. logging-grafana-1:/var/lib/grafana
 docker compose -f infra/logging/docker-compose.observability.yml restart grafana
 ```
 
@@ -443,7 +443,7 @@ grep retention_period infra/logging/loki-config.yml
 
 **Verify compactor is running:**
 ```bash
-docker logs infra_observability-loki-1 | grep -i compactor
+docker logs logging-loki-1 | grep -i compactor
 ```
 
 **Expected log lines:**
@@ -482,7 +482,7 @@ curl -s http://127.0.0.1:9004/api/v1/status/runtimeinfo | grep -i retention
 **All services running:**
 ```bash
 docker compose -f infra/logging/docker-compose.observability.yml ps | grep -c "Up"
-# Expected: 6 (alloy, cadvisor, grafana, loki, node_exporter, prometheus)
+# Expected: 6 (alloy, docker-metrics, grafana, loki, host-monitor, prometheus)
 ```
 
 **No restart loops:**
@@ -524,7 +524,7 @@ See [Prometheus Alerting Docs](https://prometheus.io/docs/alerting/latest/overvi
 
 **Diagnosis:**
 1. Check Alloy is running: `docker ps | grep alloy`
-2. Check Alloy logs: `docker logs infra_observability-alloy-1 | tail -50`
+2. Check Alloy logs: `docker logs logging-alloy-1 | tail -50`
 3. Check Loki is accessible: `curl http://loki:3100/ready` (from container on `obs` network)
 4. Verify log files exist: `ls -lh /home/luce/_logs/`
 

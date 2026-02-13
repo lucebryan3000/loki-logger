@@ -31,7 +31,7 @@ prometheus_ok=1
 # Open in browser
 open http://127.0.0.1:9001
 
-# Login with credentials from infra/logging/.env
+# Login with credentials from .env
 # Default: admin / (password from .env)
 ```
 
@@ -147,12 +147,12 @@ See [validation.md](validation.md) for full validation checklist.
 
 ### No logs in Loki
 - Check Alloy is running: `docker ps | grep alloy`
-- Check Alloy logs: `docker logs infra_observability-alloy-1 --tail 50`
+- Check Alloy logs: `docker logs logging-alloy-1 --tail 50`
 - Verify log files exist: `ls -lh /home/luce/_logs/`
 
 ### Grafana login fails
-- Check credentials: `grep GRAFANA_ADMIN infra/logging/.env`
-- Reset password: `docker exec -it infra_observability-grafana-1 grafana cli admin reset-admin-password <new-password>`
+- Check credentials: `grep GRAFANA_ADMIN .env`
+- Reset password: `docker exec -it logging-grafana-1 grafana cli admin reset-admin-password <new-password>`
 
 ### Empty query results
 - Use non-empty selector: `{env=~".+"}` not `{}`
@@ -200,7 +200,7 @@ See [security.md](security.md) for security posture and best practices.
 - **Metrics (Prometheus):** 15 days
 
 ### Backups
-- **Grafana dashboards:** `docker cp infra_observability-grafana-1:/var/lib/grafana /backup`
+- **Grafana dashboards:** `docker cp logging-grafana-1:/var/lib/grafana /backup`
 - **Configs:** Version-controlled in git
 - **Logs/metrics:** Ephemeral (short retention, no long-term backup)
 

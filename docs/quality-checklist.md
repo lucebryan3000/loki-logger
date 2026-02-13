@@ -17,9 +17,9 @@ This checklist ensures documentation correctness, operational validity, and styl
 - [ ] All file paths are absolute or clearly relative to repo root
 
 ### Container Names
-- [ ] Container names use `infra_observability-` prefix
+- [ ] Container names use `logging-` prefix
 - [ ] Service names match compose file (grafana, loki, prometheus, alloy, etc.)
-- [ ] Volume names include `infra_observability_` prefix
+- [ ] Volume names include `logging_` prefix
 
 ### Labels
 - [ ] All logs have `env`, `host`, `job` labels

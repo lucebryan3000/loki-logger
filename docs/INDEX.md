@@ -215,7 +215,7 @@ Historical/snapshot documentation (not part of primary navigation):
 
 ### Essential Files
 - Compose: `infra/logging/docker-compose.observability.yml`
-- Secrets: `infra/logging/.env` (mode 600)
+- Secrets: `.env` (mode 600)
 - Loki config: `infra/logging/loki-config.yml`
 - Alloy config: `infra/logging/alloy-config.alloy`
 

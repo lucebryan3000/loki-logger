@@ -32,7 +32,7 @@ docker ps | grep alloy
 
 **Check logs:**
 ```bash
-docker logs infra_observability-alloy-1
+docker logs logging-alloy-1
 ```
 
 **Common errors:**
@@ -54,7 +54,7 @@ docker compose -f infra/logging/docker-compose.observability.yml up -d --force-r
 **Diagnosis:**
 ```bash
 # From Alloy container
-docker exec infra_observability-alloy-1 curl -s http://loki:3100/ready
+docker exec logging-alloy-1 curl -s http://loki:3100/ready
 ```
 
 **Expected:** `ready` (or similar success message)
@@ -69,8 +69,8 @@ docker exec infra_observability-alloy-1 curl -s http://loki:3100/ready
 docker compose -f infra/logging/docker-compose.observability.yml restart loki
 
 # Verify network membership
-docker inspect infra_observability-alloy-1 | grep -A5 Networks
-docker inspect infra_observability-loki-1 | grep -A5 Networks
+docker inspect logging-alloy-1 | grep -A5 Networks
+docker inspect logging-loki-1 | grep -A5 Networks
 # Both should show "obs" network
 ```
 
@@ -112,8 +112,8 @@ sleep 15
 ```
 
 **If still no results after 30 seconds:**
-- Check Alloy logs: `docker logs infra_observability-alloy-1 --tail 50`
-- Check Loki logs: `docker logs infra_observability-loki-1 | grep -i error`
+- Check Alloy logs: `docker logs logging-alloy-1 --tail 50`
+- Check Loki logs: `docker logs logging-loki-1 | grep -i error`
 
 **Fix:**
 - Restart Alloy: `docker compose restart alloy`
@@ -247,7 +247,7 @@ grep -A5 "stage.static_labels" infra/logging/alloy-config.alloy
 curl -s http://127.0.0.1:9004/api/v1/status/runtimeinfo | grep retention
 
 # Check CLI args
-docker inspect infra_observability-prometheus-1 | grep -A10 Args
+docker inspect logging-prometheus-1 | grep -A10 Args
 ```
 
 **Fix:**
@@ -264,14 +264,14 @@ docker inspect infra_observability-prometheus-1 | grep -A10 Args
 **Diagnosis:**
 ```bash
 # Check credentials from .env
-grep GRAFANA_ADMIN infra/logging/.env
+grep GRAFANA_ADMIN .env
 ```
 
 **Fix:**
 - Use correct username/password from `.env`
 - If forgotten, reset password:
   ```bash
-  docker exec -it infra_observability-grafana-1 \
+  docker exec -it logging-grafana-1 \
     grafana cli admin reset-admin-password <new-password>
   ```
 
@@ -337,7 +337,7 @@ rate(loki_distributor_lines_received_total[5m])
 docker compose ps --format "table {{.Service}}\t{{.Status}}"
 
 # View recent logs
-docker logs --tail 100 infra_observability-<service>-1
+docker logs --tail 100 logging-<service>-1
 ```
 
 **Common restart causes:**
@@ -455,7 +455,7 @@ sleep 30
 **Diagnosis:**
 ```bash
 # Check if any logs exist
-docker exec -it infra_observability-grafana-1 \
+docker exec -it logging-grafana-1 \
   curl -G 'http://loki:3100/loki/api/v1/query_range' \
   --data-urlencode 'query={env=~".+"}' \
   --data-urlencode 'limit=1'

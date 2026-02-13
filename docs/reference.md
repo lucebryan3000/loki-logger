@@ -86,7 +86,7 @@ Stable reference data for the Loki logging stack.
 
 ### Compose Project
 
-- **Project name:** `infra_observability`
+- **Project name:** `logging`
 - **Network:** `obs` (bridge)
 - **Volumes:** `grafana-data`, `loki-data`, `prometheus-data`
 
@@ -94,12 +94,12 @@ Stable reference data for the Loki logging stack.
 
 | Service | Container Name |
 |---------|----------------|
-| Grafana | `infra_observability-grafana-1` |
-| Loki | `infra_observability-loki-1` |
-| Prometheus | `infra_observability-prometheus-1` |
-| Alloy | `infra_observability-alloy-1` |
-| Node Exporter | `infra_observability-node_exporter-1` |
-| cAdvisor | `infra_observability-cadvisor-1` |
+| Grafana | `logging-grafana-1` |
+| Loki | `logging-loki-1` |
+| Prometheus | `logging-prometheus-1` |
+| Alloy | `logging-alloy-1` |
+| Node Exporter | `logging-host-monitor-1` |
+| cAdvisor | `logging-docker-metrics-1` |
 
 ### Volume Mount Points
 
@@ -143,9 +143,9 @@ services:
 
 | Label | Source | Example | Required for Docker Logs |
 |-------|--------|---------|--------------------------|
-| `container_name` | Docker metadata | `infra_observability-grafana-1` | Yes |
+| `container_name` | Docker metadata | `logging-grafana-1` | Yes |
 | `image` | Docker metadata | `grafana/grafana:11.1.0` | No |
-| `compose_project` | Docker metadata | `infra_observability` | No |
+| `compose_project` | Docker metadata | `logging` | No |
 
 ### File-Based Log Labels
 
@@ -261,7 +261,7 @@ services:
 {env="sandbox", container_name=~".+"}
 
 # Specific container
-{env="sandbox", container_name="infra_observability-grafana-1"}
+{env="sandbox", container_name="logging-grafana-1"}
 
 # Search for errors
 {env="sandbox"} |= "error"
@@ -337,7 +337,7 @@ docker compose -f infra/logging/docker-compose.observability.yml ps
 
 **Diagnosis:**
 ```bash
-docker logs infra_observability-<service>-1 --tail 50
+docker logs logging-<service>-1 --tail 50
 ```
 
 ## Evidence Archive Structure

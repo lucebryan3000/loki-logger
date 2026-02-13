@@ -31,7 +31,7 @@ limits_config:
 
 **Verify retention is active:**
 ```bash
-docker logs infra_observability-loki-1 | grep -i retention
+docker logs logging-loki-1 | grep -i retention
 ```
 
 **Expected output:**
@@ -125,7 +125,7 @@ mkdir -p /home/luce/backups/grafana/$(date +%Y%m%d)
 
 # Export Grafana volume
 docker run --rm \
-  -v infra_observability_grafana-data:/data:ro \
+  -v logging_grafana-data:/data:ro \
   -v /home/luce/backups/grafana/$(date +%Y%m%d):/backup \
   alpine tar czf /backup/grafana-data.tar.gz -C /data .
 
@@ -141,7 +141,7 @@ docker compose -f infra/logging/docker-compose.observability.yml stop grafana
 
 # Restore from backup
 docker run --rm \
-  -v infra_observability_grafana-data:/data \
+  -v logging_grafana-data:/data \
   -v /home/luce/backups/grafana/20260212:/backup:ro \
   alpine sh -c 'rm -rf /data/* && tar xzf /backup/grafana-data.tar.gz -C /data'
 
@@ -153,22 +153,22 @@ docker compose -f infra/logging/docker-compose.observability.yml start grafana
 
 ```bash
 # Encrypt .env file
-gpg --symmetric --cipher-algo AES256 infra/logging/.env
+gpg --symmetric --cipher-algo AES256 .env
 
 # Move encrypted file to safe location
-mv infra/logging/.env.gpg /home/luce/backups/secrets/
+mv .env.gpg /home/luce/backups/secrets/
 
 # Verify original .env is not committed to git
-git check-ignore infra/logging/.env
+git check-ignore .env
 ```
 
 **Restore secrets:**
 ```bash
 # Decrypt
-gpg --decrypt /home/luce/backups/secrets/.env.gpg > infra/logging/.env
+gpg --decrypt /home/luce/backups/secrets/.env.gpg > .env
 
 # Set permissions
-chmod 600 infra/logging/.env
+chmod 600 .env
 ```
 
 ## Upgrades
@@ -244,12 +244,12 @@ docker compose up -d
 
 ```bash
 # Check Docker volumes
-docker system df -v | grep infra_observability
+docker system df -v | grep logging
 
 # Check volume sizes
-docker volume inspect infra_observability_loki-data --format '{{.Mountpoint}}' | xargs du -sh
-docker volume inspect infra_observability_prometheus-data --format '{{.Mountpoint}}' | xargs du -sh
-docker volume inspect infra_observability_grafana-data --format '{{.Mountpoint}}' | xargs du -sh
+docker volume inspect logging_loki-data --format '{{.Mountpoint}}' | xargs du -sh
+docker volume inspect logging_prometheus-data --format '{{.Mountpoint}}' | xargs du -sh
+docker volume inspect logging_grafana-data --format '{{.Mountpoint}}' | xargs du -sh
 ```
 
 **Typical sizes:**
@@ -431,7 +431,7 @@ See [Prometheus Alerting Docs](https://prometheus.io/docs/alerting/latest/overvi
 
 **Diagnosis:**
 ```bash
-docker logs infra_observability-loki-1 | grep -i compactor
+docker logs logging-loki-1 | grep -i compactor
 ```
 
 **Expected:**
@@ -451,7 +451,7 @@ level=info msg="retention enabled"
 
 **Diagnosis:**
 ```bash
-docker logs infra_observability-prometheus-1 | grep -i corrupt
+docker logs logging-prometheus-1 | grep -i corrupt
 ```
 
 **Fix:**
@@ -460,7 +460,7 @@ docker logs infra_observability-prometheus-1 | grep -i corrupt
 docker compose stop prometheus
 
 # Remove corrupted TSDB (loses metrics data)
-docker volume rm infra_observability_prometheus-data
+docker volume rm logging_prometheus-data
 
 # Recreate volume and restart
 docker compose up -d prometheus

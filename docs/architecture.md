@@ -87,7 +87,7 @@ curl 'http://loki:3100/loki/api/v1/query_range?query={env=~".+"}&start=...'
 - **Storage:** `prometheus-data` volume at `/prometheus`
 - **Config:** `infra/logging/prometheus/prometheus.yml` (mounted read-only)
 - **Retention:** 15d (**CLI flag only:** `--storage.tsdb.retention.time=15d`)
-- **Scrape targets:** node_exporter, cadvisor, prometheus (self)
+- **Scrape targets:** host-monitor, docker-metrics, prometheus (self)
 
 **Health checks:**
 ```bash
@@ -126,7 +126,7 @@ curl -sf http://127.0.0.1:9004/-/healthy
 - **Exposed port:** None (internal 9100)
 - **Mount:** `/:host:ro` (read-only root filesystem)
 - **PID:** `host` (see host processes)
-- **Scraped by:** Prometheus at `http://node_exporter:9100/metrics`
+- **Scraped by:** Prometheus at `http://host-monitor:9100/metrics`
 
 ### cAdvisor (gcr.io/cadvisor/cadvisor:v0.49.1)
 **Purpose:** Container-level metrics (CPU, memory, network per container)
@@ -134,7 +134,7 @@ curl -sf http://127.0.0.1:9004/-/healthy
 - **Exposed port:** None (internal 8080)
 - **Privileged:** true (requires host-level access)
 - **Mounts:** `/rootfs`, `/var/run`, `/sys`, `/var/lib/docker`
-- **Scraped by:** Prometheus at `http://cadvisor:8080/metrics`
+- **Scraped by:** Prometheus at `http://docker-metrics:8080/metrics`
 
 ## Network Architecture
 
@@ -147,15 +147,15 @@ curl -sf http://127.0.0.1:9004/-/healthy
 - loki
 - prometheus
 - alloy
-- node_exporter
-- cadvisor
+- host-monitor
+- docker-metrics
 
 **DNS resolution:**
 - `http://loki:3100` (Loki API)
 - `http://prometheus:9090` (Prometheus API)
 - `http://grafana:3000` (Grafana internal)
-- `http://node_exporter:9100` (Node Exporter metrics)
-- `http://cadvisor:8080` (cAdvisor metrics)
+- `http://host-monitor:9100` (Node Exporter metrics)
+- `http://docker-metrics:8080` (cAdvisor metrics)
 
 ### Port Exposure
 
@@ -210,9 +210,9 @@ docker compose -f infra/logging/docker-compose.observability.yml restart <servic
 
 | Label | Source | Example |
 |-------|--------|---------|
-| `container_name` | Docker metadata | `infra_observability-grafana-1` |
+| `container_name` | Docker metadata | `logging-grafana-1` |
 | `image` | Docker metadata | `grafana/grafana:11.1.0` |
-| `compose_project` | Docker metadata | `infra_observability` |
+| `compose_project` | Docker metadata | `logging` |
 
 ### File-Based Log Labels
 
@@ -258,16 +258,16 @@ loki
 prometheus
  └─ (no dependencies)
 
-node_exporter
+host-monitor
  └─ (no dependencies)
 
-cadvisor
+docker-metrics
  └─ (no dependencies)
 ```
 
 **Startup order:**
 1. loki, prometheus (parallel)
-2. alloy, node_exporter, cadvisor (parallel, after loki)
+2. alloy, host-monitor, docker-metrics (parallel, after loki)
 3. grafana (after loki + prometheus)
 
 ## Configuration Files
@@ -279,7 +279,7 @@ cadvisor
 - [infra/logging/prometheus/prometheus.yml](../infra/logging/prometheus/prometheus.yml) — Scrape targets, alerting
 
 ### Secrets
-- `infra/logging/.env` — Grafana credentials, port overrides (mode 600, gitignored)
+- `.env` — Grafana credentials, port overrides (mode 600, gitignored)
 
 See [snippets/](snippets/) for canonical config excerpts.
 

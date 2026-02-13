@@ -66,10 +66,10 @@ docker compose -f infra/logging/docker-compose.observability.yml ps --format "ta
 ```
 SERVICE         STATUS
 alloy           Up
-cadvisor        Up (healthy)
+docker-metrics  Up (healthy)
 grafana         Up
 loki            Up
-node_exporter   Up
+host-monitor    Up
 prometheus      Up
 ```
 
@@ -99,8 +99,8 @@ up
 
 **Expected output:**
 ```
-up{instance="cadvisor:8080", job="cadvisor"} = 1
-up{instance="node_exporter:9100", job="node_exporter"} = 1
+up{instance="docker-metrics:8080", job="docker-metrics"} = 1
+up{instance="host-monitor:9100", job="host-monitor"} = 1
 up{instance="prometheus:9090", job="prometheus"} = 1
 ```
 
@@ -187,7 +187,7 @@ For each log entry, verify these labels exist (view in Grafana by expanding a lo
 - `job` (e.g., `dockerlogs`, `tool_sink`, `telemetry`)
 
 **Docker logs must have:**
-- `container_name` (e.g., `infra_observability-grafana-1`)
+- `container_name` (e.g., `logging-grafana-1`)
 - `image` (e.g., `grafana/grafana:11.1.0`)
 
 **File-based logs must have:**
@@ -282,9 +282,9 @@ Run this checklist after deployment or major changes:
 **Symptom:** Queries return no results despite containers running
 
 **Diagnosis:**
-1. Check Alloy logs: `docker logs infra_observability-alloy-1 | grep -i error`
+1. Check Alloy logs: `docker logs logging-alloy-1 | grep -i error`
 2. Verify log files exist: `ls -lh /home/luce/_logs/`
-3. Check Loki reachability: `docker exec infra_observability-alloy-1 curl -s http://loki:3100/ready`
+3. Check Loki reachability: `docker exec logging-alloy-1 curl -s http://loki:3100/ready`
 
 **Fix:** See [troubleshooting.md](troubleshooting.md#no-logs-in-loki)
 

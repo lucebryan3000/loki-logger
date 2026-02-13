@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 
-export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-infra_observability}"
+export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
 OBS="infra/logging/docker-compose.observability.yml"
 ENV_FILE=".env"
 

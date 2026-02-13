@@ -9,7 +9,7 @@ set -a
 . "$ENV_FILE"
 set +a
 
-export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-infra_observability}"
+export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
 docker compose --env-file "$ENV_FILE" -f "$OBS" ps
 
 # loopback checks

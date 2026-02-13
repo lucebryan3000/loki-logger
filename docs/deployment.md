@@ -10,14 +10,14 @@
 
 2. **Secrets file exists:**
    ```bash
-   ls -l infra/logging/.env
+   ls -l .env
    # Expected: -rw------- 1 luce luce (mode 600)
    ```
 
    If missing, create from example:
    ```bash
-   cp infra/logging/.env.example infra/logging/.env
-   chmod 600 infra/logging/.env
+   cp .env.example .env
+   chmod 600 .env
    # Edit with your credentials
    ```
 
@@ -65,12 +65,12 @@ docker compose -f docker-compose.observability.yml ps
 **Expected container states:**
 ```
 NAME                                  STATUS
-infra_observability-alloy-1           Up
-infra_observability-cadvisor-1        Up (healthy)
-infra_observability-grafana-1         Up
-infra_observability-loki-1            Up
-infra_observability-node_exporter-1   Up
-infra_observability-prometheus-1      Up
+logging-alloy-1           Up
+logging-docker-metrics-1  Up (healthy)
+logging-grafana-1         Up
+logging-loki-1            Up
+logging-host-monitor-1    Up
+logging-prometheus-1      Up
 ```
 
 ## Post-Deployment Validation
@@ -126,14 +126,14 @@ up
 
 **Expected:** Targets with `up=1`:
 - `job="prometheus"` (self)
-- `job="node_exporter"`
-- `job="cadvisor"`
+- `job="host-monitor"`
+- `job="docker-metrics"`
 
 ## Compose Project Conventions
 
-- **Project name:** `infra_observability` (set via `name:` in compose file)
+- **Project name:** `logging` (set via `name:` in compose file)
 - **Network:** `obs` (explicit name for stable DNS)
-- **Container naming:** `infra_observability-<service>-1`
+- **Container naming:** `logging-<service>-1`
 
 **Working directory matters:**
 ```bash
@@ -203,7 +203,7 @@ PROM_PORT=9004
 ```
 
 To change ports:
-1. Edit `infra/logging/.env`
+1. Edit `.env`
 2. Restart services: `docker compose up -d`
 
 **Security:** Always bind to `127.0.0.1` (loopback only). **Never** use `0.0.0.0` without firewall rules.
@@ -213,20 +213,20 @@ To change ports:
 ### Inspect Volumes
 
 ```bash
-docker volume ls | grep infra_observability
+docker volume ls | grep logging
 ```
 
 **Expected:**
 ```
-infra_observability_grafana-data
-infra_observability_loki-data
-infra_observability_prometheus-data
+logging_grafana-data
+logging_loki-data
+logging_prometheus-data
 ```
 
 ### Volume Sizes
 
 ```bash
-docker system df -v | grep infra_observability
+docker system df -v | grep logging
 ```
 
 **Typical sizes:**
@@ -245,7 +245,7 @@ cd infra/logging
 docker compose down -v
 
 # Verify volumes deleted
-docker volume ls | grep infra_observability
+docker volume ls | grep logging
 # (should return nothing)
 
 # Redeploy from scratch
@@ -316,7 +316,7 @@ docker compose -f infra/logging/docker-compose.observability.yml logs <service>
 ### Alloy Config Parse Errors
 
 ```bash
-docker logs infra_observability-alloy-1
+docker logs logging-alloy-1
 ```
 
 **Common mistakes:**

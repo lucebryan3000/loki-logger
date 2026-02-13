@@ -59,9 +59,9 @@ All services run on a dedicated Docker bridge network: **`obs`**
 
 ## Compose Project
 
-- **Name:** `infra_observability`
+- **Name:** `logging`
 - **Location:** `infra/logging/docker-compose.observability.yml`
-- **Secrets:** `infra/logging/.env` (mode 600, never committed)
+- **Secrets:** `.env` (mode 600, never committed)
 - **Control scripts:** `scripts/mcp/logging_stack_{up,down,health}.sh`
 
 ## Scope and Guardrails
@@ -105,7 +105,7 @@ scripts/mcp/logging_stack_health.sh
 
 # Access Grafana
 open http://127.0.0.1:9001
-# Login with credentials from infra/logging/.env
+# Login with credentials from .env
 
 # Query logs in Grafana Explore
 # Example: {env=~".+"} |= "error"
