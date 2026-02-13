@@ -1,18 +1,23 @@
 # Loki Logging Documentation
 
-Generated: 10:03 PM - 12-02-2026 (UTC 2026-02-13T04:03:16Z)
-Repo: `/home/luce/apps/loki-logging`
-Git: `main` @ `ed4c6712515fb16d914042a9f1960238ea5d0f9d` (dirty_count=1)
+Generated:  (UTC )
+Git: `` @ ``
+Compose project: `infra_observability`
 
-- [README (Quickstart)](README.md)
+- [Quickstart](README.md)
 - [As Installed](10-as-installed.md)
 - [As Configured](20-as-configured.md)
 - [Architecture](30-architecture.md)
-- [Runbooks](40-runbooks.md)
+- [Operations Runbooks](40-runbooks.md)
 - [Troubleshooting](50-troubleshooting.md)
-- [Validation and Tests](60-validation.md)
+- [Validation & Tests](60-validation.md)
 - [Security](70-security.md)
 - [Maintenance](80-maintenance.md)
 
-Evidence:
-- `/home/luce/apps/loki-logging/temp/codex/evidence/Loki-prompt-20/20260213T040316Z/local-capture`
+Snippets:
+- [Loki config](snippets/loki-config.yml)
+- [Alloy config](snippets/alloy-config.alloy)
+- [Prometheus config](snippets/prometheus.yml)
+
+Evidence used to generate these docs:
+- /home/luce/apps/loki-logging/temp/codex/evidence/Loki-prompt-22-generate-docs/20260212T221122

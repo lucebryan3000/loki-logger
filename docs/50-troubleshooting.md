@@ -1,19 +1,11 @@
 # Troubleshooting
 
-# Alloy Parse Errors
-- Use valid Alloy comments (`//` or `/* ... */`), not `#`.
-- Recreate Alloy container after config changes.
+Alloy parse/load errors
+- illegal character '#', block comment not terminated, sys.env missing, initial load failure
+- Fix: use // comments, ensure block nesting valid, force reload Alloy, verify mounts via docker inspect.
 
-# Loki Query Returns No Results
-- Ensure query window is current.
-- Use valid selector syntax and avoid empty selectors.
+Loki query returns nothing
+- Use selector {env=~".+"}; recompute timestamps; ensure marker written before end.
 
-# Old Timestamp Rejection
-- Check `reject_old_samples` settings.
-- Restart Alloy after truncating tailed files.
-
-# Prometheus Rules Missing
-- Verify rule mounts and `/api/v1/rules` output on port 9004.
-
-Evidence:
-- `/home/luce/apps/loki-logging/temp/codex/evidence/Loki-prompt-20/20260213T040316Z/local-capture`
+"entry too far behind"
+- Clear stale file backlog and restart Alloy tailer positions; Loki already allows old samples in sandbox.

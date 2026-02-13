@@ -1,18 +1,16 @@
 {
   "meta": {
-    "generated_local": "10:03 PM - 12-02-2026",
-    "generated_utc": "2026-02-13T04:03:16Z",
-    "git_head": "ed4c6712515fb16d914042a9f1960238ea5d0f9d",
-    "git_branch": "main",
-    "git_dirty_files": "1",
-    "compose_file": "/home/luce/apps/loki-logging/infra/logging/docker-compose.observability.yml",
-    "grafana_port": "9001",
-    "prom_port": "9004",
-    "docker_version": "29.2.1",
-    "compose_version": "Docker Compose version v5.0.2",
-    "env_stat": "600 luce:luce infra/logging/.env",
-    "runbook_ref": "_build/Sprint-1/Loki-logging-1.md",
-    "evidence_dir": "/home/luce/apps/loki-logging/temp/codex/evidence/Loki-prompt-20/20260213T040316Z/local-capture"
+    "generated_local": "",
+    "generated_utc": "",
+    "git_branch": "",
+    "git_head": "",
+    "compose_project": "infra_observability",
+    "grafana_port": "",
+    "prom_port": "",
+    "docker_version": "",
+    "compose_version": "",
+    "env_stat": "",
+    "evidence_dir": "/home/luce/apps/loki-logging/temp/codex/evidence/Loki-prompt-22-generate-docs/20260212T221122"
   },
   "docs_dir": "/home/luce/apps/loki-logging/docs",
   "files": [
@@ -26,5 +24,10 @@
     "80-maintenance.md",
     "INDEX.md",
     "README.md"
+  ],
+  "snippets": [
+    "snippets/loki-config.yml",
+    "snippets/alloy-config.alloy",
+    "snippets/prometheus.yml"
   ]
 }

@@ -1,16 +1,15 @@
 # As Configured
 
-# Key Configuration Files
-- `infra/logging/docker-compose.observability.yml`
-- `infra/logging/loki-config.yml`
-- `infra/logging/alloy-config.alloy`
-- `infra/logging/prometheus/prometheus.yml`
-- `infra/logging/grafana/provisioning/datasources/`
-- `infra/logging/grafana/provisioning/dashboards/`
+    ## Key files
+    - infra/logging/docker-compose.observability.yml
+    - infra/logging/loki-config.yml
+    - infra/logging/alloy-config.alloy
+    - infra/logging/prometheus/prometheus.yml
+    - infra/logging/grafana/provisioning/**
+    - infra/logging/grafana/dashboards/**
 
-# Config Hashes
-
-5888badf65105217b6847f2297f7c5d06db152ffd566db83bff7e238442e5ff7  infra/logging/docker-compose.observability.yml
+    ## Config hashes (sha256)
+    5888badf65105217b6847f2297f7c5d06db152ffd566db83bff7e238442e5ff7  infra/logging/docker-compose.observability.yml
 dfd4b882c188e80f889fc1fcb4ca798a80c81e3d9fc1e37b3747c7b3dc179d41  infra/logging/loki-config.yml
 db3bcaa1b0d0a2bd3e8df59689664bb257d97383e5f53e63f9316aaedfe8a8b3  infra/logging/alloy-config.alloy
 c7f4f252d99c1535da5cc5eab5103177d0fd60e7d2c934be07edd091f2b072bb  infra/logging/prometheus/prometheus.yml
@@ -19,9 +18,8 @@ c7f4f252d99c1535da5cc5eab5103177d0fd60e7d2c934be07edd091f2b072bb  infra/logging/
 9d42eb00934d445c9dbd18698ea026a773b11674241d166d9d18c8b3934f4e61  infra/logging/grafana/provisioning/dashboards/dashboards.yml
 
 
-# Rendered Compose (truncated)
-
-name: infra_observability
+    ## Rendered compose (truncated)
+    name: infra_observability
 services:
   alloy:
     command:
@@ -207,11 +205,3 @@ volumes:
     name: infra_observability_loki-data
   prometheus-data:
     name: infra_observability_prometheus-data
-
-
-# Notes
-- Avoid high-cardinality labels.
-- Use non-empty matchers for broad Loki queries (example: `{env=~".+"}`).
-
-Evidence:
-- `/home/luce/apps/loki-logging/temp/codex/evidence/Loki-prompt-20/20260213T040316Z/local-capture`
