@@ -36,12 +36,15 @@ Authoritative implementation/source-of-truth scripts live here:
 
 - `codex_sprint.py`: canonical CLI (`build`, `verify`, `sync`, `recall`)
 - `codex_sprint.config.json`: validated default config contract
+- `prompt_flow.config.json`: active runtime profile (`poc` or `production`)
+- `prompt_flow_profile.py`: deterministic profile loader/validator for scripts
 - `evolve.py`: single canonical evolution/builder entrypoint
 - `verify.py`: strict schema + cross-index + anti-pattern gate
 - `run_evolutions.sh`: executes phases `1 -> 2 -> 3` for comparison/simulation
 - `sync_helpers_to_prod.sh`: syncs dev scripts into `temp/codex-sprint/`
 - `codex_sprint_recall.py` / `codex_sprint_recall.sh`: recall/search entrypoints
 - `search_records.py`, `search_artifacts.py`: focused index query helpers
+- `PROMPT_FLOW_PROFILES.md`: profile strategy and rollout order (`poc` vs `production`)
 
 ## Naming Rule
 
@@ -64,3 +67,14 @@ Legacy phase-specific script names are deprecated.
 3. run `python3 scripts/codex-sprint/codex_sprint.py sync`
 4. run `python3 scripts/codex-sprint/codex_sprint.py verify`
 5. query via `python3 scripts/codex-sprint/codex_sprint.py recall ...`
+
+## Runtime Profile Flow
+
+Use profiles to switch behavior between proof-of-concept and production runs:
+
+1. set `active_profile` in `scripts/codex-sprint/prompt_flow.config.json`
+2. validate profile:
+   - `python3 scripts/codex-sprint/prompt_flow_profile.py validate`
+3. sync helpers/config to prod:
+   - `scripts/codex-sprint/sync_helpers_to_prod.sh`
+4. run a mini prompt set first (recommended), then full pipeline

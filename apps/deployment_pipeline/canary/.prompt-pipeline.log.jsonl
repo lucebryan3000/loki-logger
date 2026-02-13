@@ -1,0 +1,5 @@
+{"ts":"2026-02-13T22:13:24Z","event":"startup","prompt":"","detail":"root=/home/luce/apps/loki-logging/apps/deployment_pipeline/canary repo_root=/home/luce/apps/loki-logging count=1 pending=1 profile=production"}
+{"ts":"2026-02-13T22:13:24Z","event":"prompt_start","prompt":"prompt-03-canary-fail.md","detail":""}
+{"ts":"2026-02-13T22:13:24Z","event":"codex_run","prompt":"prompt-03-canary-fail.md","detail":"attempt=1 timeout=120"}
+{"ts":"2026-02-13T22:14:46Z","event":"prompt_failed","prompt":"prompt-03-canary-fail.md","detail":"attempts=1 exit_code=0"}
+{"ts":"2026-02-13T22:14:46Z","event":"pipeline_hold","prompt":"prompt-03-canary-fail.md","detail":"fail_streak=1 threshold=1"}

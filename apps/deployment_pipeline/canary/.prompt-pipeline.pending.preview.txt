@@ -1,0 +1,1 @@
+/home/luce/apps/loki-logging/apps/deployment_pipeline/canary/prompt-03-canary-fail.md

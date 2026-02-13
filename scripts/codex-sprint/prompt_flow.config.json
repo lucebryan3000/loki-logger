@@ -1,0 +1,27 @@
+{
+  "version": "v1",
+  "active_profile": "production",
+  "top5_toggles": [
+    "warn_mode",
+    "warn_gate",
+    "retry_max",
+    "pipeline_fail_fast_threshold",
+    "pipeline_max_total_failures"
+  ],
+  "profiles": {
+    "poc": {
+      "warn_mode": "auto-approve",
+      "warn_gate": "no",
+      "retry_max": 1,
+      "pipeline_fail_fast_threshold": 6,
+      "pipeline_max_total_failures": 20
+    },
+    "production": {
+      "warn_mode": "halt",
+      "warn_gate": "yes",
+      "retry_max": 0,
+      "pipeline_fail_fast_threshold": 2,
+      "pipeline_max_total_failures": 4
+    }
+  }
+}
