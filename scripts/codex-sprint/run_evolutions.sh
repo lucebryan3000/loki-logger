@@ -40,4 +40,9 @@ run_phase 1
 run_phase 2
 run_phase 3
 
+SYNC_HELPERS_SH="${SCRIPT_DIR}/sync_helpers_to_prod.sh"
+if [[ -x "${SYNC_HELPERS_SH}" ]]; then
+  "${SYNC_HELPERS_SH}" --repo-root "${REPO_ROOT}" --prod-root "${OUT_DIR}" >/dev/null
+fi
+
 echo "completed all phases; final output retained at ${OUT_DIR}"

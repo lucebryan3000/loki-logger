@@ -264,6 +264,12 @@ prism_init() {
   CODEX_SPRINT_ROOT="${REPO_ROOT}/temp/codex-sprint"
   mkdir -p "${CODEX_SPRINT_ROOT}"
 
+  local sync_helpers_sh
+  sync_helpers_sh="${REPO_ROOT}/scripts/codex-sprint/sync_helpers_to_prod.sh"
+  if [[ -x "${sync_helpers_sh}" ]]; then
+    "${sync_helpers_sh}" --repo-root "${REPO_ROOT}" --prod-root "${CODEX_SPRINT_ROOT}" >/dev/null 2>&1 || true
+  fi
+
   export PRISM_STATE_JSONL="${CODEX_SPRINT_ROOT}/state.jsonl"
   export PRISM_STATE_LATEST_JSON="${CODEX_SPRINT_ROOT}/state.latest.json"
   export PRISM_HISTORY_JSONL="${CODEX_SPRINT_ROOT}/history.jsonl"
