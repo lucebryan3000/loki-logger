@@ -9,6 +9,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd -P)"
 PROD_ROOT="${REPO_ROOT}/temp/codex-sprint"
 DEV_DIR="${REPO_ROOT}/scripts/codex-sprint"
 MODE="all"
+PRUNE=1
 
 usage() {
   cat <<'EOF'
@@ -20,8 +21,9 @@ Options:
   --repo-root <path>   Repository root (default: inferred from script location)
   --prod-root <path>   Destination root (default: <repo>/temp/codex-sprint)
   --mode helpers|all   Sync mode:
-                         all     = all top-level *.py and *.sh under scripts/codex-sprint (default)
+                         all     = all top-level *.py/*.sh + README.md under scripts/codex-sprint (default)
                          helpers = recall/search helper scripts only
+  --no-prune           Keep extra old script/readme files in prod root (default: prune stale)
   -h, --help           Show this help and exit
 
 Examples:
@@ -47,6 +49,10 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || { echo "--mode requires a value" >&2; exit 2; }
       MODE="${2:-}"
       shift 2
+      ;;
+    --no-prune)
+      PRUNE=0
+      shift
       ;;
     -h|--help)
       usage
@@ -83,6 +89,12 @@ copy_exec() {
   install -m 0755 "${src}" "${dst}"
 }
 
+copy_readme() {
+  local src="$1"
+  local dst="$2"
+  install -m 0644 "${src}" "${dst}"
+}
+
 collect_sources() {
   if [[ "${MODE}" == "helpers" ]]; then
     cat <<'EOF'
@@ -92,17 +104,41 @@ search_records.py
 search_artifacts.py
 EOF
   else
-    find "${DEV_DIR}" -maxdepth 1 -type f \( -name "*.py" -o -name "*.sh" \) -printf "%f\n" | sort
+    {
+      printf '%s\n' "README.md"
+      find "${DEV_DIR}" -maxdepth 1 -type f \( -name "*.py" -o -name "*.sh" \) -printf "%f\n"
+    } | sort -u
   fi
 }
 
 mapfile -t FILE_LIST < <(collect_sources)
 for name in "${FILE_LIST[@]}"; do
   [[ -n "${name}" ]] || continue
-  copy_exec "${DEV_DIR}/${name}" "${PROD_ROOT}/${name}"
+  if [[ "${name}" == "README.md" ]]; then
+    copy_readme "${DEV_DIR}/${name}" "${PROD_ROOT}/${name}"
+  else
+    copy_exec "${DEV_DIR}/${name}" "${PROD_ROOT}/${name}"
+  fi
 done
 
-python3 - <<'PY' "${REPO_ROOT}" "${PROD_ROOT}" "${MODE}" "${DEV_DIR}" "${FILE_LIST[@]}"
+if [[ "${PRUNE}" -eq 1 ]]; then
+  # Remove stale top-level script/readme files so deprecated names do not persist.
+  mapfile -t PROD_TOP_LEVEL < <(find "${PROD_ROOT}" -maxdepth 1 -type f \( -name "*.py" -o -name "*.sh" -o -name "README.md" \) -printf "%f\n" | sort)
+  for pname in "${PROD_TOP_LEVEL[@]}"; do
+    keep=0
+    for expected in "${FILE_LIST[@]}"; do
+      if [[ "${pname}" == "${expected}" ]]; then
+        keep=1
+        break
+      fi
+    done
+    if [[ "${keep}" -eq 0 ]]; then
+      rm -f "${PROD_ROOT}/${pname}"
+    fi
+  done
+fi
+
+python3 - <<'PY' "${REPO_ROOT}" "${PROD_ROOT}" "${MODE}" "${PRUNE}" "${DEV_DIR}" "${FILE_LIST[@]}"
 import hashlib
 import json
 import sys
@@ -112,8 +148,9 @@ from pathlib import Path
 repo_root = Path(sys.argv[1])
 prod_root = Path(sys.argv[2])
 mode = sys.argv[3]
-dev_dir = Path(sys.argv[4])
-names = sys.argv[5:]
+prune = sys.argv[4] == "1"
+dev_dir = Path(sys.argv[5])
+names = sys.argv[6:]
 
 rows = []
 for name in names:
@@ -132,6 +169,7 @@ for name in names:
 manifest = {
     "synced_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "mode": mode,
+    "prune": prune,
     "repo_root": str(repo_root),
     "prod_root": str(prod_root),
     "files": rows,
@@ -139,4 +177,4 @@ manifest = {
 (prod_root / "helpers.manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 PY
 
-printf 'synced %s script(s) to %s (mode=%s)\n' "${#FILE_LIST[@]}" "${PROD_ROOT}" "${MODE}"
+printf 'synced %s file(s) to %s (mode=%s prune=%s)\n' "${#FILE_LIST[@]}" "${PROD_ROOT}" "${MODE}" "${PRUNE}"

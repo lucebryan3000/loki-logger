@@ -7,7 +7,7 @@ if [[ "${1:-}" == "--example" ]]; then
   shift
 fi
 
-ENV_PATH="${1:-infra/logging/.env}"
+ENV_PATH="${1:-.env}"
 
 if [[ ! -f "$ENV_PATH" ]]; then
   echo "env_validate=fail reason=missing_env path=$ENV_PATH" >&2
@@ -32,6 +32,9 @@ required_keys=(
   GRAFANA_ADMIN_USER
   GRAFANA_ADMIN_PASSWORD
   GRAFANA_SECRET_KEY
+  GF_SECURITY_ADMIN_USER
+  GF_SECURITY_ADMIN_PASSWORD
+  GF_SECURITY_SECRET_KEY
 )
 
 fail_count=0
@@ -74,6 +77,14 @@ if [[ "$MODE" == "local" ]]; then
   fi
   if [[ "${GRAFANA_SECRET_KEY:-}" == "CHANGE_ME" || "${GRAFANA_SECRET_KEY:-}" == "" ]]; then
     echo "invalid_secret=GRAFANA_SECRET_KEY" >&2
+    fail_count=$((fail_count + 1))
+  fi
+  if [[ "${GF_SECURITY_ADMIN_PASSWORD:-}" == "CHANGE_ME" || "${GF_SECURITY_ADMIN_PASSWORD:-}" == "" ]]; then
+    echo "invalid_secret=GF_SECURITY_ADMIN_PASSWORD" >&2
+    fail_count=$((fail_count + 1))
+  fi
+  if [[ "${GF_SECURITY_SECRET_KEY:-}" == "CHANGE_ME" || "${GF_SECURITY_SECRET_KEY:-}" == "" ]]; then
+    echo "invalid_secret=GF_SECURITY_SECRET_KEY" >&2
     fail_count=$((fail_count + 1))
   fi
 fi

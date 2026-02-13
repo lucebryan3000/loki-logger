@@ -5,7 +5,12 @@ cd "$(dirname "$0")/../.."
 
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-infra_observability}"
 OBS="infra/logging/docker-compose.observability.yml"
-ENV_FILE="infra/logging/.env"
+ENV_FILE=".env"
+
+# shellcheck disable=SC1090
+set -a
+. "$ENV_FILE"
+set +a
 
 OUT="${1:-temp/codex/monitoring/health-$(date -u +%Y%m%dT%H%M%SZ).json}"
 mkdir -p "$(dirname "$OUT")"
@@ -49,13 +54,13 @@ else
 fi
 
 # 2) Endpoint readiness
-if curl -sf --connect-timeout 5 --max-time 20 "http://127.0.0.1:${GRAFANA_PORT:-9001}/api/health" >/dev/null; then
+if curl -sf --connect-timeout 5 --max-time 20 "http://${GRAFANA_HOST:-127.0.0.1}:${GRAFANA_PORT:-9001}/api/health" >/dev/null; then
   pass grafana_api_health critical "grafana health endpoint ok"
 else
   fail grafana_api_health critical "grafana health endpoint failed"
 fi
 
-if curl -sf --connect-timeout 5 --max-time 20 "http://127.0.0.1:${PROM_PORT:-9004}/-/ready" | grep -q 'Ready'; then
+if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/-/ready" | grep -q 'Ready'; then
   pass prometheus_ready critical "prometheus ready endpoint ok"
 else
   fail prometheus_ready critical "prometheus ready endpoint failed"
@@ -69,7 +74,7 @@ fi
 
 # 3) Prometheus targets and up query
 targets_json="$(mktemp)"
-if curl -sf --connect-timeout 5 --max-time 20 "http://127.0.0.1:${PROM_PORT:-9004}/api/v1/targets" > "$targets_json"; then
+if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/targets" > "$targets_json"; then
   bad_targets="$(jq -r '.data.activeTargets[] | select(.health!="up") | .labels.job' "$targets_json" | sort -u)"
   if [[ -z "$bad_targets" ]]; then
     pass prometheus_targets critical "all active targets are up"
@@ -81,7 +86,7 @@ else
 fi
 
 up_json="$(mktemp)"
-if curl -sfG --connect-timeout 5 --max-time 20 "http://127.0.0.1:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=up' > "$up_json"; then
+if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=up' > "$up_json"; then
   down_jobs="$(jq -r '.data.result[] | select(.value[1] != "1") | .metric.job' "$up_json" | sort -u)"
   if [[ -z "$down_jobs" ]]; then
     pass prometheus_up_query critical "all up metrics are 1"
@@ -94,7 +99,7 @@ fi
 
 # 4) Retention + rules
 flags_json="$(mktemp)"
-if curl -sf --connect-timeout 5 --max-time 20 "http://127.0.0.1:${PROM_PORT:-9004}/api/v1/status/flags" > "$flags_json"; then
+if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/status/flags" > "$flags_json"; then
   retention="$(jq -r '.data["storage.tsdb.retention.time"] // ""' "$flags_json")"
   if [[ "$retention" == "15d" ]]; then
     pass prometheus_retention critical "retention flag is 15d"
@@ -106,7 +111,7 @@ else
 fi
 
 rules_json="$(mktemp)"
-if curl -sf --connect-timeout 5 --max-time 20 "http://127.0.0.1:${PROM_PORT:-9004}/api/v1/rules" > "$rules_json"; then
+if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/rules" > "$rules_json"; then
   groups="$(jq -r '.data.groups | length' "$rules_json")"
   if [[ "$groups" =~ ^[0-9]+$ ]] && (( groups > 0 )); then
     pass prometheus_rules warning "rule groups loaded: $groups"
@@ -134,7 +139,7 @@ fi
 
 # 6) Ingest proof (warning severity if path unavailable)
 proof_line="healthproof-$(date -u +%Y%m%dT%H%M%SZ)"
-proof_file="/home/luce/apps/vLLM/_data/mcp-logs/mcp-test.log"
+proof_file="${HOST_VLLM:-/home/luce/apps/vLLM}/_data/mcp-logs/mcp-test.log"
 if [[ -w "$proof_file" ]]; then
   echo "$proof_line" >> "$proof_file"
   sleep 3
@@ -163,7 +168,13 @@ fi
 
 # 7) Restart counters + disk
 restart_nonzero=""
-for c in infra_observability-grafana-1 infra_observability-prometheus-1 infra_observability-loki-1 infra_observability-alloy-1 infra_observability-node_exporter-1 infra_observability-cadvisor-1; do
+for c in \
+  "${COMPOSE_PROJECT_NAME}-grafana-1" \
+  "${COMPOSE_PROJECT_NAME}-prometheus-1" \
+  "${COMPOSE_PROJECT_NAME}-loki-1" \
+  "${COMPOSE_PROJECT_NAME}-alloy-1" \
+  "${COMPOSE_PROJECT_NAME}-node_exporter-1" \
+  "${COMPOSE_PROJECT_NAME}-cadvisor-1"; do
   rc="$(docker inspect -f '{{.RestartCount}}' "$c" 2>/dev/null || echo "-1")"
   if [[ "$rc" =~ ^[0-9]+$ ]] && (( rc > 0 )); then
     restart_nonzero+="$c:$rc "

@@ -1,4 +1,4 @@
-name: infra_observability
+name: ${COMPOSE_PROJECT_NAME:-infra_observability}
 
 networks:
   obs:
@@ -12,13 +12,10 @@ volumes:
 
 services:
   grafana:
-    image: grafana/grafana:11.1.0
+    image: ${GRAFANA_IMAGE:-grafana/grafana:11.1.0}
     env_file:
-      - ./.env
+      - ../../.env
     environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
-      - GF_SECURITY_SECRET_KEY=${GRAFANA_SECRET_KEY}
       - GF_SERVER_HTTP_PORT=3000
     ports:
       - "${GRAFANA_HOST:-127.0.0.1}:${GRAFANA_PORT:-9001}:3000"
@@ -39,7 +36,7 @@ services:
     restart: unless-stopped
 
   loki:
-    image: grafana/loki:3.0.0
+    image: ${LOKI_IMAGE:-grafana/loki:3.0.0}
     command: ["-config.file=/etc/loki/loki-config.yml"]
     volumes:
       - loki-data:/loki
@@ -54,11 +51,11 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v2.52.0
+    image: ${PROMETHEUS_IMAGE:-prom/prometheus:v2.52.0}
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=15d"
+      - "--storage.tsdb.retention.time=${PROM_RETENTION_TIME:-15d}"
     ports:
       - "${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}:9090"
     volumes:
@@ -75,36 +72,36 @@ services:
     restart: unless-stopped
 
   node_exporter:
-    image: prom/node-exporter:v1.8.1
+    image: ${NODE_EXPORTER_IMAGE:-prom/node-exporter:v1.8.1}
     command:
       - "--path.rootfs=/host"
     pid: host
     volumes:
-      - "/:/host:ro,rslave"
+      - "${HOST_ROOTFS:-/}:/host:ro,rslave"
     networks: [obs]
     restart: unless-stopped
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    image: ${CADVISOR_IMAGE:-gcr.io/cadvisor/cadvisor:v0.49.1}
     privileged: true
     devices:
-      - "/dev/kmsg:/dev/kmsg"
+      - "${HOST_KMSG:-/dev/kmsg}:/dev/kmsg"
     volumes:
-      - "/:/rootfs:ro"
-      - "/var/run:/var/run:rw"
-      - "/sys:/sys:ro"
-      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "${HOST_ROOTFS:-/}:/rootfs:ro"
+      - "${HOST_VAR_RUN:-/var/run}:/var/run:rw"
+      - "${HOST_SYS:-/sys}:/sys:ro"
+      - "${HOST_VAR_LIB_DOCKER:-/var/lib/docker}:/var/lib/docker:ro"
     networks: [obs]
     restart: unless-stopped
 
   alloy:
-    image: grafana/alloy:v1.2.1
+    image: ${ALLOY_IMAGE:-grafana/alloy:v1.2.1}
     command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
     user: "0:0"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "/run/log/journal:/run/log/journal:ro"
-      - "/var/log/journal:/var/log/journal:ro"
+      - "${HOST_DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro"
+      - "${HOST_RUN_LOG_JOURNAL:-/run/log/journal}:/run/log/journal:ro"
+      - "${HOST_VAR_LOG_JOURNAL:-/var/log/journal}:/var/log/journal:ro"
       - "${HOST_HOME:-/home}:/host/home:ro"
       - "./alloy-config.alloy:/etc/alloy/config.alloy:ro"
     networks: [obs]

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-ENV_FILE="infra/logging/.env"
+ENV_FILE=".env"
 OBS="infra/logging/docker-compose.observability.yml"
 
 scripts/mcp/validate_env.sh "$ENV_FILE"

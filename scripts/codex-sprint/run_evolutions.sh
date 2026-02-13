@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Execute three codex-sprint evolution builders sequentially:
+# Execute three codex-sprint evolution phases via one canonical builder:
 # 1) v1 copy-oriented layout
 # 2) v2 flattened-blob layout
 # 3) v4-flat single-file-index layout (final output kept)
@@ -20,6 +20,7 @@ usage() {
 Usage: run_evolutions.sh [options]
 
 Run codex-sprint phase builders (v1 -> v2 -> v4-flat), replacing output each phase.
+Uses single canonical script: `scripts/codex-sprint/evolve.py`.
 Final retained output is from phase 3 at `--out-dir`.
 
 Options:
@@ -103,11 +104,12 @@ PY
 
 run_phase() {
   local phase="$1"
-  local script="${SCRIPT_DIR}/evolve_v${phase}.py"
+  local script="${SCRIPT_DIR}/evolve.py"
 
   echo "== codex-sprint phase ${phase} =="
   rm -rf "${OUT_DIR}"
-  python3 "${script}" --repo-root "${REPO_ROOT}" --out "${OUT_DIR}" | tee "${PHASE_LOG_DIR}/phase${phase}.run.log"
+  python3 "${script}" --phase "${phase}" --repo-root "${REPO_ROOT}" --out "${OUT_DIR}" \
+    | tee "${PHASE_LOG_DIR}/phase${phase}.run.log"
 
   cp "${OUT_DIR}/SUMMARY.json" "${PHASE_LOG_DIR}/phase${phase}.summary.json"
   find "${OUT_DIR}" -maxdepth 3 -type d | sort > "${PHASE_LOG_DIR}/phase${phase}.dirs.txt"

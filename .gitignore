@@ -22,7 +22,6 @@
 .env.*.local.php
 *.env
 !.env.example
-infra/logging/.env
 
 # Secrets and credentials (extra safety)
 *.pem
