@@ -1,2 +1,0 @@
-## main...origin/main [ahead 4]
-?? scripts/prompt-exec/evidence/Loki-prompt-9/

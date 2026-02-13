@@ -1,6 +1,0 @@
-export PROMPT_PATH="/home/luce/apps/loki-logging/_build/Sprint-1/Prompts/Loki-prompt-7.md"
-export PROMPT_DIR="/home/luce/apps/loki-logging/_build/Sprint-1/Prompts"
-export PROMPT_STEM="Loki-prompt-7"
-export REPO_ROOT="/home/luce/apps/loki-logging"
-export RUN_DIR="/home/luce/apps/loki-logging/scripts/prompt-exec/evidence/Loki-prompt-7/20260212T224913Z"
-export RUN_UTC="20260212T224913Z"
