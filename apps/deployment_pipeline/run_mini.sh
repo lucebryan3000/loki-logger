@@ -18,6 +18,7 @@ Options:
   --root <path>         Experiment root (default: apps/deployment_pipeline)
   --timeout-prod <sec>  Pipeline timeout for production pass (default: 240)
   --timeout-poc <sec>   Pipeline timeout for poc pass (default: 180)
+  --exec-mode <mode>    Pipeline runner mode: auto|script|codex (default: script)
   --keep-between         Skip wipe between production and poc runs
   --skip-production      Skip production pass
   --skip-poc             Skip poc pass
@@ -31,6 +32,7 @@ USAGE
 ROOT="apps/deployment_pipeline"
 TIMEOUT_PROD=240
 TIMEOUT_POC=180
+EXEC_MODE="script"
 KEEP_BETWEEN=0
 SKIP_PROD=0
 SKIP_POC=0
@@ -43,6 +45,8 @@ while [[ $# -gt 0 ]]; do
       TIMEOUT_PROD="$2"; shift 2 ;;
     --timeout-poc)
       TIMEOUT_POC="$2"; shift 2 ;;
+    --exec-mode)
+      EXEC_MODE="$2"; shift 2 ;;
     --keep-between)
       KEEP_BETWEEN=1; shift ;;
     --skip-production)
@@ -63,6 +67,13 @@ PROMPTS_DIR="$ROOT/prompts"
 OUT_DIR="$ROOT/out"
 
 [[ -d "$ROOT" ]] || { echo "missing root: $ROOT" >&2; exit 2; }
+case "$EXEC_MODE" in
+  auto|script|codex) ;;
+  *)
+    echo "invalid --exec-mode: $EXEC_MODE (expected auto|script|codex)" >&2
+    exit 2
+    ;;
+esac
 
 wipe_state() {
   rm -f "$OUT_DIR/phase1.txt" "$OUT_DIR/phase2.txt"
@@ -89,13 +100,14 @@ run_verify() {
 run_pipeline() {
   local profile="$1"
   local timeout="$2"
-  echo "== pipeline profile=${profile} timeout=${timeout}s =="
+  echo "== pipeline profile=${profile} timeout=${timeout}s exec_mode=${EXEC_MODE} =="
   PROMPT_FLOW_PROFILE="$profile" \
   /home/luce/.codex/skills/prompt-pipeline/scripts/prompt_pipeline.sh \
     --root "$PROMPTS_DIR" \
     --count 2 \
     --max-retries 0 \
     --timeout-sec "$timeout" \
+    --exec-mode "$EXEC_MODE" \
     --profile "$profile"
 }
 

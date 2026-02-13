@@ -25,6 +25,7 @@ Pipeline state files (generated under `prompts/`):
 - `.prompt-pipeline.state`
 - `.prompt-pipeline.failed`
 - `.prompt-pipeline.log.jsonl`
+- `.prompt-pipeline.summary.json`
 - `.prompt-pipeline.plan.txt`
 - `.prompt-pipeline.pending.preview.txt`
 - `logs/prompt-pipeline_<run_utc>/*.log`
@@ -38,6 +39,7 @@ PROMPT_FLOW_PROFILE=production \
   --count 2 \
   --max-retries 0 \
   --timeout-sec 240 \
+  --exec-mode script \
   --profile production
 ```
 
@@ -67,6 +69,7 @@ PROMPT_FLOW_PROFILE=poc \
   --count 2 \
   --max-retries 0 \
   --timeout-sec 180 \
+  --exec-mode script \
   --profile poc
 ```
 
@@ -86,6 +89,7 @@ PROMPT_FLOW_PROFILE=production \\
   --count 1 \\
   --max-retries 0 \\
   --timeout-sec 120 \\
+  --exec-mode script \\
   --profile production
 ```
 

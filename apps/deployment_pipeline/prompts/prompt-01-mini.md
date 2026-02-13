@@ -22,18 +22,18 @@ codex_preflight_warn_mode: auto-approve
 codex_preflight_allow_noncritical: 'yes'
 codex_preflight_retry_max: '1'
 codex_exec_last_run_status: success
-codex_exec_last_run_local: 4:17 PM - 13-02-2026
+codex_exec_last_run_local: 5:50 PM - 13-02-2026
 codex_exec_last_run_warning_count: '0'
 codex_exec_last_run_last_ok_block: '1'
 codex_exec_last_run_move_status: skipped
-codex_exec_last_run_dir: /home/luce/apps/loki-logging/temp/codex-sprint/runs.jsonl#prompt-01-mini--r0008
+codex_exec_last_run_dir: /home/luce/apps/loki-logging/temp/codex-sprint/runs.jsonl#prompt-01-mini--r0010
 prompt_flow:
   version: v1
   stages:
     draft:
       source: chatgpt
       status: drafted
-      updated_utc: '2026-02-13T22:17:06Z'
+      updated_utc: '2026-02-13T23:50:51Z'
       scoping:
         kind: task
         scope: single-file
@@ -69,20 +69,20 @@ prompt_flow:
     exec:
       source: prompt-exec
       status: success
-      run_local: 4:17 PM - 13-02-2026
-      run_ref: /home/luce/apps/loki-logging/temp/codex-sprint/runs.jsonl#prompt-01-mini--r0008
-      prompt_sha: e4270544f830d76815c9130e90331427a54b450b143b235782adbe87fe64087e
+      run_local: 5:50 PM - 13-02-2026
+      run_ref: /home/luce/apps/loki-logging/temp/codex-sprint/runs.jsonl#prompt-01-mini--r0010
+      prompt_sha: fcfdec9570543b26b86f515dccaf722bc64b7c4edf4fa360d556b537cd8b7bf2
       completion_gate: pass
       last_ok_block: '1'
       warning_count: '0'
       move_status: skipped
-      updated_utc: '2026-02-13T22:17:07Z'
+      updated_utc: '2026-02-13T23:50:53Z'
       next_stage: pipeline
     pipeline:
       source: prompt-pipeline
       status: success
-      run_id: 20260213T221659Z
-      batch_id: 20260213T221659Z
+      run_id: 20260213T235051Z
+      batch_id: 20260213T235051Z
       attempt: '1'
       fail_streak: '0'
       fail_total: '0'
@@ -92,15 +92,16 @@ prompt_flow:
       resume_file: /home/luce/apps/loki-logging/apps/deployment_pipeline/prompts/.prompt-pipeline.resume.env
       last_event: prompt_success
       policy:
-        auto_yes: '0'
-        count: '12'
-        fail_fast_threshold: '2'
-        max_total_failures: '4'
+        auto_yes: '1'
+        count: '2'
+        fail_fast_threshold: '6'
+        max_total_failures: '20'
         loop_threshold: '3'
-        profile: production
-      updated_utc: '2026-02-13T22:18:04Z'
+        profile: poc
+        runner_mode: script
+      updated_utc: '2026-02-13T23:50:53Z'
 codex_verify_files_exist: *id001
-codex_exec_last_run_prompt_sha: e4270544f830d76815c9130e90331427a54b450b143b235782adbe87fe64087e
+codex_exec_last_run_prompt_sha: fcfdec9570543b26b86f515dccaf722bc64b7c4edf4fa360d556b537cd8b7bf2
 codex_exec_last_run_completion_gate: pass
 ---
 
