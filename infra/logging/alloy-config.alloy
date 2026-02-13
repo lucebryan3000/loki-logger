@@ -40,7 +40,14 @@ loki.source.file "telemetry" {
 // CodeSwarm MCP logs (vLLM host bind)
 local.file_match "codeswarm_mcp" {
   path_targets = [{ "__path__" = "/host/home/luce/apps/vLLM/_data/mcp-logs/*.log" }]
+
+  file_match {
+    enabled     = true
+    sync_period = "2s"
+  }
+
 }
+
 loki.source.file "codeswarm_mcp" {
   targets       = local.file_match.codeswarm_mcp.targets
   tail_from_end = true
