@@ -1,0 +1,75 @@
+logging {
+  level = "info"
+}
+
+discovery.docker "all" {
+  host = "unix:///var/run/docker.sock"
+}
+
+loki.source.docker "dockerlogs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.all.targets
+  forward_to = [loki.process.main.receiver]
+}
+
+// journald -> Loki (optional)
+loki.source.journal "journald" {
+  forward_to = [loki.process.main.receiver]
+}
+
+// tool sink
+local.file_match "tool_sink" {
+  path_targets = [{ "__path__" = "/host/home/luce/_logs/*.log" }]
+}
+loki.source.file "tool_sink" {
+  targets       = local.file_match.tool_sink.targets
+  tail_from_end = true
+  forward_to    = [loki.process.main.receiver]
+}
+
+// telemetry
+local.file_match "telemetry" {
+  path_targets = [{ "__path__" = "/host/home/luce/_telemetry/*.jsonl" }]
+}
+loki.source.file "telemetry" {
+  targets       = local.file_match.telemetry.targets
+  tail_from_end = true
+  forward_to    = [loki.process.main.receiver]
+}
+
+// CodeSwarm MCP logs (vLLM host bind)
+local.file_match "codeswarm_mcp" {
+  path_targets = [{ "__path__" = "/host/home/luce/apps/vLLM/_data/mcp-logs/*.log" }]
+}
+
+
+loki.source.file "codeswarm_mcp" {
+  targets       = local.file_match.codeswarm_mcp.targets
+  tail_from_end = true
+  forward_to    = [loki.process.codeswarm.receiver]
+}
+
+ loki.process "main" {
+  stage.static_labels {
+    values = {
+      env = "sandbox",
+    }
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.process "codeswarm" {
+  stage.static_labels {
+    values = {
+      env        = "sandbox",
+      log_source = "codeswarm_mcp",
+    }
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
