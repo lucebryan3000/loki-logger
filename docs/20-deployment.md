@@ -1,0 +1,356 @@
+# Deployment
+
+## Prerequisites
+
+1. **Docker and Docker Compose installed:**
+   ```bash
+   docker --version  # >= 20.10
+   docker compose version  # >= v2.0
+   ```
+
+2. **Secrets file exists:**
+   ```bash
+   ls -l infra/logging/.env
+   # Expected: -rw------- 1 luce luce (mode 600)
+   ```
+
+   If missing, create from example:
+   ```bash
+   cp infra/logging/.env.example infra/logging/.env
+   chmod 600 infra/logging/.env
+   # Edit with your credentials
+   ```
+
+3. **Port availability (loopback only):**
+   ```bash
+   # Check ports 9001 (Grafana) and 9004 (Prometheus) are free
+   ss -tln | grep -E ':(9001|9004)'
+   # No output = ports available
+   ```
+
+## Initial Deployment
+
+### Using Control Scripts (Recommended)
+
+```bash
+# Deploy the stack
+./scripts/mcp/logging_stack_up.sh
+
+# Verify health
+./scripts/mcp/logging_stack_health.sh
+```
+
+**Expected output (health check):**
+```
+✓ Grafana:    http://127.0.0.1:9001/api/health -> OK
+✓ Prometheus: http://127.0.0.1:9004/-/ready -> OK
+✓ Loki:       (internal only, check via Grafana)
+```
+
+### Manual Deployment
+
+```bash
+cd infra/logging
+
+# Pull latest images
+docker compose -f docker-compose.observability.yml pull
+
+# Start stack (detached)
+docker compose -f docker-compose.observability.yml up -d
+
+# Verify all containers running
+docker compose -f docker-compose.observability.yml ps
+```
+
+**Expected container states:**
+```
+NAME                                  STATUS
+infra_observability-alloy-1           Up
+infra_observability-cadvisor-1        Up (healthy)
+infra_observability-grafana-1         Up
+infra_observability-loki-1            Up
+infra_observability-node_exporter-1   Up
+infra_observability-prometheus-1      Up
+```
+
+## Post-Deployment Validation
+
+### 1. Service Health Checks
+
+```bash
+# Grafana
+curl -sf http://127.0.0.1:9001/api/health || echo "FAILED"
+
+# Prometheus
+curl -sf http://127.0.0.1:9004/-/ready || echo "FAILED"
+curl -sf http://127.0.0.1:9004/-/healthy || echo "FAILED"
+```
+
+### 2. Grafana Login
+
+```bash
+# Open browser
+open http://127.0.0.1:9001
+# Or: xdg-open http://127.0.0.1:9001
+
+# Login with credentials from .env:
+# Username: GRAFANA_ADMIN_USER
+# Password: GRAFANA_ADMIN_PASSWORD
+```
+
+**First-time setup:**
+1. Navigate to **Connections → Data sources**
+2. Verify **Loki** and **Prometheus** are listed (auto-provisioned)
+3. Test both data sources (should show "Data source is working")
+
+### 3. Log Ingestion Verification
+
+Navigate to **Grafana → Explore → Loki** and run:
+
+```logql
+# Broad query to verify any logs are being ingested
+{env=~".+"} | limit 10
+```
+
+**Expected:** 10+ log lines from various sources (Docker, files, journal)
+
+**If no results:** Check [50-troubleshooting.md](50-troubleshooting.md#no-logs-in-loki).
+
+### 4. Metrics Verification
+
+Navigate to **Grafana → Explore → Prometheus** and run:
+
+```promql
+up
+```
+
+**Expected:** Targets with `up=1`:
+- `job="prometheus"` (self)
+- `job="node_exporter"`
+- `job="cadvisor"`
+
+## Compose Project Conventions
+
+- **Project name:** `infra_observability` (set via `name:` in compose file)
+- **Network:** `obs` (explicit name for stable DNS)
+- **Container naming:** `infra_observability-<service>-1`
+
+**Working directory matters:**
+```bash
+# These are equivalent:
+cd infra/logging && docker compose up -d
+docker compose -f infra/logging/docker-compose.observability.yml up -d
+```
+
+**Avoid `-p` flag:** Project name is defined in compose file; don't override.
+
+## Redeployment
+
+### Update Single Service
+
+```bash
+cd infra/logging
+
+# Example: Update Alloy config and reload
+docker compose up -d --force-recreate alloy
+```
+
+**Services requiring restart for config changes:**
+- `alloy` (alloy-config.alloy)
+- `loki` (loki-config.yml)
+- `prometheus` (prometheus.yml)
+- `grafana` (provisioning changes)
+
+### Full Stack Restart
+
+```bash
+# Stop all services
+./scripts/mcp/logging_stack_down.sh
+
+# Start fresh
+./scripts/mcp/logging_stack_up.sh
+```
+
+**Data persistence:** Volumes (`grafana-data`, `loki-data`, `prometheus-data`) are **not deleted** on down/up. Logs and metrics are preserved.
+
+### Update Images (Upgrade)
+
+```bash
+cd infra/logging
+
+# Pull new image versions
+docker compose pull
+
+# Recreate containers with new images
+docker compose up -d
+
+# Verify versions
+docker compose ps --format "table {{.Service}}\t{{.Image}}"
+```
+
+See [70-maintenance.md](70-maintenance.md#upgrades) for version compatibility notes.
+
+## Port Configuration
+
+Default ports are defined in `.env`:
+
+```bash
+GRAFANA_HOST=127.0.0.1
+GRAFANA_PORT=9001
+
+PROM_HOST=127.0.0.1
+PROM_PORT=9004
+```
+
+To change ports:
+1. Edit `infra/logging/.env`
+2. Restart services: `docker compose up -d`
+
+**Security:** Always bind to `127.0.0.1` (loopback only). **Never** use `0.0.0.0` without firewall rules.
+
+## Volume Management
+
+### Inspect Volumes
+
+```bash
+docker volume ls | grep infra_observability
+```
+
+**Expected:**
+```
+infra_observability_grafana-data
+infra_observability_loki-data
+infra_observability_prometheus-data
+```
+
+### Volume Sizes
+
+```bash
+docker system df -v | grep infra_observability
+```
+
+**Typical sizes:**
+- `grafana-data`: ~50MB
+- `loki-data`: ~1-5GB (depends on log volume)
+- `prometheus-data`: ~500MB-2GB (15 days retention)
+
+### Reset Stack (Destructive)
+
+**Warning:** This deletes all logs, metrics, and Grafana dashboards.
+
+```bash
+cd infra/logging
+
+# Stop and remove containers + volumes
+docker compose down -v
+
+# Verify volumes deleted
+docker volume ls | grep infra_observability
+# (should return nothing)
+
+# Redeploy from scratch
+docker compose up -d
+```
+
+## Firewall Considerations
+
+If using UFW (Ubuntu Firewall):
+
+```bash
+# Verify loopback access is allowed (default)
+sudo ufw status
+
+# Grafana and Prometheus are loopback-only
+# No additional rules needed unless remote access required
+```
+
+**For remote access (not recommended):**
+See [60-security.md](60-security.md#remote-access) for SSH tunneling approach.
+
+## Environment Variables
+
+**Required in `.env`:**
+- `GRAFANA_ADMIN_USER` — Admin username
+- `GRAFANA_ADMIN_PASSWORD` — Admin password (min 8 chars)
+- `GRAFANA_SECRET_KEY` — Session encryption key (32+ random chars)
+
+**Optional in `.env`:**
+- `GRAFANA_HOST` — Bind address (default: 127.0.0.1)
+- `GRAFANA_PORT` — External port (default: 9001)
+- `PROM_HOST` — Bind address (default: 127.0.0.1)
+- `PROM_PORT` — External port (default: 9004)
+- `HOST_HOME` — Host home directory for Alloy mounts (default: /home)
+
+**Never commit `.env` to git.** Use `.env.example` as template.
+
+## Log File Preparation
+
+Alloy monitors these paths (mounted at `/host/home/luce`):
+
+- `/home/luce/_logs/*.log`
+- `/home/luce/_telemetry/*.jsonl`
+- `/home/luce/apps/vLLM/_data/mcp-logs/*.log`
+
+**Ensure directories exist:**
+```bash
+mkdir -p /home/luce/_logs /home/luce/_telemetry
+chmod 755 /home/luce/_logs /home/luce/_telemetry
+```
+
+**Permissions:** Alloy runs as root inside container. Files must be readable by host user (luce).
+
+## Troubleshooting Deployment Issues
+
+### Containers Not Starting
+
+```bash
+# Check logs
+docker compose -f infra/logging/docker-compose.observability.yml logs <service>
+
+# Common issues:
+# - Port already in use (check with `ss -tln`)
+# - Missing .env file
+# - Config syntax errors (Alloy, Prometheus)
+```
+
+### Alloy Config Parse Errors
+
+```bash
+docker logs infra_observability-alloy-1
+```
+
+**Common mistakes:**
+- Using `#` comments instead of `//`
+- Malformed HCL syntax
+- Incorrect path targets
+
+See [50-troubleshooting.md](50-troubleshooting.md#alloy-config-errors).
+
+### Grafana Not Accessible
+
+```bash
+# Check container status
+docker ps | grep grafana
+
+# Check port binding
+ss -tln | grep 9001
+
+# Test from host
+curl -v http://127.0.0.1:9001/api/health
+```
+
+### Prometheus Retention Not Applied
+
+**Symptom:** Changed `retention` in `prometheus.yml`, but old data still retained.
+
+**Cause:** Retention is **CLI-only** (`--storage.tsdb.retention.time=15d` in compose file).
+
+**Fix:** Edit compose file, not `prometheus.yml`. Restart Prometheus.
+
+## Next Steps
+
+After successful deployment:
+1. Review [30-operations.md](30-operations.md) for common operational tasks
+2. Run validation proofs: [40-validation.md](40-validation.md)
+3. Generate evidence: `./scripts/prism/evidence.sh`
+4. Set up retention policies: [70-maintenance.md](70-maintenance.md)
