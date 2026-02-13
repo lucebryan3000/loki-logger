@@ -4,12 +4,12 @@ Production-grade log aggregation and observability stack for local development. 
 
 ## What's Deployed
 
-This repository runs a complete observability stack on `localhost`:
+This repository runs a complete observability stack on headless Ubuntu host `192.168.1.150`:
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **Grafana** | http://127.0.0.1:9001 | Dashboards, log queries, visualization |
-| **Prometheus** | http://127.0.0.1:9004 | Metrics collection and querying |
+| **Grafana** | http://192.168.1.150:9001 | Dashboards, log queries, visualization |
+| **Prometheus** | http://192.168.1.150:9004 | Metrics collection and querying |
 | **Loki** | Internal only | Log storage and aggregation |
 | **Alloy** | Internal only | Log ingestion from multiple sources |
 | **Node Exporter** | Internal only | Host-level metrics (CPU, memory, disk) |
@@ -18,15 +18,18 @@ This repository runs a complete observability stack on `localhost`:
 **Network:** All services run on isolated Docker network `obs`
 **Compose project:** `infra_observability`
 **Data retention:** 30 days (logs), 15 days (metrics)
+**Access:** LAN-accessible (0.0.0.0 binding) for remote browser access to headless host
 
 ## Getting Started
 
 ### Quick Access
 
-```bash
-# Open Grafana (login with credentials from infra/logging/.env)
-open http://127.0.0.1:9001
+**From LAN browser (headless host):**
+- Grafana: http://192.168.1.150:9001
+- Prometheus: http://192.168.1.150:9004
 
+**From host (SSH session):**
+```bash
 # Check stack health
 ./scripts/mcp/logging_stack_health.sh
 
@@ -36,6 +39,8 @@ docker compose -f infra/logging/docker-compose.observability.yml logs -f
 # Generate evidence/proof archive
 ./scripts/prism/evidence.sh
 ```
+
+**Login credentials:** See `infra/logging/.env` for Grafana admin user/password
 
 ### First-Time Setup
 
@@ -57,10 +62,11 @@ If you haven't deployed yet, see [docs/deployment.md](docs/deployment.md) for fu
 
 ### Querying Logs in Grafana
 
-1. Open http://127.0.0.1:9001
-2. Navigate to **Explore** (compass icon)
-3. Select **Loki** data source
-4. Run a query:
+1. Open http://192.168.1.150:9001 in browser (from any LAN device)
+2. Login with credentials from `infra/logging/.env`
+3. Navigate to **Explore** (compass icon)
+4. Select **Loki** data source
+5. Run a query:
 
 ```logql
 # All logs from sandbox environment
@@ -184,12 +190,37 @@ nano infra/logging/.env
 - `GRAFANA_ADMIN_PASSWORD` — Admin password (min 8 chars)
 - `GRAFANA_SECRET_KEY` — Session encryption key (32+ random chars)
 
+**LAN access configuration:**
+- `GRAFANA_HOST=0.0.0.0` — Bind to all interfaces (LAN access)
+- `GRAFANA_PORT=9001` — External port
+- `PROM_HOST=0.0.0.0` — Bind to all interfaces (LAN access)
+- `PROM_PORT=9004` — External port
+
 **Optional variables:**
-- `GRAFANA_HOST` / `GRAFANA_PORT` — Binding address and port
-- `PROM_HOST` / `PROM_PORT` — Prometheus binding
-- `HOST_HOME` — Host home directory for Alloy mounts
+- `HOST_HOME` — Host home directory for Alloy mounts (default: /home)
 
 **Root `.env.example`** is a generic template for other projects, not used by this stack.
+
+### Firewall Configuration (UFW)
+
+For LAN access to headless host, configure UFW to allow Grafana and Prometheus ports:
+
+```bash
+# Allow Grafana from LAN
+sudo ufw allow from 192.168.1.0/24 to any port 9001 comment 'Grafana LAN'
+
+# Allow Prometheus from LAN
+sudo ufw allow from 192.168.1.0/24 to any port 9004 comment 'Prometheus LAN'
+
+# Verify rules
+sudo ufw status numbered
+
+# Expected output:
+# [X] 9001       ALLOW IN    192.168.1.0/24        # Grafana LAN
+# [Y] 9004       ALLOW IN    192.168.1.0/24        # Prometheus LAN
+```
+
+**Security note:** Services are accessible from LAN only (192.168.1.0/24), not internet-exposed.
 
 ### Configuration Files
 
@@ -248,10 +279,14 @@ nano infra/logging/.env
 
 ## Security
 
-- **Loopback-only binding:** Grafana and Prometheus bound to 127.0.0.1 (no network access)
+- **LAN-accessible services:** Grafana (9001) and Prometheus (9004) bound to 0.0.0.0 for headless access
+- **Firewall:** UFW configured to allow ports 9001, 9004 from LAN (192.168.1.0/24)
 - **Internal-only Loki:** No exposed ports, accessible only from Docker `obs` network
 - **Secrets in .env:** Mode 600, never committed to git
 - **No secrets in evidence:** Evidence files never contain passwords or keys
+- **Authentication:** Grafana requires username/password (configured in .env)
+
+**Network trust model:** LAN/WireGuard only, no internet exposure
 
 **Full security documentation:** [docs/security.md](docs/security.md)
 
@@ -279,12 +314,28 @@ docker run --rm \
 
 **Full maintenance guide:** [docs/maintenance.md](docs/maintenance.md)
 
+## Accessing from LAN Devices
+
+**From any browser on LAN (laptop, desktop, mobile):**
+- Grafana: http://192.168.1.150:9001
+- Prometheus: http://192.168.1.150:9004
+
+**From host via SSH:**
+- Use localhost: http://127.0.0.1:9001 (if X11/browser forwarding)
+- Or use LAN IP: http://192.168.1.150:9001
+
+**Headless operation:** This stack is designed for headless Ubuntu hosts. All UI access is via browser from LAN devices, not directly on the host.
+
 ## Validation
 
 Run strict validation proofs to confirm stack operation:
 
 ```bash
-# 1. Health checks
+# 1. Health checks (from host)
+curl -sf http://192.168.1.150:9001/api/health
+curl -sf http://192.168.1.150:9004/-/ready
+
+# Or from localhost
 curl -sf http://127.0.0.1:9001/api/health
 curl -sf http://127.0.0.1:9004/-/ready
 
