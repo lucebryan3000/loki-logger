@@ -279,7 +279,7 @@ docker compose images
    docker compose up -d
    ```
 
-See [70-maintenance.md](70-maintenance.md#upgrades) for version compatibility.
+See [maintenance.md](maintenance.md#upgrades) for version compatibility.
 
 ### Privileged Containers
 
@@ -403,6 +403,6 @@ Before deploying to shared/production environment:
 
 ## Next Steps
 
-- Review [70-maintenance.md](70-maintenance.md) for retention policies
-- See [30-operations.md](30-operations.md) for operational security
-- Check [80-reference.md](80-reference.md) for configuration reference
+- Review [maintenance.md](maintenance.md) for retention policies
+- See [operations.md](operations.md) for operational security
+- Check [reference.md](reference.md) for configuration reference

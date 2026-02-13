@@ -114,7 +114,7 @@ Navigate to **Grafana → Explore → Loki** and run:
 
 **Expected:** 10+ log lines from various sources (Docker, files, journal)
 
-**If no results:** Check [50-troubleshooting.md](50-troubleshooting.md#no-logs-in-loki).
+**If no results:** Check [troubleshooting.md](troubleshooting.md#no-logs-in-loki).
 
 ### 4. Metrics Verification
 
@@ -188,7 +188,7 @@ docker compose up -d
 docker compose ps --format "table {{.Service}}\t{{.Image}}"
 ```
 
-See [70-maintenance.md](70-maintenance.md#upgrades) for version compatibility notes.
+See [maintenance.md](maintenance.md#upgrades) for version compatibility notes.
 
 ## Port Configuration
 
@@ -265,7 +265,7 @@ sudo ufw status
 ```
 
 **For remote access (not recommended):**
-See [60-security.md](60-security.md#remote-access) for SSH tunneling approach.
+See [security.md](security.md#remote-access) for SSH tunneling approach.
 
 ## Environment Variables
 
@@ -324,7 +324,7 @@ docker logs infra_observability-alloy-1
 - Malformed HCL syntax
 - Incorrect path targets
 
-See [50-troubleshooting.md](50-troubleshooting.md#alloy-config-errors).
+See [troubleshooting.md](troubleshooting.md#alloy-config-errors).
 
 ### Grafana Not Accessible
 
@@ -350,7 +350,7 @@ curl -v http://127.0.0.1:9001/api/health
 ## Next Steps
 
 After successful deployment:
-1. Review [30-operations.md](30-operations.md) for common operational tasks
-2. Run validation proofs: [40-validation.md](40-validation.md)
+1. Review [operations.md](operations.md) for common operational tasks
+2. Run validation proofs: [validation.md](validation.md)
 3. Generate evidence: `./scripts/prism/evidence.sh`
-4. Set up retention policies: [70-maintenance.md](70-maintenance.md)
+4. Set up retention policies: [maintenance.md](maintenance.md)

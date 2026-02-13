@@ -92,7 +92,7 @@ The stack includes scripts to generate **cryptographically verifiable evidence**
 - **Output:** `temp/evidence/` (timestamped directories)
 - **Purpose:** Prove ingestion, query capability, and label compliance for audit
 
-See [30-operations.md](30-operations.md#evidence-generation) for usage.
+See [operations.md](operations.md#evidence-generation) for usage.
 
 ## Quick Start
 
@@ -111,18 +111,18 @@ open http://127.0.0.1:9001
 # Example: {env=~".+"} |= "error"
 ```
 
-For detailed deployment procedures, see [20-deployment.md](20-deployment.md).
+For detailed deployment procedures, see [deployment.md](deployment.md).
 
 ## Documentation Structure
 
-- [10-architecture.md](10-architecture.md) — Component diagram, data flow, networks
-- [20-deployment.md](20-deployment.md) — Deploy, redeploy, upgrade procedures
-- [30-operations.md](30-operations.md) — Common tasks, runbooks, health checks
-- [40-validation.md](40-validation.md) — Strict validation proofs
-- [50-troubleshooting.md](50-troubleshooting.md) — Symptom → cause → fix
-- [60-security.md](60-security.md) — Exposure posture, secrets handling
-- [70-maintenance.md](70-maintenance.md) — Retention, upgrades, backups
-- [80-reference.md](80-reference.md) — Ports, labels, paths, env vars
+- [architecture.md](architecture.md) — Component diagram, data flow, networks
+- [deployment.md](deployment.md) — Deploy, redeploy, upgrade procedures
+- [operations.md](operations.md) — Common tasks, runbooks, health checks
+- [validation.md](validation.md) — Strict validation proofs
+- [troubleshooting.md](troubleshooting.md) — Symptom → cause → fix
+- [security.md](security.md) — Exposure posture, secrets handling
+- [maintenance.md](maintenance.md) — Retention, upgrades, backups
+- [reference.md](reference.md) — Ports, labels, paths, env vars
 
 ## Common Gotchas
 
@@ -132,4 +132,4 @@ For detailed deployment procedures, see [20-deployment.md](20-deployment.md).
 4. **Loki ingestion delay:** Allow 10-15 seconds for logs to appear after generation
 5. **Container restarts clear state:** Alloy positions reset; expect duplicate ingestion after restart
 
-See [50-troubleshooting.md](50-troubleshooting.md) for full catalog.
+See [troubleshooting.md](troubleshooting.md) for full catalog.

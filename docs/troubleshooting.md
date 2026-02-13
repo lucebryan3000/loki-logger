@@ -543,6 +543,6 @@ If issue persists after troubleshooting:
 
 ## Next Steps
 
-- Review [30-operations.md](30-operations.md) for operational runbooks
-- See [40-validation.md](40-validation.md) for validation proofs
-- Check [80-reference.md](80-reference.md) for config reference
+- Review [operations.md](operations.md) for operational runbooks
+- See [validation.md](validation.md) for validation proofs
+- Check [reference.md](reference.md) for config reference

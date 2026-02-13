@@ -185,7 +185,7 @@ sum by (container_name) (count_over_time({env="sandbox"}[5m]))
 1. **Always use label selectors:** Never query `{}` (empty selector)
 2. **Narrow time range:** Use Grafana's time picker or `start`/`end` params
 3. **Limit results:** Add `| limit 100` to large queries
-4. **Use dynamic end time:** Avoid frozen query windows (see [50-troubleshooting.md](50-troubleshooting.md#frozen-query-window))
+4. **Use dynamic end time:** Avoid frozen query windows (see [troubleshooting.md](troubleshooting.md#frozen-query-window))
 
 **Good query:**
 ```logql
@@ -457,7 +457,7 @@ level=info ts=... caller=compactor.go:... msg="retention enabled"
 # Compaction happens automatically; no manual trigger needed
 ```
 
-See [70-maintenance.md](70-maintenance.md#retention-policies) for changing retention.
+See [maintenance.md](maintenance.md#retention-policies) for changing retention.
 
 ### Prometheus Retention
 
@@ -540,7 +540,7 @@ See [Prometheus Alerting Docs](https://prometheus.io/docs/alerting/latest/overvi
 - Permissions: `chmod 644 /home/luce/_logs/*.log`
 - Network: `docker network inspect obs` (verify Alloy and Loki are connected)
 
-See [50-troubleshooting.md](50-troubleshooting.md#no-logs-in-loki) for detailed steps.
+See [troubleshooting.md](troubleshooting.md#no-logs-in-loki) for detailed steps.
 
 ## Runbook: High Memory Usage
 
@@ -562,11 +562,11 @@ docker stats --no-stream | grep -E "loki|prometheus"
 - Increase compaction frequency
 - Add more memory to host (or reduce other workloads)
 
-See [70-maintenance.md](70-maintenance.md#resource-tuning) for tuning parameters.
+See [maintenance.md](maintenance.md#resource-tuning) for tuning parameters.
 
 ## Next Steps
 
-- **Validation:** Run strict validation proofs ([40-validation.md](40-validation.md))
-- **Troubleshooting:** See common issues ([50-troubleshooting.md](50-troubleshooting.md))
-- **Security:** Review exposure posture ([60-security.md](60-security.md))
-- **Maintenance:** Set up retention and backups ([70-maintenance.md](70-maintenance.md))
+- **Validation:** Run strict validation proofs ([validation.md](validation.md))
+- **Troubleshooting:** See common issues ([troubleshooting.md](troubleshooting.md))
+- **Security:** Review exposure posture ([security.md](security.md))
+- **Maintenance:** Set up retention and backups ([maintenance.md](maintenance.md))

@@ -5,33 +5,33 @@ Complete navigation for the Loki logging stack documentation.
 ## Quick Access
 
 - **First-time users:** Start with [README.md](README.md) for quick start
-- **Operators:** See [30-operations.md](30-operations.md) for runbooks
-- **Troubleshooting:** See [50-troubleshooting.md](50-troubleshooting.md) for common issues
-- **Reference:** See [80-reference.md](80-reference.md) for ports, labels, paths
+- **Operators:** See [operations.md](operations.md) for runbooks
+- **Troubleshooting:** See [troubleshooting.md](troubleshooting.md) for common issues
+- **Reference:** See [reference.md](reference.md) for ports, labels, paths
 
 ## Core Documentation
 
 ### Getting Started
 
 - **[README.md](README.md)** — Quick start, what's inside, common operations
-- **[00-overview.md](00-overview.md)** — Purpose, stack components, scope, guardrails
+- **[overview.md](overview.md)** — Purpose, stack components, scope, guardrails
 
 ### Architecture and Deployment
 
-- **[10-architecture.md](10-architecture.md)** — Data flow, components, networks, labels
-- **[20-deployment.md](20-deployment.md)** — Deploy, redeploy, upgrade procedures
+- **[architecture.md](architecture.md)** — Data flow, components, networks, labels
+- **[deployment.md](deployment.md)** — Deploy, redeploy, upgrade procedures
 
 ### Operations
 
-- **[30-operations.md](30-operations.md)** — Common tasks, runbooks, queries, evidence
-- **[40-validation.md](40-validation.md)** — Strict validation proofs, health checks
-- **[50-troubleshooting.md](50-troubleshooting.md)** — Symptoms → causes → fixes
+- **[operations.md](operations.md)** — Common tasks, runbooks, queries, evidence
+- **[validation.md](validation.md)** — Strict validation proofs, health checks
+- **[troubleshooting.md](troubleshooting.md)** — Symptoms → causes → fixes
 
 ### Security and Maintenance
 
-- **[60-security.md](60-security.md)** — Exposure posture, secrets, authentication
-- **[70-maintenance.md](70-maintenance.md)** — Retention, backups, upgrades, disk management
-- **[80-reference.md](80-reference.md)** — Ports, env vars, paths, labels, API endpoints
+- **[security.md](security.md)** — Exposure posture, secrets, authentication
+- **[maintenance.md](maintenance.md)** — Retention, backups, upgrades, disk management
+- **[reference.md](reference.md)** — Ports, env vars, paths, labels, API endpoints
 
 ### Quality Assurance
 
@@ -41,76 +41,76 @@ Complete navigation for the Loki logging stack documentation.
 
 ### Deployment and Setup
 - [Quick start](README.md#quick-start)
-- [Prerequisites](20-deployment.md#prerequisites)
-- [Initial deployment](20-deployment.md#initial-deployment)
-- [Post-deployment validation](20-deployment.md#post-deployment-validation)
-- [Port configuration](20-deployment.md#port-configuration)
+- [Prerequisites](deployment.md#prerequisites)
+- [Initial deployment](deployment.md#initial-deployment)
+- [Post-deployment validation](deployment.md#post-deployment-validation)
+- [Port configuration](deployment.md#port-configuration)
 
 ### Architecture
-- [Data flow overview](10-architecture.md#data-flow-overview)
-- [Component details](10-architecture.md#component-details)
-- [Network architecture](10-architecture.md#network-architecture)
-- [Persistence](10-architecture.md#persistence)
-- [Label schema](10-architecture.md#label-schema)
+- [Data flow overview](architecture.md#data-flow-overview)
+- [Component details](architecture.md#component-details)
+- [Network architecture](architecture.md#network-architecture)
+- [Persistence](architecture.md#persistence)
+- [Label schema](architecture.md#label-schema)
 
 ### Operations
-- [Health checks](30-operations.md#health-checks)
-- [Viewing logs](30-operations.md#viewing-logs)
-- [Restarting services](30-operations.md#restarting-services)
-- [Log queries (LogQL)](30-operations.md#log-queries-logql)
-- [Metrics queries (PromQL)](30-operations.md#metrics-queries-promql)
-- [Evidence generation](30-operations.md#evidence-generation)
-- [Grafana administration](30-operations.md#grafana-administration)
+- [Health checks](operations.md#health-checks)
+- [Viewing logs](operations.md#viewing-logs)
+- [Restarting services](operations.md#restarting-services)
+- [Log queries (LogQL)](operations.md#log-queries-logql)
+- [Metrics queries (PromQL)](operations.md#metrics-queries-promql)
+- [Evidence generation](operations.md#evidence-generation)
+- [Grafana administration](operations.md#grafana-administration)
 
 ### Validation
-- [Service health (L1)](40-validation.md#l1-service-health)
-- [Data ingestion (L2)](40-validation.md#l2-data-ingestion)
-- [Query capability (L3)](40-validation.md#l3-query-capability)
-- [Label contract (L4)](40-validation.md#l4-label-contract-validation)
-- [Automated validation](40-validation.md#automated-validation-script)
-- [Evidence generation](40-validation.md#evidence-generation-proof-archive)
+- [Service health (L1)](validation.md#l1-service-health)
+- [Data ingestion (L2)](validation.md#l2-data-ingestion)
+- [Query capability (L3)](validation.md#l3-query-capability)
+- [Label contract (L4)](validation.md#l4-label-contract-validation)
+- [Automated validation](validation.md#automated-validation-script)
+- [Evidence generation](validation.md#evidence-generation-proof-archive)
 
 ### Troubleshooting
-- [No logs in Loki](50-troubleshooting.md#symptom-no-logs-in-loki)
-- [Alloy config parse errors](50-troubleshooting.md#symptom-alloy-config-parse-errors)
-- [Empty Loki query results](50-troubleshooting.md#symptom-empty-loki-query-results)
-- [Prometheus retention not applied](50-troubleshooting.md#symptom-prometheus-retention-not-applied)
-- [Grafana login fails](50-troubleshooting.md#symptom-grafana-login-fails)
-- [High CPU/memory usage](50-troubleshooting.md#symptom-high-cpumemory-usage)
-- [Container restart loops](50-troubleshooting.md#symptom-container-restart-loops)
-- [Common pitfalls](50-troubleshooting.md#common-pitfalls)
+- [No logs in Loki](troubleshooting.md#symptom-no-logs-in-loki)
+- [Alloy config parse errors](troubleshooting.md#symptom-alloy-config-parse-errors)
+- [Empty Loki query results](troubleshooting.md#symptom-empty-loki-query-results)
+- [Prometheus retention not applied](troubleshooting.md#symptom-prometheus-retention-not-applied)
+- [Grafana login fails](troubleshooting.md#symptom-grafana-login-fails)
+- [High CPU/memory usage](troubleshooting.md#symptom-high-cpumemory-usage)
+- [Container restart loops](troubleshooting.md#symptom-container-restart-loops)
+- [Common pitfalls](troubleshooting.md#common-pitfalls)
 
 ### Security
-- [Exposure posture](60-security.md#exposure-posture)
-- [Secrets management](60-security.md#secrets-management)
-- [Authentication](60-security.md#authentication)
-- [Firewall (UFW)](60-security.md#firewall-ufw)
-- [Remote access](60-security.md#remote-access)
-- [Docker socket security](60-security.md#docker-socket-security)
-- [Log data security](60-security.md#log-data-security)
-- [Security checklist](60-security.md#security-checklist)
+- [Exposure posture](security.md#exposure-posture)
+- [Secrets management](security.md#secrets-management)
+- [Authentication](security.md#authentication)
+- [Firewall (UFW)](security.md#firewall-ufw)
+- [Remote access](security.md#remote-access)
+- [Docker socket security](security.md#docker-socket-security)
+- [Log data security](security.md#log-data-security)
+- [Security checklist](security.md#security-checklist)
 
 ### Maintenance
-- [Retention policies](70-maintenance.md#retention-policies)
-- [Evidence rotation](70-maintenance.md#evidence-rotation)
-- [Backup and restore](70-maintenance.md#backup-and-restore)
-- [Upgrades](70-maintenance.md#upgrades)
-- [Disk space management](70-maintenance.md#disk-space-management)
-- [Resource tuning](70-maintenance.md#resource-tuning)
-- [Log file management](70-maintenance.md#log-file-management)
-- [Maintenance checklist](70-maintenance.md#maintenance-checklist-monthly)
+- [Retention policies](maintenance.md#retention-policies)
+- [Evidence rotation](maintenance.md#evidence-rotation)
+- [Backup and restore](maintenance.md#backup-and-restore)
+- [Upgrades](maintenance.md#upgrades)
+- [Disk space management](maintenance.md#disk-space-management)
+- [Resource tuning](maintenance.md#resource-tuning)
+- [Log file management](maintenance.md#log-file-management)
+- [Maintenance checklist](maintenance.md#maintenance-checklist-monthly)
 
 ### Reference
-- [Port assignments](80-reference.md#port-assignments)
-- [Environment variables](80-reference.md#environment-variables-env)
-- [File paths](80-reference.md#file-paths)
-- [Docker resources](80-reference.md#docker-resources)
-- [Label schema](80-reference.md#label-schema)
-- [API endpoints](80-reference.md#api-endpoints)
-- [Configuration parameters](80-reference.md#configuration-parameters)
-- [Image versions](80-reference.md#image-versions)
-- [Query examples](80-reference.md#query-examples)
-- [Health check commands](80-reference.md#health-check-commands)
+- [Port assignments](reference.md#port-assignments)
+- [Environment variables](reference.md#environment-variables-env)
+- [File paths](reference.md#file-paths)
+- [Docker resources](reference.md#docker-resources)
+- [Label schema](reference.md#label-schema)
+- [API endpoints](reference.md#api-endpoints)
+- [Configuration parameters](reference.md#configuration-parameters)
+- [Image versions](reference.md#image-versions)
+- [Query examples](reference.md#query-examples)
+- [Health check commands](reference.md#health-check-commands)
 
 ## Config Snippets
 
@@ -174,7 +174,7 @@ Historical/snapshot documentation (not part of primary navigation):
 
 ### Cross-References
 - Each doc links to related docs ("Next Steps" or "See Also")
-- Reference doc (80-reference.md) links to all primary docs
+- Reference doc (reference.md) links to all primary docs
 - Troubleshooting doc links to relevant operational sections
 
 ## Quick Reference Cards
@@ -221,11 +221,11 @@ Historical/snapshot documentation (not part of primary navigation):
 
 ## Navigation Tips
 
-1. **First time?** Start with [README.md](README.md) → [00-overview.md](00-overview.md) → [20-deployment.md](20-deployment.md)
-2. **Something broken?** Go directly to [50-troubleshooting.md](50-troubleshooting.md)
-3. **Need a command?** Check [80-reference.md](80-reference.md) or use search (Ctrl+F)
-4. **Validating deployment?** Follow [40-validation.md](40-validation.md) checklist
-5. **Planning maintenance?** Review [70-maintenance.md](70-maintenance.md)
+1. **First time?** Start with [README.md](README.md) → [overview.md](overview.md) → [deployment.md](deployment.md)
+2. **Something broken?** Go directly to [troubleshooting.md](troubleshooting.md)
+3. **Need a command?** Check [reference.md](reference.md) or use search (Ctrl+F)
+4. **Validating deployment?** Follow [validation.md](validation.md) checklist
+5. **Planning maintenance?** Review [maintenance.md](maintenance.md)
 
 ## Contributing to Docs
 

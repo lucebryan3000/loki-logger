@@ -470,6 +470,6 @@ docker compose up -d prometheus
 
 ## Next Steps
 
-- Review [30-operations.md](30-operations.md) for operational tasks
-- See [60-security.md](60-security.md) for secrets rotation
-- Check [80-reference.md](80-reference.md) for configuration options
+- Review [operations.md](operations.md) for operational tasks
+- See [security.md](security.md) for secrets rotation
+- Check [reference.md](reference.md) for configuration options

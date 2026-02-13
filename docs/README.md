@@ -141,7 +141,7 @@ sleep 15
 # {env="sandbox", filename=~".*test.log"} |= "validation_"
 ```
 
-See [40-validation.md](40-validation.md) for full validation checklist.
+See [validation.md](validation.md) for full validation checklist.
 
 ## Troubleshooting
 
@@ -159,20 +159,20 @@ See [40-validation.md](40-validation.md) for full validation checklist.
 - Check time range (Grafana time picker, top-right)
 - Allow 10-15 seconds for ingestion delay
 
-See [50-troubleshooting.md](50-troubleshooting.md) for full troubleshooting guide.
+See [troubleshooting.md](troubleshooting.md) for full troubleshooting guide.
 
 ## Documentation
 
 - **[INDEX.md](INDEX.md)** — Full table of contents
-- **[00-overview.md](00-overview.md)** — Concepts, scope, guardrails
-- **[10-architecture.md](10-architecture.md)** — Data flow, components, networks
-- **[20-deployment.md](20-deployment.md)** — Deploy, redeploy, upgrades
-- **[30-operations.md](30-operations.md)** — Runbooks, queries, admin tasks
-- **[40-validation.md](40-validation.md)** — Strict validation proofs
-- **[50-troubleshooting.md](50-troubleshooting.md)** — Symptoms → causes → fixes
-- **[60-security.md](60-security.md)** — Exposure posture, secrets handling
-- **[70-maintenance.md](70-maintenance.md)** — Retention, backups, upgrades
-- **[80-reference.md](80-reference.md)** — Ports, labels, paths, env vars
+- **[overview.md](overview.md)** — Concepts, scope, guardrails
+- **[architecture.md](architecture.md)** — Data flow, components, networks
+- **[deployment.md](deployment.md)** — Deploy, redeploy, upgrades
+- **[operations.md](operations.md)** — Runbooks, queries, admin tasks
+- **[validation.md](validation.md)** — Strict validation proofs
+- **[troubleshooting.md](troubleshooting.md)** — Symptoms → causes → fixes
+- **[security.md](security.md)** — Exposure posture, secrets handling
+- **[maintenance.md](maintenance.md)** — Retention, backups, upgrades
+- **[reference.md](reference.md)** — Ports, labels, paths, env vars
 
 ## Common Gotchas
 
@@ -182,7 +182,7 @@ See [50-troubleshooting.md](50-troubleshooting.md) for full troubleshooting guid
 4. **Ingestion delay is normal** — Allow 10-15 seconds for logs to appear
 5. **Loki is internal-only** — No http://127.0.0.1:3100 (use Grafana instead)
 
-See [50-troubleshooting.md](50-troubleshooting.md#common-pitfalls) for full list.
+See [troubleshooting.md](troubleshooting.md#common-pitfalls) for full list.
 
 ## Security
 
@@ -191,7 +191,7 @@ See [50-troubleshooting.md](50-troubleshooting.md#common-pitfalls) for full list
 - **Secrets in .env:** Mode 600, gitignored, never logged
 - **No secrets in evidence:** Evidence files never contain passwords/keys
 
-See [60-security.md](60-security.md) for security posture and best practices.
+See [security.md](security.md) for security posture and best practices.
 
 ## Maintenance
 
@@ -216,7 +216,7 @@ docker compose up -d
 ./scripts/mcp/logging_stack_health.sh
 ```
 
-See [70-maintenance.md](70-maintenance.md) for full maintenance procedures.
+See [maintenance.md](maintenance.md) for full maintenance procedures.
 
 ## Repository Structure
 
@@ -243,7 +243,7 @@ See [70-maintenance.md](70-maintenance.md) for full maintenance procedures.
 
 **Documentation issues:** Check [quality-checklist.md](quality-checklist.md) for validation
 
-**Stack issues:** See [50-troubleshooting.md](50-troubleshooting.md)
+**Stack issues:** See [troubleshooting.md](troubleshooting.md)
 
 **Upstream projects:**
 - Grafana Loki: https://github.com/grafana/loki

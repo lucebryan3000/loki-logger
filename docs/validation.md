@@ -286,7 +286,7 @@ Run this checklist after deployment or major changes:
 2. Verify log files exist: `ls -lh /home/luce/_logs/`
 3. Check Loki reachability: `docker exec infra_observability-alloy-1 curl -s http://loki:3100/ready`
 
-**Fix:** See [50-troubleshooting.md](50-troubleshooting.md#no-logs-in-loki)
+**Fix:** See [troubleshooting.md](troubleshooting.md#no-logs-in-loki)
 
 ### Missing Labels (L4 Failure)
 
@@ -338,6 +338,6 @@ sleep 15
 ## Next Steps
 
 After validation passes:
-- Review [30-operations.md](30-operations.md) for operational runbooks
-- Set up [70-maintenance.md](70-maintenance.md) retention and backups
-- Review [50-troubleshooting.md](50-troubleshooting.md) for common issues
+- Review [operations.md](operations.md) for operational runbooks
+- Set up [maintenance.md](maintenance.md) retention and backups
+- Review [troubleshooting.md](troubleshooting.md) for common issues

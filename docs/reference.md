@@ -358,12 +358,12 @@ temp/evidence/loki-<timestamp>/
 
 ## Cross-References
 
-- [00-overview.md](00-overview.md) — Stack concepts and scope
-- [10-architecture.md](10-architecture.md) — Component details and data flow
-- [20-deployment.md](20-deployment.md) — Deployment procedures
-- [30-operations.md](30-operations.md) — Operational runbooks
-- [40-validation.md](40-validation.md) — Validation proofs
-- [50-troubleshooting.md](50-troubleshooting.md) — Common issues
-- [60-security.md](60-security.md) — Security posture
-- [70-maintenance.md](70-maintenance.md) — Retention and backups
+- [overview.md](overview.md) — Stack concepts and scope
+- [architecture.md](architecture.md) — Component details and data flow
+- [deployment.md](deployment.md) — Deployment procedures
+- [operations.md](operations.md) — Operational runbooks
+- [validation.md](validation.md) — Validation proofs
+- [troubleshooting.md](troubleshooting.md) — Common issues
+- [security.md](security.md) — Security posture
+- [maintenance.md](maintenance.md) — Retention and backups
 - [snippets/](snippets/) — Config file excerpts

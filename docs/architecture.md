@@ -180,7 +180,7 @@ curl -sf http://127.0.0.1:9004/-/healthy
 | `loki-data` | loki | `/loki` | Chunks, index, compactor state |
 | `prometheus-data` | prometheus | `/prometheus` | Time-series database |
 
-**Backup/restore:** See [70-maintenance.md](70-maintenance.md#backup-and-restore).
+**Backup/restore:** See [maintenance.md](maintenance.md#backup-and-restore).
 
 ### Config Files (Read-Only Mounts)
 
@@ -297,4 +297,4 @@ See [snippets/](snippets/) for canonical config excerpts.
 - 4GB+ RAM
 - 10GB+ free disk space
 
-See [80-reference.md](80-reference.md#resource-limits) for tuning parameters.
+See [reference.md](reference.md#resource-limits) for tuning parameters.

@@ -151,15 +151,15 @@ This checklist ensures documentation correctness, operational validity, and styl
 - [ ] Cross-references are bidirectional (A links to B, B links back)
 
 ### Completeness
-- [ ] 00-overview.md covers purpose, scope, guardrails
-- [ ] 10-architecture.md covers data flow, components, networks
-- [ ] 20-deployment.md covers deploy, redeploy, upgrades
-- [ ] 30-operations.md covers runbooks, queries, admin tasks
-- [ ] 40-validation.md covers strict proofs and evidence
-- [ ] 50-troubleshooting.md covers symptoms → fixes
-- [ ] 60-security.md covers exposure, secrets, compliance
-- [ ] 70-maintenance.md covers retention, backups, upgrades
-- [ ] 80-reference.md covers ports, labels, paths, env vars
+- [ ] overview.md covers purpose, scope, guardrails
+- [ ] architecture.md covers data flow, components, networks
+- [ ] deployment.md covers deploy, redeploy, upgrades
+- [ ] operations.md covers runbooks, queries, admin tasks
+- [ ] validation.md covers strict proofs and evidence
+- [ ] troubleshooting.md covers symptoms → fixes
+- [ ] security.md covers exposure, secrets, compliance
+- [ ] maintenance.md covers retention, backups, upgrades
+- [ ] reference.md covers ports, labels, paths, env vars
 
 ## Accessibility Checks
 
