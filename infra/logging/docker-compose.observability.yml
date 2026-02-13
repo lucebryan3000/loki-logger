@@ -1,114 +1,136 @@
 name: ${COMPOSE_PROJECT_NAME:-infra_observability}
-
 networks:
   obs:
     name: obs
     driver: bridge
-
 volumes:
-  grafana-data:
-  prometheus-data:
-  loki-data:
-
+  grafana-data: null
+  prometheus-data: null
+  loki-data: null
 services:
   grafana:
     image: ${GRAFANA_IMAGE:-grafana/grafana:11.1.0}
     env_file:
-      - ../../.env
+    - ../../.env
     environment:
-      - GF_SERVER_HTTP_PORT=3000
+    - GF_SERVER_HTTP_PORT=3000
     ports:
-      - "${GRAFANA_HOST:-127.0.0.1}:${GRAFANA_PORT:-9001}:3000"
+    - ${GRAFANA_HOST:-127.0.0.1}:${GRAFANA_PORT:-9001}:3000
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
-    networks: [obs]
+    - grafana-data:/var/lib/grafana
+    - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+    - obs
     depends_on:
-      - loki
-      - prometheus
+    - loki
+    - prometheus
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health"]
+      test:
+      - CMD
+      - curl
+      - -fsS
+      - http://127.0.0.1:3000/api/health
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 20s
     restart: unless-stopped
-
   loki:
     image: ${LOKI_IMAGE:-grafana/loki:3.0.0}
-    command: ["-config.file=/etc/loki/loki-config.yml"]
+    command:
+    - -config.file=/etc/loki/loki-config.yml
     volumes:
-      - loki-data:/loki
-      - ./loki-config.yml:/etc/loki/loki-config.yml:ro
-    networks: [obs]
+    - loki-data:/loki
+    - ./loki-config.yml:/etc/loki/loki-config.yml:ro
+    networks:
+    - obs
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:3100/ready"]
+      test:
+      - CMD
+      - wget
+      - -q
+      - -O
+      - '-'
+      - http://127.0.0.1:3100/ready
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 20s
     restart: unless-stopped
-
   prometheus:
     image: ${PROMETHEUS_IMAGE:-prom/prometheus:v2.52.0}
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=${PROM_RETENTION_TIME:-15d}"
+    - --config.file=/etc/prometheus/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --storage.tsdb.retention.time=${PROM_RETENTION_TIME:-15d}
     ports:
-      - "${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}:9090"
+    - ${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}:9090
     volumes:
-      - prometheus-data:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./prometheus/rules:/etc/prometheus/rules:ro
-    networks: [obs]
+    - prometheus-data:/prometheus
+    - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - ./prometheus/rules:/etc/prometheus/rules:ro
+    networks:
+    - obs
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:9090/-/ready"]
+      test:
+      - CMD
+      - wget
+      - -q
+      - -O
+      - '-'
+      - http://127.0.0.1:9090/-/ready
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 20s
     restart: unless-stopped
-
-  node_exporter:
+  host-monitor:
     image: ${NODE_EXPORTER_IMAGE:-prom/node-exporter:v1.8.1}
     command:
-      - "--path.rootfs=/host"
+    - --path.rootfs=/host
     pid: host
     volumes:
-      - "${HOST_ROOTFS:-/}:/host:ro,rslave"
-    networks: [obs]
+    - ${HOST_ROOTFS:-/}:/host:ro,rslave
+    networks:
+    - obs
     restart: unless-stopped
-
-  cadvisor:
+  docker-metrics:
     image: ${CADVISOR_IMAGE:-gcr.io/cadvisor/cadvisor:v0.49.1}
     privileged: true
     devices:
-      - "${HOST_KMSG:-/dev/kmsg}:/dev/kmsg"
+    - ${HOST_KMSG:-/dev/kmsg}:/dev/kmsg
     volumes:
-      - "${HOST_ROOTFS:-/}:/rootfs:ro"
-      - "${HOST_VAR_RUN:-/var/run}:/var/run:rw"
-      - "${HOST_SYS:-/sys}:/sys:ro"
-      - "${HOST_VAR_LIB_DOCKER:-/var/lib/docker}:/var/lib/docker:ro"
-    networks: [obs]
+    - ${HOST_ROOTFS:-/}:/rootfs:ro
+    - ${HOST_VAR_RUN:-/var/run}:/var/run:rw
+    - ${HOST_SYS:-/sys}:/sys:ro
+    - ${HOST_VAR_LIB_DOCKER:-/var/lib/docker}:/var/lib/docker:ro
+    networks:
+    - obs
     restart: unless-stopped
-
   alloy:
     image: ${ALLOY_IMAGE:-grafana/alloy:v1.2.1}
-    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
-    user: "0:0"
+    command:
+    - run
+    - --server.http.listen-addr=0.0.0.0:12345
+    - /etc/alloy/config.alloy
+    user: 0:0
     volumes:
-      - "${HOST_DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro"
-      - "${HOST_RUN_LOG_JOURNAL:-/run/log/journal}:/run/log/journal:ro"
-      - "${HOST_VAR_LOG_JOURNAL:-/var/log/journal}:/var/log/journal:ro"
-      - "${HOST_HOME:-/home}:/host/home:ro"
-      - "./alloy-config.alloy:/etc/alloy/config.alloy:ro"
-    networks: [obs]
+    - ${HOST_DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
+    - ${HOST_RUN_LOG_JOURNAL:-/run/log/journal}:/run/log/journal:ro
+    - ${HOST_VAR_LOG_JOURNAL:-/var/log/journal}:/var/log/journal:ro
+    - ${HOST_HOME:-/home}:/host/home:ro
+    - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
+    networks:
+    - obs
     depends_on:
-      - loki
+    - loki
     healthcheck:
-      test: ["CMD", "/bin/alloy", "fmt", "--help"]
+      test:
+      - CMD
+      - /bin/alloy
+      - fmt
+      - --help
       interval: 60s
       timeout: 10s
       retries: 3

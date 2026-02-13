@@ -37,7 +37,7 @@ pass() { add_result "$1" pass "$2" "$3"; }
 fail() { add_result "$1" fail "$2" "$3"; }
 warn() { add_result "$1" warn "$2" "$3"; }
 
-required_services=(grafana loki prometheus alloy node_exporter cadvisor)
+required_services=(grafana loki prometheus alloy host-monitor docker-metrics)
 
 # 1) Compose services running
 running_services="$(docker compose --env-file "$ENV_FILE" -f "$OBS" ps --services --status running | sort || true)"
@@ -173,8 +173,8 @@ for c in \
   "${COMPOSE_PROJECT_NAME}-prometheus-1" \
   "${COMPOSE_PROJECT_NAME}-loki-1" \
   "${COMPOSE_PROJECT_NAME}-alloy-1" \
-  "${COMPOSE_PROJECT_NAME}-node_exporter-1" \
-  "${COMPOSE_PROJECT_NAME}-cadvisor-1"; do
+  "${COMPOSE_PROJECT_NAME}-host-monitor-1" \
+  "${COMPOSE_PROJECT_NAME}-docker-metrics-1"; do
   rc="$(docker inspect -f '{{.RestartCount}}' "$c" 2>/dev/null || echo "-1")"
   if [[ "$rc" =~ ^[0-9]+$ ]] && (( rc > 0 )); then
     restart_nonzero+="$c:$rc "
