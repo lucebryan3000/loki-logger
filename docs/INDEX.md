@@ -210,8 +210,8 @@ Historical/snapshot documentation (not part of primary navigation):
 ```
 
 ### Essential URLs
-- Grafana: http://127.0.0.1:9001
-- Prometheus: http://127.0.0.1:9004
+- Grafana: http://192.168.1.150:9001
+- Prometheus: http://192.168.1.150:9004
 
 ### Essential Files
 - Compose: `infra/logging/docker-compose.observability.yml`
