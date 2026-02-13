@@ -15,6 +15,7 @@ This folder is a deterministic mini harness to validate prompt lifecycle behavio
 - `out/phase1.txt`
 - `out/phase2.txt`
 - `templates/chatgpt_prompt_template.md`
+- `templates/chatgpt_prd_to_12_prompts_template.md`
 - `check_frontmatter_contract.py`
 - `verify_mini.py`
 - `run_mini.sh`
