@@ -1,16 +1,18 @@
 {
   "meta": {
-    "generated_local": "",
-    "generated_utc": "",
-    "git_branch": "",
-    "git_head": "",
+    "generated_local": "10:33 PM - 12-02-2026",
+    "generated_utc": "2026-02-13T04:33:42Z",
+    "git_head": "2c5470a18fc784b87074853b4de48a5a7e24c17a",
+    "git_branch": "main",
     "compose_project": "infra_observability",
-    "grafana_port": "",
-    "prom_port": "",
-    "docker_version": "",
-    "compose_version": "",
-    "env_stat": "",
-    "evidence_dir": "/home/luce/apps/loki-logging/temp/codex/evidence/Loki-prompt-22-generate-docs/20260212T221122"
+    "compose_file": "/home/luce/apps/loki-logging/infra/logging/docker-compose.observability.yml",
+    "evidence_dir": "/home/luce/apps/loki-logging/temp/codex/evidence/Loki-prompt-24-docs-safe/20260212T223342",
+    "docker_version": "29.2.1",
+    "compose_version": "Docker Compose version v5.0.2",
+    "grafana_port": "9001",
+    "prom_port": "9004",
+    "env_stat": "600 luce:luce infra/logging/.env",
+    "runbook_ref": "_build/Sprint-1/Loki-logging-1.md"
   },
   "docs_dir": "/home/luce/apps/loki-logging/docs",
   "files": [

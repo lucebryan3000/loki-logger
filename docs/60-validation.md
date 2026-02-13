@@ -1,7 +1,14 @@
 # Validation & Tests (Strict)
 
-Required checks
-1. Grafana health: curl -sf http://127.0.0.1:/api/health
-2. Prometheus ready: curl -sf http://127.0.0.1:/-/ready
-3. Telemetry: systemctl is-active loki-telemetry-writer.service; Loki contains {env=~".+"} |= "telemetry tick"
-4. CodeSwarm MCP: broad {env=~".+"} |= "<marker>"; labeled {env=~".+",log_source="codeswarm_mcp"} |= "<marker>"
+Required:
+1) Grafana health:
+- curl -sf http://127.0.0.1:9001/api/health
+
+2) Prometheus ready:
+- curl -sf http://127.0.0.1:9004/-/ready
+
+3) Loki telemetry:
+- {"env"=~".+"} |= "telemetry tick"
+
+4) CodeSwarm MCP labeled proof:
+- {"env"=~".+","log_source"="codeswarm_mcp"} |= "codeswarm_mcp_proof_"

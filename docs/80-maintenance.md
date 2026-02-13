@@ -1,5 +1,7 @@
 # Maintenance
-- Prefer pinned images; upgrade intentionally
-- After truncating tailed files, restart Alloy to reset positions
-- Evidence accumulation: temp/codex/evidence/ (runner), temp/.artifacts/prism/evidence/ (legacy)
-- Rotate or prune as desired in sandbox
+
+- Prefer pinned image tags and intentional upgrades.
+- If you truncate tailed files, restart Alloy to reset positions.
+- Evidence roots:
+  - temp/codex/evidence/ (runner)
+  - temp/.artifacts/prism/evidence/ (legacy)

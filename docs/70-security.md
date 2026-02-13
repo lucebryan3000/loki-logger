@@ -1,5 +1,5 @@
 # Security
-- Loopback-only endpoints for Grafana/Prometheus
-- Loki internal-only
-- Secrets in infra/logging/.env (never print; never commit)
-- Keep label cardinality low; avoid IDs in labels
+
+- Grafana/Prometheus are loopback-bound (or LAN-bound if configured).
+- Loki is internal-only unless explicitly published.
+- Secrets live in infra/logging/.env; never print or commit secret values.
