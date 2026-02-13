@@ -21,7 +21,7 @@ services:
       - GF_SECURITY_SECRET_KEY=${GRAFANA_SECRET_KEY}
       - GF_SERVER_HTTP_PORT=3000
     ports:
-      - "127.0.0.1:9001:3000"
+      - "${GRAFANA_HOST:-127.0.0.1}:${GRAFANA_PORT:-9001}:3000"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
@@ -48,7 +48,7 @@ services:
       - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=15d"
     ports:
-      - "127.0.0.1:9004:9090"
+      - "${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}:9090"
     volumes:
       - prometheus-data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -87,7 +87,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "/run/log/journal:/run/log/journal:ro"
       - "/var/log/journal:/var/log/journal:ro"
-      - "/home:/host/home:ro"
+      - "${HOST_HOME:-/home}:/host/home:ro"
       - "./alloy-config.alloy:/etc/alloy/config.alloy:ro"
     networks: [obs]
     depends_on:
