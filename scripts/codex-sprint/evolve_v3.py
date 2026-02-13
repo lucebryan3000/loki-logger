@@ -221,7 +221,7 @@ Compact machine-readable evidence layout with append-only single-file indexes.
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Build codex-sprint evolution v3")
+    ap = argparse.ArgumentParser(description="Build codex-sprint evolution v4-flat")
     ap.add_argument("--repo-root", default=".", help="Repo root")
     ap.add_argument("--out", default="temp/codex-sprint", help="Output root")
     args = ap.parse_args()
@@ -232,7 +232,7 @@ def main() -> int:
 
     summary = build_v3(repo_root, out_root)
     print(
-        "v3 complete: "
+        "v4-flat complete: "
         f"runs={summary['source_run_count']} indexed_artifacts={summary['indexed_artifacts']} out={out_root}"
     )
     return 0
