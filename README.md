@@ -6,19 +6,19 @@ Production-grade log aggregation and observability stack for local development. 
 
 This repository runs a complete observability stack on headless Ubuntu host `192.168.1.150`:
 
-| Service | URL | Purpose |
-|---------|-----|---------|
-| **Grafana** | http://192.168.1.150:9001 | Dashboards, log queries, visualization |
-| **Prometheus** | http://192.168.1.150:9004 | Metrics collection and querying |
-| **Loki** | Internal only | Log storage and aggregation |
-| **Alloy** | Internal only | Log ingestion from multiple sources |
-| **Node Exporter** | Internal only | Host-level metrics (CPU, memory, disk) |
-| **cAdvisor** | Internal only | Container-level metrics |
+| Service | URL | Purpose | LAN Access |
+|---------|-----|---------|------------|
+| **Grafana** | http://192.168.1.150:9001 | Dashboards, log queries, visualization | ✓ Externally accessible |
+| **Prometheus** | http://192.168.1.150:9004 | Metrics collection and querying | ✓ Externally accessible |
+| **Loki** | Internal only | Log storage and aggregation | Internal only |
+| **Alloy** | Internal only | Log ingestion from multiple sources | Internal only |
+| **Node Exporter** | Internal only | Host-level metrics (CPU, memory, disk) | Internal only |
+| **cAdvisor** | Internal only | Container-level metrics | Internal only |
 
 **Network:** All services run on isolated Docker network `obs`
 **Compose project:** `infra_observability`
 **Data retention:** 30 days (logs), 15 days (metrics)
-**Access:** LAN-accessible (0.0.0.0 binding) for remote browser access to headless host
+**LAN access:** Grafana (9001) and Prometheus (9004) bound to 0.0.0.0 with UFW firewall rules allowing 192.168.1.0/24
 
 ## Getting Started
 
