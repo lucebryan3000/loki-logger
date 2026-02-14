@@ -17,6 +17,7 @@ This folder is a deterministic mini harness to validate prompt lifecycle behavio
 - `templates/chatgpt_prompt_template.md`
 - `templates/chatgpt_prd_to_12_prompts_template.md`
 - `check_frontmatter_contract.py`
+- `check_pipeline_runner_contract.py`
 - `verify_mini.py`
 - `run_mini.sh`
 
@@ -48,6 +49,10 @@ Or use the one-command harness:
 ```bash
 apps/deployment_pipeline/run_mini.sh --root apps/deployment_pipeline
 ```
+
+The harness runs two deterministic gates before the mini pipeline:
+- `check_pipeline_runner_contract.py` (runner mode/range/hold summary regression checks)
+- `check_frontmatter_contract.py` (prompt contract gate)
 
 ## Wipe + Re-Run (POC Profile)
 

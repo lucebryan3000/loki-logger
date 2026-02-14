@@ -1,8 +1,8 @@
 {
-  "run_utc": "20260213T235208Z",
+  "run_utc": "20260214T013524Z",
   "status": "done",
   "pipeline_status": "done",
-  "reason": "done:pipeline_completed",
+  "reason": "pipeline_completed",
   "root": "/home/luce/apps/loki-logging/apps/deployment_pipeline/prompts",
   "repo_root": "/home/luce/apps/loki-logging",
   "runner_mode": "script",
@@ -26,6 +26,6 @@
     "resume": "/home/luce/apps/loki-logging/apps/deployment_pipeline/prompts/.prompt-pipeline.resume.env",
     "hold": "/home/luce/apps/loki-logging/apps/deployment_pipeline/prompts/.prompt-pipeline.HOLD",
     "go": "",
-    "run_logs": "/home/luce/apps/loki-logging/apps/deployment_pipeline/prompts/logs/prompt-pipeline_20260213T235208Z"
+    "run_logs": "/home/luce/apps/loki-logging/apps/deployment_pipeline/prompts/logs/prompt-pipeline_20260214T013524Z"
   }
 }

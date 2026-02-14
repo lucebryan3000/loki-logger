@@ -22,18 +22,18 @@ codex_preflight_warn_mode: auto-approve
 codex_preflight_allow_noncritical: 'yes'
 codex_preflight_retry_max: '1'
 codex_exec_last_run_status: success
-codex_exec_last_run_local: 5:52 PM - 13-02-2026
+codex_exec_last_run_local: 7:35 PM - 13-02-2026
 codex_exec_last_run_warning_count: '0'
 codex_exec_last_run_last_ok_block: '1'
 codex_exec_last_run_move_status: skipped
-codex_exec_last_run_dir: /home/luce/apps/loki-logging/temp/codex-sprint/runs.jsonl#prompt-01-mini--r0012
+codex_exec_last_run_dir: /home/luce/apps/loki-logging/temp/codex-sprint/runs.jsonl#prompt-01-mini--r0014
 prompt_flow:
   version: v1
   stages:
     draft:
       source: chatgpt
       status: drafted
-      updated_utc: '2026-02-13T23:52:09Z'
+      updated_utc: '2026-02-14T01:35:24Z'
       scoping:
         kind: task
         scope: single-file
@@ -69,20 +69,20 @@ prompt_flow:
     exec:
       source: prompt-exec
       status: success
-      run_local: 5:52 PM - 13-02-2026
-      run_ref: /home/luce/apps/loki-logging/temp/codex-sprint/runs.jsonl#prompt-01-mini--r0012
-      prompt_sha: 3826d6344517bb0e10f7cb413e67379810e90d79ef770800b6b0ba044cda8c4a
+      run_local: 7:35 PM - 13-02-2026
+      run_ref: /home/luce/apps/loki-logging/temp/codex-sprint/runs.jsonl#prompt-01-mini--r0014
+      prompt_sha: 8d3aaf31e21a59e104c1841b4a31f817ef550de0a54c38543634e3b0beae723e
       completion_gate: pass
       last_ok_block: '1'
       warning_count: '0'
       move_status: skipped
-      updated_utc: '2026-02-13T23:52:10Z'
+      updated_utc: '2026-02-14T01:35:26Z'
       next_stage: pipeline
     pipeline:
       source: prompt-pipeline
       status: success
-      run_id: 20260213T235208Z
-      batch_id: 20260213T235208Z
+      run_id: 20260214T013524Z
+      batch_id: 20260214T013524Z
       attempt: '1'
       fail_streak: '0'
       fail_total: '0'
@@ -99,9 +99,9 @@ prompt_flow:
         loop_threshold: '3'
         profile: poc
         runner_mode: script
-      updated_utc: '2026-02-13T23:52:10Z'
+      updated_utc: '2026-02-14T01:35:26Z'
 codex_verify_files_exist: *id001
-codex_exec_last_run_prompt_sha: 3826d6344517bb0e10f7cb413e67379810e90d79ef770800b6b0ba044cda8c4a
+codex_exec_last_run_prompt_sha: 8d3aaf31e21a59e104c1841b4a31f817ef550de0a54c38543634e3b0beae723e
 codex_exec_last_run_completion_gate: pass
 ---
 

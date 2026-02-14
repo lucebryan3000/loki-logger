@@ -3,6 +3,7 @@ set -euo pipefail
 
 # One-command deterministic mini pipeline harness:
 # - contract gate
+# - pipeline runner contract regression checks
 # - production run
 # - wipe
 # - poc run
@@ -94,6 +95,10 @@ run_gate() {
   python3 "$ROOT/check_frontmatter_contract.py" --root "$PROMPTS_DIR" --json
 }
 
+run_runner_contract_gate() {
+  python3 "$ROOT/check_pipeline_runner_contract.py" --pipeline-script /home/luce/.codex/skills/prompt-pipeline/scripts/prompt_pipeline.sh --json
+}
+
 run_verify() {
   python3 "$ROOT/verify_mini.py" --root "$ROOT"
 }
@@ -111,6 +116,9 @@ run_pipeline() {
     --exec-mode "$EXEC_MODE" \
     --profile "$profile"
 }
+
+echo "== runner contract gate =="
+run_runner_contract_gate
 
 echo "== contract gate =="
 run_gate
