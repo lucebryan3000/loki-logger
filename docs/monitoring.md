@@ -4,7 +4,7 @@ This runbook explains how to validate the Loki logging stack comprehensively.
 
 Scope:
 - Compose project: `logging`
-- Compose file: `infra/logging/docker-compose.observability.yml`
+- Compose file: `infra/logging/docker compose -p logging.observability.yml`
 - Host endpoints:
   - Grafana: `http://127.0.0.1:9001`
   - Prometheus: `http://127.0.0.1:9004`
@@ -20,7 +20,7 @@ set -euo pipefail
 REPO="/home/luce/apps/loki-logging"
 cd "$REPO"
 export COMPOSE_PROJECT_NAME=logging
-OBS="infra/logging/docker-compose.observability.yml"
+OBS="infra/logging/docker compose -p logging.observability.yml"
 ```
 
 ## Health Levels
@@ -292,7 +292,7 @@ docker compose -f "$OBS" logs --since=10m --no-color alloy | rg -in 'error|statu
 
 ```bash
 sha256sum \
-  infra/logging/docker-compose.observability.yml \
+  infra/logging/docker compose -p logging.observability.yml \
   infra/logging/loki-config.yml \
   infra/logging/alloy-config.alloy \
   infra/logging/prometheus/prometheus.yml \

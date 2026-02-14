@@ -26,7 +26,7 @@ limits_config:
    ```
 2. Restart Loki:
    ```bash
-   docker compose -f infra/logging/docker-compose.observability.yml restart loki
+   docker compose -p logging -f infra/logging/docker compose.observability.yml restart loki
    ```
 
 **Verify retention is active:**
@@ -56,14 +56,14 @@ services:
 ```
 
 **Change retention:**
-1. Edit `infra/logging/docker-compose.observability.yml`:
+1. Edit `infra/logging/docker compose -p logging.observability.yml`:
    ```yaml
    command:
      - "--storage.tsdb.retention.time=30d"
    ```
 2. Restart Prometheus:
    ```bash
-   docker compose -f infra/logging/docker-compose.observability.yml up -d prometheus
+   docker compose -p logging -f infra/logging/docker compose.observability.yml up -d prometheus
    ```
 
 **Verify retention:**
@@ -137,7 +137,7 @@ ls -lh /home/luce/backups/grafana/$(date +%Y%m%d)/
 
 ```bash
 # Stop Grafana
-docker compose -f infra/logging/docker-compose.observability.yml stop grafana
+docker compose -p logging -f infra/logging/docker compose.observability.yml stop grafana
 
 # Restore from backup
 docker run --rm \
@@ -146,7 +146,7 @@ docker run --rm \
   alpine sh -c 'rm -rf /data/* && tar xzf /backup/grafana-data.tar.gz -C /data'
 
 # Start Grafana
-docker compose -f infra/logging/docker-compose.observability.yml start grafana
+docker compose -p logging -f infra/logging/docker compose.observability.yml start grafana
 ```
 
 ### Backup Secrets (.env)
@@ -177,7 +177,7 @@ chmod 600 .env
 
 **Check current versions:**
 ```bash
-docker compose -f infra/logging/docker-compose.observability.yml images
+docker compose -p logging -f infra/logging/docker compose.observability.yml images
 ```
 
 **Upgrade process:**
@@ -196,12 +196,12 @@ docker compose -f infra/logging/docker-compose.observability.yml images
 
 3. **Pull new images:**
    ```bash
-   docker compose -f infra/logging/docker-compose.observability.yml pull
+   docker compose -p logging -f infra/logging/docker compose.observability.yml pull
    ```
 
 4. **Recreate containers:**
    ```bash
-   docker compose -f infra/logging/docker-compose.observability.yml up -d
+   docker compose -p logging -f infra/logging/docker compose.observability.yml up -d
    ```
 
 5. **Verify health:**
@@ -212,7 +212,7 @@ docker compose -f infra/logging/docker-compose.observability.yml images
 **Rollback if issues:**
 ```bash
 # Revert compose file to old version
-git checkout infra/logging/docker-compose.observability.yml
+git checkout infra/logging/docker compose -p logging.observability.yml
 
 # Redeploy old version
 docker compose up -d
@@ -275,7 +275,7 @@ docker volume inspect logging_grafana-data --format '{{.Mountpoint}}' | xargs du
 **Emergency cleanup (delete all data):**
 ```bash
 # WARNING: This deletes all logs and metrics
-docker compose -f infra/logging/docker-compose.observability.yml down -v
+docker compose -p logging -f infra/logging/docker compose.observability.yml down -v
 
 # Redeploy
 docker compose up -d

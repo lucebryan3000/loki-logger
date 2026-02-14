@@ -110,10 +110,10 @@ Alloy ingests logs from:
 ./scripts/prod/mcp/logging_stack_health.sh
 
 # View all logs
-docker compose -f infra/logging/docker-compose.observability.yml logs -f
+docker compose -p logging -f infra/logging/docker compose.observability.yml logs -f
 
 # Restart service
-docker compose -f infra/logging/docker-compose.observability.yml restart <service>
+docker compose -p logging -f infra/logging/docker compose.observability.yml restart <service>
 
 # Stop stack
 ./scripts/prod/mcp/logging_stack_down.sh
@@ -207,7 +207,7 @@ See [security.md](security.md) for security posture and best practices.
 ### Upgrades
 ```bash
 # Pull new images
-docker compose -f infra/logging/docker-compose.observability.yml pull
+docker compose -p logging -f infra/logging/docker compose.observability.yml pull
 
 # Recreate containers
 docker compose up -d

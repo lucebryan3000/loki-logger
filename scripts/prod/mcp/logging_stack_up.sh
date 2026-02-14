@@ -26,7 +26,7 @@ EOF
 fi
 
 ENV_FILE=".env"
-OBS="infra/logging/docker-compose.observability.yml"
+OBS="infra/logging/docker compose -p logging.observability.yml"
 
 scripts/prod/mcp/validate_env.sh "$ENV_FILE"
 

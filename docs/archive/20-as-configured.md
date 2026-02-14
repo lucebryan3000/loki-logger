@@ -1,7 +1,7 @@
 # As Configured
 
 Key files:
-- infra/logging/docker-compose.observability.yml
+- infra/logging/docker compose -p logging.observability.yml
 - infra/logging/loki-config.yml
 - infra/logging/alloy-config.alloy
 - infra/logging/prometheus/prometheus.yml
@@ -10,7 +10,7 @@ Key files:
 
 Config hashes (sha256):
 ```
-5888badf65105217b6847f2297f7c5d06db152ffd566db83bff7e238442e5ff7  infra/logging/docker-compose.observability.yml
+5888badf65105217b6847f2297f7c5d06db152ffd566db83bff7e238442e5ff7  infra/logging/docker compose -p logging.observability.yml
 dfd4b882c188e80f889fc1fcb4ca798a80c81e3d9fc1e37b3747c7b3dc179d41  infra/logging/loki-config.yml
 db3bcaa1b0d0a2bd3e8df59689664bb257d97383e5f53e63f9316aaedfe8a8b3  infra/logging/alloy-config.alloy
 c7f4f252d99c1535da5cc5eab5103177d0fd60e7d2c934be07edd091f2b072bb  infra/logging/prometheus/prometheus.yml

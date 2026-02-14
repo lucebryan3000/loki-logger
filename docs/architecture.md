@@ -193,7 +193,7 @@ curl -sf http://127.0.0.1:9004/-/healthy
 
 **Config changes require container restart:**
 ```bash
-docker compose -f infra/logging/docker-compose.observability.yml restart <service>
+docker compose -p logging -f infra/logging/docker compose.observability.yml restart <service>
 ```
 
 ## Label Schema
@@ -273,7 +273,7 @@ docker-metrics
 ## Configuration Files
 
 ### Primary Configs
-- [infra/logging/docker-compose.observability.yml](../infra/logging/docker-compose.observability.yml) — Stack definition
+- [infra/logging/docker compose -p logging.observability.yml](../infra/logging/docker compose.observability.yml) — Stack definition
 - [infra/logging/loki-config.yml](../infra/logging/loki-config.yml) — Loki schema, retention, compaction
 - [infra/logging/alloy-config.alloy](../infra/logging/alloy-config.alloy) — Log ingestion pipelines
 - [infra/logging/prometheus/prometheus.yml](../infra/logging/prometheus/prometheus.yml) — Scrape targets, alerting

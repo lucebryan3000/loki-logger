@@ -22,7 +22,7 @@ EOF
 fi
 
 ENV_FILE=".env"
-OBS="infra/logging/docker-compose.observability.yml"
+OBS="infra/logging/docker compose -p logging.observability.yml"
 
 # shellcheck disable=SC1090
 set -a

@@ -214,7 +214,7 @@ Historical/snapshot documentation (not part of primary navigation):
 - Prometheus: http://192.168.1.150:9004
 
 ### Essential Files
-- Compose: `infra/logging/docker-compose.observability.yml`
+- Compose: `infra/logging/docker compose -p logging.observability.yml`
 - Secrets: `.env` (mode 600)
 - Loki config: `infra/logging/loki-config.yml`
 - Alloy config: `infra/logging/alloy-config.alloy`

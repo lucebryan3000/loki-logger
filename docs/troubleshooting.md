@@ -6,10 +6,10 @@ This document maps **symptoms → causes → fixes** for common issues with the 
 
 ```bash
 # Container status
-docker compose -f infra/logging/docker-compose.observability.yml ps
+docker compose -p logging -f infra/logging/docker compose.observability.yml ps
 
 # Recent logs (all services)
-docker compose -f infra/logging/docker-compose.observability.yml logs --tail 50
+docker compose -p logging -f infra/logging/docker compose.observability.yml logs --tail 50
 
 # Health checks
 curl -sf http://127.0.0.1:9001/api/health || echo "Grafana FAILED"
@@ -46,7 +46,7 @@ grep "^#" infra/logging/alloy-config.alloy
 # If any matches, replace with //
 
 # Restart Alloy
-docker compose -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy
+docker compose -p logging -f infra/logging/docker compose.observability.yml up -d --force-recreate alloy
 ```
 
 ### Cause 2: Loki Not Reachable
@@ -66,7 +66,7 @@ docker exec logging-alloy-1 curl -s http://loki:3100/ready
 **Fix:**
 ```bash
 # Restart Loki
-docker compose -f infra/logging/docker-compose.observability.yml restart loki
+docker compose -p logging -f infra/logging/docker compose.observability.yml restart loki
 
 # Verify network membership
 docker inspect logging-alloy-1 | grep -A5 Networks
@@ -139,7 +139,7 @@ grep "^#" infra/logging/alloy-config.alloy
 sed -i 's|^#|//|g' infra/logging/alloy-config.alloy
 
 # Restart
-docker compose -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy
+docker compose -p logging -f infra/logging/docker compose.observability.yml up -d --force-recreate alloy
 ```
 
 ### Cause: Invalid HCL Syntax
@@ -251,7 +251,7 @@ docker inspect logging-prometheus-1 | grep -A10 Args
 ```
 
 **Fix:**
-1. Edit `infra/logging/docker-compose.observability.yml`
+1. Edit `infra/logging/docker compose -p logging.observability.yml`
 2. Update command: `--storage.tsdb.retention.time=30d` (or desired value)
 3. Restart: `docker compose up -d prometheus`
 
@@ -285,7 +285,7 @@ curl -sf http://127.0.0.1:9001/api/health
 
 **Fix:**
 ```bash
-docker compose -f infra/logging/docker-compose.observability.yml restart grafana
+docker compose -p logging -f infra/logging/docker compose.observability.yml restart grafana
 ```
 
 ## Symptom: High CPU/Memory Usage
@@ -532,13 +532,13 @@ If issue persists after troubleshooting:
 4. **Reset to known-good state:**
    ```bash
    # Stop stack
-   docker compose -f infra/logging/docker-compose.observability.yml down
+   docker compose -p logging -f infra/logging/docker compose.observability.yml down
 
    # Restore configs from git
    git checkout infra/logging/*.yml infra/logging/*.alloy
 
    # Redeploy
-   docker compose -f infra/logging/docker-compose.observability.yml up -d
+   docker compose -p logging -f infra/logging/docker compose.observability.yml up -d
    ```
 
 ## Next Steps

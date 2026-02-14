@@ -41,7 +41,7 @@ EOF
 fi
 
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
-OBS="infra/logging/docker-compose.observability.yml"
+OBS="infra/logging/docker compose -p logging.observability.yml"
 ENV_FILE=".env"
 
 # shellcheck disable=SC1090

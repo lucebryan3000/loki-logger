@@ -61,7 +61,7 @@ All services run on a dedicated Docker bridge network: **`obs`**
 ## Compose Project
 
 - **Name:** `logging`
-- **Location:** `infra/logging/docker-compose.observability.yml`
+- **Location:** `infra/logging/docker compose -p logging.observability.yml`
 - **Secrets:** `.env` (mode 600, never committed)
 - **Control scripts:** `scripts/prod/mcp/logging_stack_{up,down,health}.sh`
 

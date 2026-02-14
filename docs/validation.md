@@ -59,7 +59,7 @@ Prometheus Server is Healthy.
 ### Container Status
 
 ```bash
-docker compose -f infra/logging/docker-compose.observability.yml ps --format "table {{.Service}}\t{{.Status}}"
+docker compose -p logging -f infra/logging/docker compose.observability.yml ps --format "table {{.Service}}\t{{.Status}}"
 ```
 
 **Expected output:**

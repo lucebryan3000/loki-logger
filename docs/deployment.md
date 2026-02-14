@@ -139,7 +139,7 @@ up
 ```bash
 # These are equivalent:
 cd infra/logging && docker compose up -d
-docker compose -f infra/logging/docker-compose.observability.yml up -d
+docker compose -p logging -f infra/logging/docker compose.observability.yml up -d
 ```
 
 **Avoid `-p` flag:** Project name is defined in compose file; don't override.
@@ -305,7 +305,7 @@ chmod 755 /home/luce/_logs /home/luce/_telemetry
 
 ```bash
 # Check logs
-docker compose -f infra/logging/docker-compose.observability.yml logs <service>
+docker compose -p logging -f infra/logging/docker compose.observability.yml logs <service>
 
 # Common issues:
 # - Port already in use (check with `ss -tln`)

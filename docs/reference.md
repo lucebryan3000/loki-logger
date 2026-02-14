@@ -320,7 +320,7 @@ curl -sf http://127.0.0.1:9004/-/ready
 curl -sf http://127.0.0.1:9004/-/healthy
 
 # All containers running
-docker compose -f infra/logging/docker-compose.observability.yml ps
+docker compose -p logging -f infra/logging/docker compose.observability.yml ps
 
 # Stack health script
 ./scripts/prod/mcp/logging_stack_health.sh

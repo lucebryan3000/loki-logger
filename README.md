@@ -34,7 +34,7 @@ This repository runs a complete observability stack on headless Ubuntu host `192
 ./scripts/prod/mcp/logging_stack_health.sh
 
 # View all logs
-docker compose -f infra/logging/docker-compose.observability.yml logs -f
+docker compose -p logging -f infra/logging/docker compose.observability.yml logs -f
 
 # Generate evidence/proof archive
 ./scripts/prod/prism/evidence.sh
@@ -106,7 +106,7 @@ All logs are labeled with `env=sandbox`, `host=codeswarm`, and additional source
 ./scripts/prod/mcp/logging_stack_health.sh
 
 # Restart a service (e.g., after config change)
-docker compose -f infra/logging/docker-compose.observability.yml restart alloy
+docker compose -p logging -f infra/logging/docker compose.observability.yml restart alloy
 
 # Stop the stack
 ./scripts/prod/mcp/logging_stack_down.sh
@@ -226,7 +226,7 @@ sudo ufw status numbered
 
 | File | Purpose |
 |------|---------|
-| `infra/logging/docker-compose.observability.yml` | Stack definition |
+| `infra/logging/docker compose -p logging.observability.yml` | Stack definition |
 | `infra/logging/loki-config.yml` | Loki retention and storage |
 | `infra/logging/alloy-config.alloy` | Log ingestion pipelines |
 | `infra/logging/prometheus/prometheus.yml` | Metrics scrape targets |
@@ -300,7 +300,7 @@ sudo ufw status numbered
 
 Change retention in:
 - Loki: `infra/logging/loki-config.yml` → `retention_period`
-- Prometheus: `infra/logging/docker-compose.observability.yml` → CLI flag `--storage.tsdb.retention.time`
+- Prometheus: `infra/logging/docker compose -p logging.observability.yml` → CLI flag `--storage.tsdb.retention.time`
 
 ### Backups
 

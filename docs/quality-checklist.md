@@ -54,7 +54,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 - [ ] Example queries are syntactically valid
 
 ### Command Validity
-- [ ] All `docker compose` commands include `-f infra/logging/docker-compose.observability.yml`
+- [ ] All `docker compose -p logging` commands include `-f infra/logging/docker compose.observability.yml`
 - [ ] All script paths are executable: `scripts/prod/mcp/*.sh`, `scripts/prod/prism/*.sh`
 - [ ] curl commands use `-sf` for silent failures where appropriate
 - [ ] No commands contain placeholders like `<service>` without context
@@ -199,7 +199,7 @@ sleep 15
 ./scripts/prod/prism/evidence.sh
 
 # 7. Verify no errors in logs
-docker compose -f infra/logging/docker-compose.observability.yml logs --tail 100 | grep -i error
+docker compose -p logging -f infra/logging/docker compose.observability.yml logs --tail 100 | grep -i error
 
 # 8. Tear down
 ./scripts/prod/mcp/logging_stack_down.sh

@@ -30,7 +30,7 @@ Single-node deployment. Not a library or application — it's infrastructure con
 ./scripts/prod/mcp/validate_env.sh .env
 ```
 
-All compose commands require the file flag: `docker compose -f infra/logging/docker-compose.observability.yml ...`
+All compose commands require the file flag: `docker compose -p logging -f infra/logging/docker compose.observability.yml ...`
 
 The compose project name is `logging` (set via `COMPOSE_PROJECT_NAME` in `.env`). Container names follow the pattern `logging-<service>-1`.
 
@@ -60,7 +60,7 @@ Metrics Sources → Prometheus (scrape/store) → Grafana (query/visualize)
 
 | File | Format | Purpose |
 |------|--------|---------|
-| `infra/logging/docker-compose.observability.yml` | YAML with env var substitution | Service definitions |
+| `infra/logging/docker compose -p logging.observability.yml` | YAML with env var substitution | Service definitions |
 | `infra/logging/loki-config.yml` | YAML | Loki schema, retention, compaction |
 | `infra/logging/alloy-config.alloy` | **HCL** (uses `//` comments, NOT `#`) | Log ingestion pipelines |
 | `infra/logging/prometheus/prometheus.yml` | YAML | Scrape targets |
@@ -87,7 +87,7 @@ Image versions are pinned via env vars (e.g., `GRAFANA_IMAGE=grafana/grafana:11.
 3. **Prometheus retention is CLI-only** — set via `--storage.tsdb.retention.time` flag in compose, NOT in `prometheus.yml`
 4. **Loki is internal-only** — no `http://127.0.0.1:3100` access; query through Grafana or from inside the `obs` network
 5. **Log ingestion delay is normal** — 10-15 seconds between file write and Loki availability
-6. **Config changes require restart** — `docker compose -f infra/logging/docker-compose.observability.yml restart <service>`
+6. **Config changes require restart** — `docker compose -p logging -f infra/logging/docker compose.observability.yml restart <service>`
 
 ## Log Sources (Alloy Pipelines)
 

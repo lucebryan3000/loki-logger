@@ -84,10 +84,10 @@ container_memory_usage_bytes{name=~".+"}
 ./scripts/mcp/logging_stack_health.sh
 
 # View logs
-docker compose -f infra/logging/docker-compose.observability.yml logs -f
+docker compose -p logging -f infra/logging/docker compose.observability.yml logs -f
 
 # Restart service
-docker compose -f infra/logging/docker-compose.observability.yml restart grafana
+docker compose -p logging -f infra/logging/docker compose.observability.yml restart grafana
 
 # Stop stack
 ./scripts/mcp/logging_stack_down.sh

@@ -31,7 +31,7 @@ curl -sf http://127.0.0.1:9004/-/healthy
 
 **Container status:**
 ```bash
-docker compose -f infra/logging/docker-compose.observability.yml ps
+docker compose -p logging -f infra/logging/docker compose.observability.yml ps
 ```
 
 **All containers should show `Up` status.** If any container is restarting or exited, check logs.
@@ -40,7 +40,7 @@ docker compose -f infra/logging/docker-compose.observability.yml ps
 
 **All stack logs:**
 ```bash
-docker compose -f infra/logging/docker-compose.observability.yml logs -f
+docker compose -p logging -f infra/logging/docker compose.observability.yml logs -f
 ```
 
 **Single service logs:**
@@ -85,7 +85,7 @@ docker compose up -d --force-recreate <service>
 
 **Example: Reload Alloy config:**
 ```bash
-docker compose -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy
+docker compose -p logging -f infra/logging/docker compose.observability.yml up -d --force-recreate alloy
 ```
 
 **Note:** `--force-recreate` stops and destroys the container, then creates a new one. **Ephemeral state is lost** (e.g., Alloy log file positions).
@@ -334,7 +334,7 @@ docker cp logging-grafana-1:/var/lib/grafana /tmp/grafana-backup
 **Restore dashboards:**
 ```bash
 docker cp /tmp/grafana-backup/. logging-grafana-1:/var/lib/grafana
-docker compose -f infra/logging/docker-compose.observability.yml restart grafana
+docker compose -p logging -f infra/logging/docker compose.observability.yml restart grafana
 ```
 
 ### Data Source Validation
@@ -371,7 +371,7 @@ curl -X POST http://127.0.0.1:9004/-/reload
 
 **Recommended:** Use restart for config changes:
 ```bash
-docker compose -f infra/logging/docker-compose.observability.yml restart prometheus
+docker compose -p logging -f infra/logging/docker compose.observability.yml restart prometheus
 ```
 
 ### Query API (Direct)
@@ -469,7 +469,7 @@ curl -s http://127.0.0.1:9004/api/v1/status/runtimeinfo | grep -i retention
 ```
 
 **Change retention:**
-1. Edit `infra/logging/docker-compose.observability.yml`
+1. Edit `infra/logging/docker compose -p logging.observability.yml`
 2. Update `--storage.tsdb.retention.time=15d` to desired value
 3. Restart Prometheus
 
@@ -481,7 +481,7 @@ curl -s http://127.0.0.1:9004/api/v1/status/runtimeinfo | grep -i retention
 
 **All services running:**
 ```bash
-docker compose -f infra/logging/docker-compose.observability.yml ps | grep -c "Up"
+docker compose -p logging -f infra/logging/docker compose.observability.yml ps | grep -c "Up"
 # Expected: 6 (alloy, docker-metrics, grafana, loki, host-monitor, prometheus)
 ```
 
