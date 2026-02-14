@@ -182,16 +182,16 @@ Historical/snapshot documentation (not part of primary navigation):
 ### Essential Commands
 ```bash
 # Deploy
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 
 # Health
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 
 # Evidence
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 
 # Stop
-./scripts/mcp/logging_stack_down.sh
+./scripts/prod/mcp/logging_stack_down.sh
 ```
 
 ### Essential Queries

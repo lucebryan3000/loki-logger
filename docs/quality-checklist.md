@@ -12,7 +12,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 
 ### File Paths
 - [ ] Config paths point to `infra/logging/` directory
-- [ ] Script paths point to `scripts/mcp/` and `scripts/prism/`
+- [ ] Script paths point to `scripts/prod/mcp/` and `scripts/prod/prism/`
 - [ ] Evidence output path is `temp/evidence/`
 - [ ] All file paths are absolute or clearly relative to repo root
 
@@ -55,7 +55,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 
 ### Command Validity
 - [ ] All `docker compose` commands include `-f infra/logging/docker-compose.observability.yml`
-- [ ] All script paths are executable: `scripts/mcp/*.sh`, `scripts/prism/*.sh`
+- [ ] All script paths are executable: `scripts/prod/mcp/*.sh`, `scripts/prod/prism/*.sh`
 - [ ] curl commands use `-sf` for silent failures where appropriate
 - [ ] No commands contain placeholders like `<service>` without context
 
@@ -90,7 +90,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 ### Consistency
 - [ ] Service names are lowercase: grafana, loki, prometheus, alloy
 - [ ] File names use kebab-case: `quality-checklist.md`, not `QualityChecklist.md`
-- [ ] Commands use full paths: `scripts/mcp/logging_stack_up.sh` not `logging_stack_up.sh`
+- [ ] Commands use full paths: `scripts/prod/mcp/logging_stack_up.sh` not `logging_stack_up.sh`
 - [ ] Code blocks specify language: \```bash, \```logql, \```promql, \```yaml
 
 ### Cross-Links
@@ -129,12 +129,12 @@ This checklist ensures documentation correctness, operational validity, and styl
 - [ ] `docs/snippets/prometheus.yml` matches `infra/logging/prometheus/prometheus.yml`
 
 ### Runtime Verification
-- [ ] Deploy stack: `./scripts/mcp/logging_stack_up.sh`
-- [ ] Health check passes: `./scripts/mcp/logging_stack_health.sh`
+- [ ] Deploy stack: `./scripts/prod/mcp/logging_stack_up.sh`
+- [ ] Health check passes: `./scripts/prod/mcp/logging_stack_health.sh`
 - [ ] Generate test log: `echo "test_$(date +%s)" >> /home/luce/_logs/test.log`
 - [ ] Wait 15 seconds: `sleep 15`
 - [ ] Query returns results: `{env="sandbox", filename=~".*test.log"} |= "test_"`
-- [ ] Evidence generation succeeds: `./scripts/prism/evidence.sh`
+- [ ] Evidence generation succeeds: `./scripts/prod/prism/evidence.sh`
 
 ## Documentation Structure Checks
 
@@ -181,10 +181,10 @@ After updating docs, run this test sequence:
 
 ```bash
 # 1. Deploy stack
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 
 # 2. Verify health
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 
 # 3. Generate test logs
 echo "validation_$(date +%s)" >> /home/luce/_logs/test.log
@@ -196,13 +196,13 @@ sleep 15
 # {env="sandbox", filename=~".*test.log"} |= "validation_"
 
 # 6. Generate evidence
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 
 # 7. Verify no errors in logs
 docker compose -f infra/logging/docker-compose.observability.yml logs --tail 100 | grep -i error
 
 # 8. Tear down
-./scripts/mcp/logging_stack_down.sh
+./scripts/prod/mcp/logging_stack_down.sh
 ```
 
 **Pass criteria:** All steps succeed without manual intervention.

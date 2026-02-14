@@ -62,7 +62,7 @@ Expected:
 ### 3) Built-in stack check script
 
 ```bash
-scripts/mcp/logging_stack_health.sh
+scripts/prod/mcp/logging_stack_health.sh
 ```
 
 Expected:

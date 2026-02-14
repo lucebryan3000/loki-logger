@@ -1,2 +1,0 @@
-/home/luce/apps/loki-logging/apps/deployment_pipeline/prompts/prompt-01-mini.md
-/home/luce/apps/loki-logging/apps/deployment_pipeline/prompts/prompt-02-mini.md

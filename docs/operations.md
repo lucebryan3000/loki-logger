@@ -6,7 +6,7 @@
 
 **Automated health check:**
 ```bash
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 ```
 
 **Expected output:**
@@ -70,8 +70,8 @@ docker compose restart <service>
 
 **Full stack restart:**
 ```bash
-./scripts/mcp/logging_stack_down.sh
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_down.sh
+./scripts/prod/mcp/logging_stack_up.sh
 ```
 
 ### Force Recreate (Config Reload)
@@ -274,7 +274,7 @@ The `prism/evidence.sh` script generates **cryptographically verifiable proofs**
 
 **Run evidence capture:**
 ```bash
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 ```
 
 **Output location:**

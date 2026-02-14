@@ -206,7 +206,7 @@ docker compose -f infra/logging/docker-compose.observability.yml images
 
 5. **Verify health:**
    ```bash
-   ./scripts/mcp/logging_stack_health.sh
+   ./scripts/prod/mcp/logging_stack_health.sh
    ```
 
 **Rollback if issues:**
@@ -387,7 +387,7 @@ sudo nano /etc/logrotate.d/luce-logs
 crontab -e
 
 # Check health every 5 minutes
-*/5 * * * * /home/luce/apps/loki-logging/scripts/mcp/logging_stack_health.sh || echo "Stack health failed at $(date)" >> /home/luce/logs/stack-health.log
+*/5 * * * * /home/luce/apps/loki-logging/scripts/prod/mcp/logging_stack_health.sh || echo "Stack health failed at $(date)" >> /home/luce/logs/stack-health.log
 ```
 
 ### Alerting (Optional)

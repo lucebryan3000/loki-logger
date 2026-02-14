@@ -432,20 +432,20 @@ loki.source.file "codeswarm_mcp" {
 
 **Error:**
 ```bash
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 # curl: (7) Failed to connect to 127.0.0.1:9001
 ```
 
 **Fix:**
 ```bash
 # Start stack first
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 
 # Wait 30 seconds for services to initialize
 sleep 30
 
 # Retry evidence
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 ```
 
 ### Cause: Loki Has No Data
@@ -516,7 +516,7 @@ If issue persists after troubleshooting:
    free -h > /tmp/memory.txt
 
    # Evidence snapshot
-   ./scripts/prism/evidence.sh
+   ./scripts/prod/prism/evidence.sh
    ```
 
 2. **Review logs for errors:**

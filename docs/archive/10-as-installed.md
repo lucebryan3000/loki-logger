@@ -62,9 +62,9 @@ Telemetry writer (systemd):
      Memory: 5.4M (peak: 5.7M)
         CPU: 715ms
      CGroup: /system.slice/loki-telemetry-writer.service
-             └─3426189 /usr/bin/python3 /home/luce/apps/loki-logging/scripts/telemetry/telemetry_writer.py
+             └─3426189 /usr/bin/python3 /home/luce/apps/loki-logging/scripts/prod/telemetry/telemetry_writer.py
 
 Feb 12 12:04:43 codeswarm systemd[1]: Started loki-telemetry-writer.service - Loki Telemetry-as-Logs JSONL Writer.
-Feb 12 12:04:43 codeswarm python3[3426189]: /home/luce/apps/loki-logging/scripts/telemetry/telemetry_writer.py:9: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+Feb 12 12:04:43 codeswarm python3[3426189]: /home/luce/apps/loki-logging/scripts/prod/telemetry/telemetry_writer.py:9: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
 Feb 12 12:04:43 codeswarm python3[3426189]:   return datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 ```

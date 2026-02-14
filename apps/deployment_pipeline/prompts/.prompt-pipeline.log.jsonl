@@ -1,8 +1,0 @@
-{"ts":"2026-02-14T01:35:24Z","event":"startup","prompt":"","detail":"root=/home/luce/apps/loki-logging/apps/deployment_pipeline/prompts repo_root=/home/luce/apps/loki-logging count=2 selected=2 pending=2 profile=poc exec_mode=script runner_mode=script"}
-{"ts":"2026-02-14T01:35:24Z","event":"prompt_start","prompt":"prompt-01-mini.md","detail":""}
-{"ts":"2026-02-14T01:35:24Z","event":"prompt_run","prompt":"prompt-01-mini.md","detail":"attempt=1 timeout=180 runner=script"}
-{"ts":"2026-02-14T01:35:26Z","event":"prompt_success","prompt":"prompt-01-mini.md","detail":"attempts=1"}
-{"ts":"2026-02-14T01:35:26Z","event":"prompt_start","prompt":"prompt-02-mini.md","detail":""}
-{"ts":"2026-02-14T01:35:26Z","event":"prompt_run","prompt":"prompt-02-mini.md","detail":"attempt=1 timeout=180 runner=script"}
-{"ts":"2026-02-14T01:35:28Z","event":"prompt_success","prompt":"prompt-02-mini.md","detail":"attempts=1"}
-{"ts":"2026-02-14T01:35:28Z","event":"pipeline_done","prompt":"","detail":"ran=2 fail_total=0"}

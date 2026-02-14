@@ -62,7 +62,7 @@ All services run on a dedicated Docker bridge network: **`obs`**
 - **Name:** `logging`
 - **Location:** `infra/logging/docker-compose.observability.yml`
 - **Secrets:** `.env` (mode 600, never committed)
-- **Control scripts:** `scripts/mcp/logging_stack_{up,down,health}.sh`
+- **Control scripts:** `scripts/prod/mcp/logging_stack_{up,down,health}.sh`
 
 ## Scope and Guardrails
 
@@ -88,7 +88,7 @@ All services run on a dedicated Docker bridge network: **`obs`**
 
 The stack includes scripts to generate **cryptographically verifiable evidence** of operation:
 
-- **Location:** `scripts/prism/evidence.sh`
+- **Location:** `scripts/prod/prism/evidence.sh`
 - **Output:** `temp/evidence/` (timestamped directories)
 - **Purpose:** Prove ingestion, query capability, and label compliance for audit
 
@@ -98,10 +98,10 @@ See [operations.md](operations.md#evidence-generation) for usage.
 
 ```bash
 # Deploy stack
-scripts/mcp/logging_stack_up.sh
+scripts/prod/mcp/logging_stack_up.sh
 
 # Verify health
-scripts/mcp/logging_stack_health.sh
+scripts/prod/mcp/logging_stack_health.sh
 
 # Access Grafana
 open http://127.0.0.1:9001

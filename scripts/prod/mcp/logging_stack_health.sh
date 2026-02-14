@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../../.."
 ENV_FILE=".env"
 OBS="infra/logging/docker-compose.observability.yml"
 

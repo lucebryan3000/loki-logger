@@ -34,10 +34,10 @@
 
 ```bash
 # Deploy the stack
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 
 # Verify health
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 ```
 
 **Expected output (health check):**
@@ -165,10 +165,10 @@ docker compose up -d --force-recreate alloy
 
 ```bash
 # Stop all services
-./scripts/mcp/logging_stack_down.sh
+./scripts/prod/mcp/logging_stack_down.sh
 
 # Start fresh
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 ```
 
 **Data persistence:** Volumes (`grafana-data`, `loki-data`, `prometheus-data`) are **not deleted** on down/up. Logs and metrics are preserved.
@@ -352,5 +352,5 @@ curl -v http://127.0.0.1:9001/api/health
 After successful deployment:
 1. Review [operations.md](operations.md) for common operational tasks
 2. Run validation proofs: [validation.md](validation.md)
-3. Generate evidence: `./scripts/prism/evidence.sh`
+3. Generate evidence: `./scripts/prod/prism/evidence.sh`
 4. Set up retention policies: [maintenance.md](maintenance.md)

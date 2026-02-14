@@ -31,13 +31,13 @@ This repository runs a complete observability stack on headless Ubuntu host `192
 **From host (SSH session):**
 ```bash
 # Check stack health
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 
 # View all logs
 docker compose -f infra/logging/docker-compose.observability.yml logs -f
 
 # Generate evidence/proof archive
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 ```
 
 **Login credentials:** See `infra/logging/.env` for Grafana admin user/password
@@ -54,10 +54,10 @@ If you haven't deployed yet, see [docs/deployment.md](docs/deployment.md) for fu
 **Deploy:**
 ```bash
 # Start the stack
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 
 # Verify all services running
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 ```
 
 ### Querying Logs in Grafana
@@ -103,16 +103,16 @@ All logs are labeled with `env=sandbox`, `host=codeswarm`, and additional source
 
 ```bash
 # Health check
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 
 # Restart a service (e.g., after config change)
 docker compose -f infra/logging/docker-compose.observability.yml restart alloy
 
 # Stop the stack
-./scripts/mcp/logging_stack_down.sh
+./scripts/prod/mcp/logging_stack_down.sh
 
 # Start the stack
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 
 # View service logs
 docker logs infra_observability-grafana-1 --tail 100
@@ -251,12 +251,13 @@ sudo ufw status numbered
 │       ├── prometheus.yml
 │       └── rules/
 ├── scripts/
-│   ├── mcp/                      # Control scripts
-│   │   ├── logging_stack_up.sh
-│   │   ├── logging_stack_down.sh
-│   │   └── logging_stack_health.sh
-│   └── prism/
-│       └── evidence.sh           # Evidence/proof generation
+│   └── prod/                     # Production scripts
+│       ├── mcp/                  # Control scripts
+│       │   ├── logging_stack_up.sh
+│       │   ├── logging_stack_down.sh
+│       │   └── logging_stack_health.sh
+│       └── prism/
+│           └── evidence.sh       # Evidence/proof generation
 ├── docs/                         # Full documentation
 │   ├── README.md                 # Docs quickstart
 │   ├── INDEX.md                  # Complete table of contents
@@ -349,7 +350,7 @@ sleep 15
 # {env="sandbox", filename=~".*test.log"} |= "validation_"
 
 # 5. Generate evidence archive
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 ```
 
 **Full validation checklist:** [docs/validation.md](docs/validation.md)
@@ -372,7 +373,7 @@ Generate cryptographically verifiable evidence of stack operation for audit/comp
 
 ```bash
 # Generate evidence archive
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 
 # Output: temp/evidence/loki-<timestamp>/
 # Contains: stack state, health checks, query proofs, config hashes

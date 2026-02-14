@@ -224,7 +224,7 @@ Intentionally run invalid query:
 The health check script provides basic L1 validation:
 
 ```bash
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 ```
 
 **Expected output:**
@@ -240,7 +240,7 @@ prometheus_ok=1
 Generate a full validation proof archive:
 
 ```bash
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 ```
 
 **Output location:** `temp/evidence/loki-<timestamp>/`
@@ -318,7 +318,7 @@ After upgrades or config changes, re-run full validation:
 
 ```bash
 # 1. Health check
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 
 # 2. Generate test logs
 echo "regression_test_$(date +%s)" >> /home/luce/_logs/test.log
@@ -330,7 +330,7 @@ sleep 15
 # {env="sandbox"} |= "regression_test_"
 
 # 5. Generate evidence
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 ```
 
 **Compare evidence archives:** Diff current evidence against baseline to detect regressions.

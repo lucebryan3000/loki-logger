@@ -383,7 +383,7 @@ Before deploying to shared/production environment:
 **If logs containing sensitive data are exposed:**
 1. **Stop stack immediately:**
    ```bash
-   ./scripts/mcp/logging_stack_down.sh
+   ./scripts/prod/mcp/logging_stack_down.sh
    ```
 
 2. **Rotate all secrets:**

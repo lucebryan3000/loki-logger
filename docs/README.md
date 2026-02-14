@@ -13,10 +13,10 @@ Production-grade logging and observability stack for local development. Centrali
 
 ```bash
 # Deploy all services
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 
 # Verify health
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 ```
 
 **Expected output:**
@@ -63,7 +63,7 @@ In Grafana → Explore → Loki:
 
 ```bash
 # Create proof archive of stack operation
-./scripts/prism/evidence.sh
+./scripts/prod/prism/evidence.sh
 
 # Output: temp/evidence/loki-<timestamp>/
 ```
@@ -107,7 +107,7 @@ Alloy ingests logs from:
 
 ```bash
 # Health check
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 
 # View all logs
 docker compose -f infra/logging/docker-compose.observability.yml logs -f
@@ -116,10 +116,10 @@ docker compose -f infra/logging/docker-compose.observability.yml logs -f
 docker compose -f infra/logging/docker-compose.observability.yml restart <service>
 
 # Stop stack
-./scripts/mcp/logging_stack_down.sh
+./scripts/prod/mcp/logging_stack_down.sh
 
 # Start stack
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 ```
 
 ## Validation
@@ -213,7 +213,7 @@ docker compose -f infra/logging/docker-compose.observability.yml pull
 docker compose up -d
 
 # Verify health
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
 ```
 
 See [maintenance.md](maintenance.md) for full maintenance procedures.
