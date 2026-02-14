@@ -1,0 +1,11 @@
+groups:
+- name: sprint3_alert_test_v1
+  rules:
+  - alert: Sprint3Test_TargetDown
+    expr: up{job="docker-metrics"} == 0
+    for: 30s
+    labels:
+      severity: warning
+      sprint: "3"
+    annotations:
+      summary: "Sprint-3 test alert: docker-metrics target down"
