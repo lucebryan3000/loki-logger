@@ -1,24 +1,11 @@
-# ============================================================================
-# GitHub Project Setup - Claude Code Ignore Template
-# ============================================================================
-# This file excludes files/directories from Claude Code context
-# Keep this minimal to maximize useful context
-#
-# PROFILES: This file contains sections for all setup profiles:
-#   - PROFILE:STARTER - Essential exclusions for quick projects
-#   - PROFILE:STANDARD - Common exclusions for open-source projects
-#   - PROFILE:PROFESSIONAL - Extended exclusions for production
-#   - PROFILE:ENTERPRISE - Comprehensive exclusions for large teams
-# ============================================================================
+# .claudeignore — Loki Logging Stack
+# Excludes files/directories from Claude Code context.
+# Aligned with .gitignore and actual repo structure.
 
-# ============================================================================
-# UNIVERSAL RULES (All Profiles)
-# ============================================================================
-
-# Private and sensitive data (never send to LLM)
-_private/
+# Secrets (never send to LLM)
 .env
-.env.*
+.env.local
+*.env
 !.env.example
 *.key
 *.pem
@@ -27,77 +14,38 @@ _private/
 credentials.json
 secrets.yaml
 secrets.yml
+_private/
 
-# Build artifacts (generated, not source)
+# Build artifacts (sprint work, not deployed)
 _build/
 !_build/README.md
-.artifacts/
 
-# ============================================================================
-# PROFILE:STARTER BEGIN - Quick MVPs & Prototypes
-# ============================================================================
-
-# Dependencies (large, standard libraries)
-node_modules/
-vendor/
-.venv/
-venv/
-__pycache__/
-
-# Build outputs
-dist/
-build/
-target/
-
-# Logs
+# Temporary and ephemeral output
+temp/
+tmp/
+*.tmp
+*.bak
 *.log
-logs/
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# ============================================================================
-# PROFILE:STARTER END
-# ============================================================================
-
-# ============================================================================
-# PROFILE:STANDARD BEGIN - Open Source Projects
-# ============================================================================
-
-# Includes all Starter patterns plus additional common exclusions
-
-# Minified/bundled files (not useful for review)
-*.min.js
-*.min.css
-*.bundle.js
-*.chunk.js
-
-# Test coverage reports (generated data)
-coverage/
-.nyc_output/
-htmlcov/
-.pytest_cache/
-.coverage
-
-# IDE files (workspace-specific)
+# IDE / editor
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Temporary files
-temp/
-tmp/
-*.tmp
-*.bak
-*.cache
+# OS files
+.DS_Store
+Thumbs.db
 
-# Documentation builds
-docs/_build/
-site/
-_site/
+# Git internals
+.git/
 
-# ============================================================================
-# PROFILE:STANDARD END
+# Grafana dashboard JSON (large, auto-provisioned)
+infra/logging/grafana/dashboards/*.json
+
+# Documentation archive snapshots (historical, not current)
+docs/archive/
+
+# Upstream reference lock file (machine-generated)
+infra/logging/upstream-references.lock

@@ -3,6 +3,43 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'EOF'
+Usage: logging_stack_audit.sh [output-path]
+
+Deep health audit of the observability stack. Produces a structured
+JSON report with pass/fail/warn results for each check.
+
+Arguments:
+  output-path   Where to write JSON report
+                (default: temp/codex/monitoring/health-<timestamp>.json)
+
+Checks (8 categories):
+  1. Compose services running (all 6 required)
+  2. Endpoint readiness (Grafana, Prometheus, Loki)
+  3. Prometheus targets and up query
+  4. Retention flags and rule groups
+  5. Compose and promtool config validation
+  6. End-to-end ingest proof via Loki query
+  7. Container restart counters and disk free space
+  8. UFW firewall status
+
+Requires: jq, docker, curl
+
+Exit codes:
+  0  All critical checks passed
+  1  One or more critical checks failed
+  2  Missing dependencies (jq)
+
+Output format:
+  { timestamp_utc, project, overall, summary: {total,pass,warn,fail}, checks: [...] }
+
+See also:
+  logging_stack_health.sh  Quick health check (faster, fewer checks)
+EOF
+  exit 0
+fi
+
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
 OBS="infra/logging/docker-compose.observability.yml"
 ENV_FILE=".env"

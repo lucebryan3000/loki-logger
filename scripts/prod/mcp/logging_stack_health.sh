@@ -1,6 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'EOF'
+Usage: logging_stack_health.sh
+
+Quick health check for the observability stack.
+
+Checks:
+  1. docker compose ps (list running services)
+  2. Grafana /api/health endpoint
+  3. Prometheus /-/ready endpoint
+
+Output:
+  grafana_ok=1|0
+  prometheus_ok=1|0
+
+Exit codes:
+  0  All checks passed
+  1  One or more checks failed
+
+See also:
+  logging_stack_audit.sh  Deep audit with JSON report
+EOF
+  exit 0
+fi
+
 ENV_FILE=".env"
 OBS="infra/logging/docker-compose.observability.yml"
 

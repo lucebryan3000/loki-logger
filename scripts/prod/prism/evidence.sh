@@ -1,6 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'EOF'
+Usage: evidence.sh
+
+Generate a cryptographically verifiable evidence archive for the
+observability stack. Used for audit/compliance proof of stack operation.
+
+Output:
+  temp/codex-sprint/   NDJSON indexes (state, history, runs, artifacts, catalog)
+  /tmp/codex-sprint-work/<run-key>/   Ephemeral work directory (auto-cleaned)
+
+Evidence includes:
+  - Stack state and health check results
+  - Loki query proofs with labels
+  - Config file SHA256 hashes
+  - Run metadata and timestamps
+
+Security:
+  - Never includes secrets from .env
+  - Work directory is mode 700
+  - Ephemeral workdir cleaned on exit (set CODEX_SPRINT_KEEP_WORK=1 to retain)
+
+Environment:
+  CODEX_PROMPT_NAME       Override prompt name (default: prism)
+  CODEX_SPRINT_KEEP_WORK  Set to 1 to retain ephemeral work directory
+  REPO_ROOT               Override repo root (default: cwd)
+
+Provides shell functions for use by other scripts:
+  prism_init              Initialize evidence run
+  prism_event <type>      Record NDJSON event
+  prism_cmd <desc> -- <cmd>  Run command with timing/rc capture
+  prism_hash <file...>    Hash files into evidence index
+  prism_store_update      Update state/catalog indexes
+  prism_append_artifact   Register artifact in index
+EOF
+  exit 0
+fi
+
 # Evidence v5 (flat codex-sprint indexes):
 #   temp/codex-sprint/state.jsonl
 #   temp/codex-sprint/state.latest.json

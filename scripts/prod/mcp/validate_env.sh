@@ -1,6 +1,39 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'EOF'
+Usage: validate_env.sh [--example] [env-path]
+
+Validate an .env file for the observability stack.
+
+Arguments:
+  --example   Skip secret-value checks (allow CHANGE_ME placeholders).
+              Use this to validate .env.example files.
+  env-path    Path to .env file (default: .env)
+
+Validates:
+  - Required keys present and non-empty:
+    GRAFANA_HOST, GRAFANA_PORT, PROM_HOST, PROM_PORT,
+    COMPOSE_PROJECT_NAME, HOST_HOME, HOST_LOGS, HOST_TELEMETRY,
+    HOST_VLLM, GRAFANA_ADMIN_USER, GRAFANA_ADMIN_PASSWORD,
+    GRAFANA_SECRET_KEY, GF_SECURITY_*
+  - Port values are valid (1-65535)
+  - Host paths are absolute (start with /)
+  - Secrets are not placeholder values (skipped with --example)
+
+Exit codes:
+  0  Validation passed
+  1  Validation failed (details on stderr)
+
+Examples:
+  validate_env.sh                   Validate .env
+  validate_env.sh .env.example      Validate example file (fails on CHANGE_ME)
+  validate_env.sh --example .env.example  Validate structure only
+EOF
+  exit 0
+fi
+
 MODE="local"
 if [[ "${1:-}" == "--example" ]]; then
   MODE="example"

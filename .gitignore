@@ -1,29 +1,11 @@
-# ============================================================================
-# GitHub Project Setup - Comprehensive .gitignore Template
-# ============================================================================
-# This file prevents committing generated files, dependencies, and secrets
-# Keep this clean and reviewed regularly
-#
-# PROFILES: This file contains sections for all setup profiles:
-#   - PROFILE:STARTER - Minimal patterns for quick projects
-#   - PROFILE:STANDARD - Common patterns for open-source projects
-#   - PROFILE:PROFESSIONAL - Extended patterns for production
-#   - PROFILE:ENTERPRISE - Comprehensive patterns for large teams
-# ============================================================================
+# .gitignore — Loki Logging Stack
 
-# ============================================================================
-# UNIVERSAL RULES (All Profiles)
-# ============================================================================
-
-# Environment variables (local only - NEVER commit actual values)
+# --- Secrets and credentials (never commit) ---
 .env
 .env.local
 .env.*.local
-.env.*.local.php
 *.env
 !.env.example
-
-# Secrets and credentials (extra safety)
 *.pem
 *.key
 *.cert
@@ -33,136 +15,51 @@ credentials.json
 secrets.yaml
 secrets.yml
 secret.json
-.ssh/
-.credentials
+secrets.local.env
 
-# AWS/Cloud credentials
-aws-credentials
-.aws/credentials
-.aws/config
-
-# API keys and tokens
-api-key.txt
-.api-key
-*.apikey
-
-# PROJECT STRUCTURE - Build and Private Directories
+# --- Project structure ---
 _build/
 !_build/README.md
 _private/
 !_private/README.md
 .artifacts/
 
-# Claude/Codex directories (completely local, not for version control)
+# --- Claude / Codex (local tooling) ---
 .claude/*
+!.claude/commands/
+!.claude/commands/**
 !.claude/CLAUDE.md
+
 .codex/*
 
-# ============================================================================
-# PROFILE:STARTER BEGIN - Quick MVPs & Prototypes
-# ============================================================================
-# Minimal essential patterns only
-
-# Basic IDE / Editor
-.vscode/
-.idea/
-*.swp
-*~
-.DS_Store
-
-# OS
-Thumbs.db
-
-# Temporary files
-temp/
-tmp/
-*.tmp
-
-# Basic build outputs
-dist/
-build/
-node_modules/
-venv/
-__pycache__/
-
-# ============================================================================
-# PROFILE:STARTER END
-# ============================================================================
-
-# ============================================================================
-# PROFILE:STANDARD BEGIN - Open Source Projects
-# ============================================================================
-# Includes all Starter patterns plus additional common patterns
-
-# IDE / Editor (expanded)
-.vscode/
-!.vscode/settings.example.json
-!.vscode/launch.example.json
-.idea/
-*.iml
-*.iws
-*.ipr
-.sublime-project
-.sublime-workspace
-*.swp
-*.swo
-*~
-.vim/
-.netrwhist
-
-# Visual Studio
-.vs/
-*.sln.user
-
-# Emacs
-*~
-.#*
-\#*
-
-# Nano
-.nano/
-
-# Generic editor files
-.editorconfig.local
-
-# OS (expanded)
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-Thumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Temporary & Log Files
+# --- Temporary and ephemeral ---
 temp/
 tmp/
 *.tmp
 *.bak
 *.backup
-*.swp
-*.swo
+
+# --- Logs ---
 *.log
 logs/
-*.out
 
-# Build outputs
+# --- IDE / editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Build outputs ---
 dist/
 build/
 out/
-_build/
-!_build/README.md
-
-# Dependencies
 node_modules/
-npm-debug.log*
-yarn-error.log*
-.npm
-.yarn
 venv/
 .venv/
 __pycache__/
-*.egg-info/
-
-# ============================================================================
-# PROFILE:STANDARD END
+*.pyc

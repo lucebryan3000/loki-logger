@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'EOF'
+Usage: logging_bootstrap_upstream_refs.sh
+
+Pin upstream reference repositories (Grafana, Loki, Alloy, Prometheus)
+by recording their remote HEAD refs into tracked files under infra/logging/.
+
+Outputs:
+  infra/logging/upstream-references.lock   Machine-readable lock file
+  infra/logging/upstream-references.md     Human-readable table
+
+Environment:
+  CLONE_MODE   1 (default) shallow-clone repos into _build/upstream-sources/
+               0 record refs only, no local clones
+
+Repos pinned:
+  grafana/grafana, grafana/loki, grafana/alloy, prometheus/prometheus
+EOF
+  exit 0
+fi
+
 # Bootstrap and pin upstream reference repositories used by the Loki logging prompt.
 # - Always records remote HEAD refs into tracked files under infra/logging.
 # - Optionally shallow-clones repos into _build/ (ignored by git) for local inspection.
