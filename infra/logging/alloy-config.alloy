@@ -85,6 +85,52 @@ loki.source.file "telemetry" {
   forward_to    = [loki.process.main.receiver]
 }
 
+// --- NVIDIA telemetry-as-logs (Sprint-3 Phase 4a) ---
+local.file_match "nvidia_telem_main" {
+  path_targets = [
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/raw-30s.jsonl" },
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/raw-60s.jsonl" },
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/proc-5m.jsonl" },
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/health-15m.jsonl" },
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/alerts.jsonl" },
+  ]
+}
+
+loki.source.file "nvidia_telem_main" {
+  targets       = local.file_match.nvidia_telem_main.targets
+  tail_from_end = true
+  forward_to    = [loki.process.nvidia_telem.receiver]
+}
+
+local.file_match "nvidia_telem_burst" {
+  path_targets = [
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/burst/*.jsonl" },
+  ]
+}
+
+loki.source.file "nvidia_telem_burst" {
+  targets       = local.file_match.nvidia_telem_burst.targets
+  tail_from_end = true
+  forward_to    = [loki.process.nvidia_telem.receiver]
+}
+
+loki.process "nvidia_telem" {
+  stage.static_labels {
+    values = {
+      env         = "sandbox",
+      stack       = "vllm",
+      service     = "vllm",
+      source_type = "file",
+      log_source  = "nvidia_telem",
+      telemetry_tier = "raw30",
+    }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end NVIDIA telemetry-as-logs ---
+
+
 // CodeSwarm MCP logs (vLLM host bind)
 local.file_match "codeswarm_mcp" {
   path_targets = [{ "__path__" = "/host/home/luce/apps/vLLM/_data/mcp-logs/*.log" }]

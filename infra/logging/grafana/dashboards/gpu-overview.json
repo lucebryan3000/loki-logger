@@ -1,0 +1,63 @@
+{
+  "uid": "gpu_overview_v1",
+  "title": "GPU Overview (NVIDIA Telemetry-as-Logs)",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": [
+    "sprint-3",
+    "gpu",
+    "nvidia"
+  ],
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "logs",
+      "title": "GPU Alerts (transitions)",
+      "datasource": {
+        "type": "loki",
+        "uid": null,
+        "name": "Loki"
+      },
+      "targets": [
+        {
+          "expr": "{log_source=\"nvidia_telem\",telemetry_tier=\"alerts\"}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "logs",
+      "title": "GPU Raw (last 5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": null,
+        "name": "Loki"
+      },
+      "targets": [
+        {
+          "expr": "{log_source=\"nvidia_telem\",telemetry_tier=\"raw30\"}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      }
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  }
+}
