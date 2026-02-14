@@ -32,7 +32,7 @@ Single-node deployment. Not a library or application — it's infrastructure con
 
 All compose commands require the file flag: `docker compose -f infra/logging/docker-compose.observability.yml ...`
 
-The compose project name is `infra_observability` (set via `COMPOSE_PROJECT_NAME` in `.env` or defaulted in compose file). Container names follow the pattern `infra_observability-<service>-1`.
+The compose project name is `logging` (set via `COMPOSE_PROJECT_NAME` in `.env`). Container names follow the pattern `logging-<service>-1`.
 
 ## Architecture
 
@@ -76,7 +76,7 @@ Secrets live in `.env` at repo root (symlink to `infra/logging/.env`). Template 
 
 Required: `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD` (min 8 chars), `GRAFANA_SECRET_KEY` (32+ random chars).
 
-Port bindings default to `127.0.0.1` (loopback). Set `GRAFANA_HOST=0.0.0.0` and `PROM_HOST=0.0.0.0` for LAN access on headless host.
+Port bindings are set to `0.0.0.0` (all interfaces) for LAN access on headless host. Set `GRAFANA_HOST=127.0.0.1` and `PROM_HOST=127.0.0.1` for loopback-only access. UFW provides access control.
 
 Image versions are pinned via env vars (e.g., `GRAFANA_IMAGE=grafana/grafana:11.1.0`).
 

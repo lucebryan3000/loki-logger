@@ -15,9 +15,9 @@ This repository provides a **production-grade Loki logging stack** for local dev
 
 | Service | Image | Purpose | Exposure |
 |---------|-------|---------|----------|
-| **Grafana** | grafana/grafana:11.1.0 | Visualization, dashboards, query interface | 127.0.0.1:9001 |
+| **Grafana** | grafana/grafana:11.1.0 | Visualization, dashboards, query interface | 0.0.0.0:9001 |
 | **Loki** | grafana/loki:3.0.0 | Log aggregation and storage | Internal only (http://loki:3100) |
-| **Prometheus** | prom/prometheus:v2.52.0 | Metrics collection and alerting | 127.0.0.1:9004 |
+| **Prometheus** | prom/prometheus:v2.52.0 | Metrics collection and alerting | 0.0.0.0:9004 |
 | **Alloy** | grafana/alloy:v1.2.1 | Log ingestion agent (replaces Promtail) | Internal only |
 | **Node Exporter** | prom/node-exporter:v1.8.1 | Host metrics | Internal only |
 | **cAdvisor** | gcr.io/cadvisor/cadvisor:v0.49.1 | Container metrics | Internal only |
@@ -49,9 +49,10 @@ All logs ingested into Loki carry standardized labels for filtering:
 
 All services run on a dedicated Docker bridge network: **`obs`**
 
-**External access (loopback only):**
+**External access (all interfaces, UFW-protected):**
 - Grafana: http://127.0.0.1:9001 (login required)
 - Prometheus: http://127.0.0.1:9004 (no auth)
+- Bound to `0.0.0.0` for LAN access on headless host
 
 **Internal-only services:**
 - Loki: http://loki:3100 (accessible only from `obs` network)
@@ -74,7 +75,7 @@ All services run on a dedicated Docker bridge network: **`obs`**
 
 **Out of scope:**
 - Production-scale high availability (single-node deployment)
-- External authentication (loopback-only by design)
+- External authentication beyond Grafana login (UFW + LAN access by design)
 - Long-term archival (30-day retention limit)
 - Distributed tracing (use Jaeger/Tempo separately if needed)
 

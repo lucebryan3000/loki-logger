@@ -68,7 +68,7 @@ discovery.docker "all" {
   }
   filter {
     name  = "label"
-    values = ["com.docker.compose.project!=infra_observability"]  // ✅ EXCLUDE SELF
+    values = ["com.docker.compose.project!=logging"]  // ✅ EXCLUDE SELF
   }
 }
 
@@ -92,7 +92,7 @@ loki.process "docker" {
 
 **Missing features:**
 - Docker allowlist (vllm + hex compose projects)
-- Self-exclusion (infra_observability)
+- Self-exclusion (logging)
 - Custom labels (source, stack, service)
 
 ---
@@ -359,7 +359,7 @@ These will be stored in Loki unredacted.
 
 **Docker:**
 - Allowlist: vllm + hex compose projects (~5-10 containers max)
-- Exclude: infra_observability (6 containers)
+- Exclude: logging (6 containers)
 - Total: ~10 containers max
 
 **Journald:**
@@ -381,7 +381,7 @@ These will be stored in Loki unredacted.
 
 2. **Implement Docker allowlist** (1 hour)
    - Filter by compose project (vllm + hex)
-   - Exclude infra_observability
+   - Exclude logging
    - Verify with `docker compose ps`
 
 3. **Implement journald allowlist** (1 hour)
@@ -455,7 +455,7 @@ discovery.docker "excluded" {
   host = "unix:///var/run/docker.sock"
   filter {
     name   = "label"
-    values = ["com.docker.compose.project=infra_observability"]
+    values = ["com.docker.compose.project=logging"]
   }
 }
 
@@ -515,8 +515,8 @@ loki.process "redact" {
 {source="docker", stack="vllm"}
 {source="docker", stack="hex"}
 
-# Should NOT capture infra_observability containers
-{source="docker", stack="infra_observability"}  # Should return no results
+# Should NOT capture logging containers
+{source="docker", stack="logging"}  # Should return no results
 ```
 
 **Test journald allowlist:**

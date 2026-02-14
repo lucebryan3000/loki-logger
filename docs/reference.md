@@ -6,14 +6,14 @@ Stable reference data for the Loki logging stack.
 
 | Service | Internal Port | External Binding | Protocol | Purpose |
 |---------|---------------|------------------|----------|---------|
-| Grafana | 3000 | 127.0.0.1:9001 | HTTP | Web UI, API |
-| Prometheus | 9090 | 127.0.0.1:9004 | HTTP | Web UI, API |
+| Grafana | 3000 | 0.0.0.0:9001 | HTTP | Web UI, API |
+| Prometheus | 9090 | 0.0.0.0:9004 | HTTP | Web UI, API |
 | Loki | 3100 | None (internal) | HTTP | Push/query API |
 | Alloy | 12345 | None (internal) | HTTP | Admin UI |
 | Node Exporter | 9100 | None (internal) | HTTP | Metrics endpoint |
 | cAdvisor | 8080 | None (internal) | HTTP | Metrics endpoint |
 
-**Loopback-only services:** Grafana, Prometheus (127.0.0.1 binding prevents network access)
+**LAN-accessible services:** Grafana, Prometheus (0.0.0.0 binding, protected by UFW)
 
 **Internal-only services:** Loki, Alloy, Node Exporter, cAdvisor (no exposed ports)
 
@@ -24,9 +24,9 @@ Stable reference data for the Loki logging stack.
 | `GRAFANA_ADMIN_USER` | Yes | - | Grafana admin username |
 | `GRAFANA_ADMIN_PASSWORD` | Yes | - | Grafana admin password (min 8 chars) |
 | `GRAFANA_SECRET_KEY` | Yes | - | Session encryption key (32+ random chars) |
-| `GRAFANA_HOST` | No | 127.0.0.1 | Grafana bind address |
+| `GRAFANA_HOST` | No | 0.0.0.0 | Grafana bind address |
 | `GRAFANA_PORT` | No | 9001 | Grafana external port |
-| `PROM_HOST` | No | 127.0.0.1 | Prometheus bind address |
+| `PROM_HOST` | No | 0.0.0.0 | Prometheus bind address |
 | `PROM_PORT` | No | 9004 | Prometheus external port |
 | `HOST_HOME` | No | /home | Host home directory for Alloy mounts |
 
@@ -183,7 +183,7 @@ services:
 
 **Base URL:** http://127.0.0.1:9004
 
-**Authentication:** None (loopback trusted)
+**Authentication:** None (UFW-protected LAN access)
 
 ### Loki (Internal Only)
 

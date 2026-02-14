@@ -21,7 +21,7 @@
    # Edit with your credentials
    ```
 
-3. **Port availability (loopback only):**
+3. **Port availability:**
    ```bash
    # Check ports 9001 (Grafana) and 9004 (Prometheus) are free
    ss -tln | grep -E ':(9001|9004)'
@@ -195,18 +195,18 @@ See [maintenance.md](maintenance.md#upgrades) for version compatibility notes.
 Default ports are defined in `.env`:
 
 ```bash
-GRAFANA_HOST=127.0.0.1
+GRAFANA_HOST=0.0.0.0
 GRAFANA_PORT=9001
 
-PROM_HOST=127.0.0.1
+PROM_HOST=0.0.0.0
 PROM_PORT=9004
 ```
 
-To change ports:
+To change ports or bind address:
 1. Edit `.env`
 2. Restart services: `docker compose up -d`
 
-**Security:** Always bind to `127.0.0.1` (loopback only). **Never** use `0.0.0.0` without firewall rules.
+**Security:** Default binding is `0.0.0.0` (all interfaces) for headless LAN access. Ensure UFW is active to restrict access. Set to `127.0.0.1` for loopback-only access.
 
 ## Volume Management
 
@@ -254,18 +254,18 @@ docker compose up -d
 
 ## Firewall Considerations
 
-If using UFW (Ubuntu Firewall):
+Services bind to `0.0.0.0` by default. UFW should be active to restrict access:
 
 ```bash
-# Verify loopback access is allowed (default)
-sudo ufw status
+# Verify UFW is active
+sudo ufw status verbose
 
-# Grafana and Prometheus are loopback-only
-# No additional rules needed unless remote access required
+# Ensure rules restrict access to trusted IPs/subnets
+sudo ufw allow from 192.168.1.0/24 to any port 9001
+sudo ufw allow from 192.168.1.0/24 to any port 9004
 ```
 
-**For remote access (not recommended):**
-See [security.md](security.md#remote-access) for SSH tunneling approach.
+See [security.md](security.md#firewall-ufw) for details.
 
 ## Environment Variables
 
@@ -275,9 +275,9 @@ See [security.md](security.md#remote-access) for SSH tunneling approach.
 - `GRAFANA_SECRET_KEY` — Session encryption key (32+ random chars)
 
 **Optional in `.env`:**
-- `GRAFANA_HOST` — Bind address (default: 127.0.0.1)
+- `GRAFANA_HOST` — Bind address (default: 0.0.0.0)
 - `GRAFANA_PORT` — External port (default: 9001)
-- `PROM_HOST` — Bind address (default: 127.0.0.1)
+- `PROM_HOST` — Bind address (default: 0.0.0.0)
 - `PROM_PORT` — External port (default: 9004)
 - `HOST_HOME` — Host home directory for Alloy mounts (default: /home)
 

@@ -2,25 +2,25 @@
 
 ## Exposure Posture
 
-This logging stack is designed for **local development** with minimal external exposure.
+This logging stack runs on a **headless Ubuntu host** accessible from the LAN. Services are bound to all interfaces (`0.0.0.0`) and protected by UFW firewall rules.
 
-### External Access (Loopback Only)
+### External Access (LAN via UFW)
 
 | Service | Binding | Port | Authentication |
 |---------|---------|------|----------------|
-| Grafana | 127.0.0.1 | 9001 | Username/password |
-| Prometheus | 127.0.0.1 | 9004 | None (loopback trusted) |
+| Grafana | 0.0.0.0 | 9001 | Username/password |
+| Prometheus | 0.0.0.0 | 9004 | None (UFW-protected LAN) |
 
-**Security model:** Only loopback (127.0.0.1) is bound. No services are accessible from network.
+**Security model:** Services bind to `0.0.0.0` for headless LAN access. UFW restricts which hosts can connect.
 
-**Access from localhost only:**
+**Access from LAN:**
 ```bash
-# Accessible
+# Accessible from localhost
 curl http://127.0.0.1:9001/api/health
 curl http://127.0.0.1:9004/-/ready
 
-# Not accessible (connection refused)
-curl http://192.168.1.x:9001/api/health  # From another machine
+# Accessible from LAN (if UFW allows the source IP)
+curl http://<host-ip>:9001/api/health
 ```
 
 ### Internal-Only Services
@@ -123,7 +123,7 @@ nano .env
 
 ### Prometheus
 
-**No authentication** by default (loopback access trusted).
+**No authentication** by default (UFW-protected LAN access).
 
 **If authentication needed:**
 1. Add reverse proxy (nginx, Caddy) with basic auth
@@ -133,33 +133,42 @@ nano .env
 
 ## Firewall (UFW)
 
-This stack is designed for loopback-only access. No additional firewall rules are needed.
+Services bind to `0.0.0.0` for headless LAN access. UFW is the primary access control mechanism.
 
-**Verify loopback binding:**
+**Verify port binding:**
 ```bash
 ss -tln | grep -E ':(9001|9004)'
 ```
 
 **Expected output:**
 ```
-LISTEN 0 4096 127.0.0.1:9001 0.0.0.0:*
-LISTEN 0 4096 127.0.0.1:9004 0.0.0.0:*
+LISTEN 0 4096 0.0.0.0:9001 0.0.0.0:*
+LISTEN 0 4096 0.0.0.0:9004 0.0.0.0:*
 ```
 
-**Note:** `127.0.0.1` binding means traffic is local-only, regardless of UFW rules.
-
-**If UFW is enabled:**
+**Verify UFW is active and restricting access:**
 ```bash
-sudo ufw status
-# No rules needed for loopback-only services
+sudo ufw status verbose
+```
+
+**Ensure UFW rules restrict access to trusted IPs/subnets:**
+```bash
+# Example: allow only LAN subnet
+sudo ufw allow from 192.168.1.0/24 to any port 9001
+sudo ufw allow from 192.168.1.0/24 to any port 9004
 ```
 
 ## Remote Access
 
-**Scenario:** Access Grafana from another machine (laptop → desktop with stack)
+**Current configuration:** Services bind to `0.0.0.0`, accessible from the LAN via UFW rules.
 
-**Recommended approach: SSH tunnel**
+**Direct LAN access (current setup):**
+```bash
+# From any LAN machine (if UFW allows the source IP)
+curl http://<host-ip>:9001/api/health
+```
 
+**Alternative: SSH tunnel (for access from untrusted networks):**
 ```bash
 # From remote machine
 ssh -L 9001:127.0.0.1:9001 luce@<desktop-ip>
@@ -167,21 +176,10 @@ ssh -L 9001:127.0.0.1:9001 luce@<desktop-ip>
 # Access Grafana at http://localhost:9001 on remote machine
 ```
 
-**DO NOT bind to 0.0.0.0** unless you add firewall rules and authentication.
-
-**Bad practice (exposes to network):**
-```bash
-# ❌ NEVER DO THIS (binds to all interfaces)
-GRAFANA_HOST=0.0.0.0
-```
-
-**If network access is required:**
-1. Use SSH tunnel (recommended)
-2. OR set up reverse proxy (nginx) with TLS + basic auth
-3. OR configure UFW to allow specific IPs only:
-   ```bash
-   sudo ufw allow from <trusted-ip> to any port 9001
-   ```
+**Hardening options:**
+1. Restrict UFW rules to specific IPs/subnets
+2. Set up reverse proxy (nginx) with TLS + basic auth
+3. For loopback-only access, set `GRAFANA_HOST=127.0.0.1` and `PROM_HOST=127.0.0.1` in `.env`
 
 ## Docker Socket Security
 
@@ -335,14 +333,13 @@ Before deploying to shared/production environment:
 - [ ] `.env` file permissions are 600
 - [ ] Grafana admin password is strong (12+ chars, unique)
 - [ ] Grafana secret key is random (32+ chars)
-- [ ] All services bound to 127.0.0.1 (not 0.0.0.0)
+- [ ] UFW is active and restricts access to trusted IPs/subnets
+- [ ] Grafana and Prometheus bound to expected interface (0.0.0.0 or 127.0.0.1)
 - [ ] Loki has no exposed ports (internal-only)
 - [ ] Docker socket mount is read-only
 - [ ] All images are from official sources
 - [ ] Evidence files are gitignored (in `temp/`)
 - [ ] No secrets in git history
-- [ ] UFW rules allow only trusted IPs (if network access needed)
-- [ ] SSH tunnel used for remote access (not direct port binding)
 
 ## Incident Response
 
@@ -368,10 +365,10 @@ Before deploying to shared/production environment:
    docker logs logging-grafana-1 | grep -i login
    ```
 
-3. **Verify network bindings:**
+3. **Verify network bindings and UFW:**
    ```bash
    ss -tln | grep -E ':(9001|9004)'
-   # Ensure 127.0.0.1 only (not 0.0.0.0)
+   sudo ufw status verbose
    ```
 
 4. **Audit user accounts:**

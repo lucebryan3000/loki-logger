@@ -23,7 +23,7 @@
                               ↓
                          ┌─────────┐
                          │ Grafana │  (Query interface)
-                         └─────────┘  http://127.0.0.1:9001
+                         └─────────┘  http://<host>:9001
 
 
 ┌─────────────────────────────────────────────────────────────┐
@@ -48,7 +48,7 @@
 ### Grafana (grafana/grafana:11.1.0)
 **Purpose:** Unified query interface for logs and metrics
 
-- **Exposed port:** 127.0.0.1:9001 → 3000 (container)
+- **Exposed port:** 0.0.0.0:9001 → 3000 (container)
 - **Authentication:** Admin credentials from `.env` (GRAFANA_ADMIN_USER, GRAFANA_ADMIN_PASSWORD)
 - **Data sources:** Loki (http://loki:3100), Prometheus (http://prometheus:9090)
 - **Provisioning:** Auto-configured via `/etc/grafana/provisioning/`
@@ -83,7 +83,7 @@ curl 'http://loki:3100/loki/api/v1/query_range?query={env=~".+"}&start=...'
 ### Prometheus (prom/prometheus:v2.52.0)
 **Purpose:** Metrics collection, alerting, and time-series storage
 
-- **Exposed port:** 127.0.0.1:9004 → 9090 (container)
+- **Exposed port:** 0.0.0.0:9004 → 9090 (container)
 - **Storage:** `prometheus-data` volume at `/prometheus`
 - **Config:** `infra/logging/prometheus/prometheus.yml` (mounted read-only)
 - **Retention:** 15d (**CLI flag only:** `--storage.tsdb.retention.time=15d`)
@@ -161,14 +161,14 @@ curl -sf http://127.0.0.1:9004/-/healthy
 
 | Service | Internal Port | External Binding | Access |
 |---------|---------------|------------------|--------|
-| Grafana | 3000 | 127.0.0.1:9001 | Loopback only |
-| Prometheus | 9090 | 127.0.0.1:9004 | Loopback only |
+| Grafana | 3000 | 0.0.0.0:9001 | All interfaces (UFW-protected) |
+| Prometheus | 9090 | 0.0.0.0:9004 | All interfaces (UFW-protected) |
 | Loki | 3100 | None | Internal only |
 | Alloy | 12345 | None | Internal only |
 | Node Exporter | 9100 | None | Internal only |
 | cAdvisor | 8080 | None | Internal only |
 
-**Security posture:** Only Grafana and Prometheus are externally accessible, bound to **loopback only** (127.0.0.1).
+**Security posture:** Only Grafana and Prometheus are externally accessible, bound to **all interfaces** (0.0.0.0) and protected by UFW firewall rules.
 
 ## Persistence
 

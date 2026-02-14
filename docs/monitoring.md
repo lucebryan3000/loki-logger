@@ -3,7 +3,7 @@
 This runbook explains how to validate the Loki logging stack comprehensively.
 
 Scope:
-- Compose project: `infra_observability`
+- Compose project: `logging`
 - Compose file: `infra/logging/docker-compose.observability.yml`
 - Host endpoints:
   - Grafana: `http://127.0.0.1:9001`
@@ -19,7 +19,7 @@ Set these once per shell:
 set -euo pipefail
 REPO="/home/luce/apps/loki-logging"
 cd "$REPO"
-export COMPOSE_PROJECT_NAME=infra_observability
+export COMPOSE_PROJECT_NAME=logging
 OBS="infra/logging/docker-compose.observability.yml"
 ```
 
@@ -38,13 +38,13 @@ Use these levels depending on urgency:
 ```bash
 docker compose -f "$OBS" ps
 docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' \
-  | rg 'NAMES|infra_observability-(grafana|loki|prometheus|alloy|node_exporter|cadvisor)-1'
+  | rg 'NAMES|logging-(grafana|loki|prometheus|alloy|host-monitor|docker-metrics)-1'
 ```
 
 Expected:
 - all six services are `Up`
-- `grafana` publishes `127.0.0.1:9001->3000`
-- `prometheus` publishes `127.0.0.1:9004->9090`
+- `grafana` publishes `0.0.0.0:9001->3000`
+- `prometheus` publishes `0.0.0.0:9004->9090`
 
 ### 2) Core endpoint readiness
 
@@ -81,9 +81,9 @@ curl -sf 'http://127.0.0.1:9004/api/v1/targets' \
 
 Expected jobs `up`:
 - `alloy`
-- `cadvisor`
+- `docker-metrics`
+- `host-monitor`
 - `loki`
-- `node_exporter`
 - `prometheus`
 
 ### 5) `up` query sanity
@@ -171,7 +171,7 @@ Expected:
 ### 10) Config validity checks
 
 ```bash
-export COMPOSE_PROJECT_NAME=infra_observability
+export COMPOSE_PROJECT_NAME=logging
 docker compose -f "$OBS" config >/tmp/compose.rendered.yml
 
 PROM_IMAGE=$(sed -nE 's/^[[:space:]]*image:[[:space:]]*(prom\/prometheus:[^[:space:]]+).*/\1/p' "$OBS" | head -n1)
@@ -190,9 +190,9 @@ Expected:
 ### 11) Recent error trend by service
 
 ```bash
-for s in grafana prometheus loki alloy node_exporter cadvisor; do
+for s in grafana prometheus loki alloy host-monitor docker-metrics; do
   echo "=== $s (last 5m) ==="
-  COMPOSE_PROJECT_NAME=infra_observability docker compose -f "$OBS" logs --since=5m --no-color "$s" \
+  COMPOSE_PROJECT_NAME=logging docker compose -f "$OBS" logs --since=5m --no-color "$s" \
     | rg -in 'error|fatal|panic|failed|status=400|too far behind|empty ring' \
     | sed -n '1,40p' || echo "none"
 done
@@ -205,7 +205,7 @@ Interpretation:
 ### 12) Restart counters and runtime stability
 
 ```bash
-for c in infra_observability-grafana-1 infra_observability-prometheus-1 infra_observability-loki-1 infra_observability-alloy-1 infra_observability-node_exporter-1 infra_observability-cadvisor-1; do
+for c in logging-grafana-1 logging-prometheus-1 logging-loki-1 logging-alloy-1 logging-host-monitor-1 logging-docker-metrics-1; do
   docker inspect -f '{{.Name}}\trestarts={{.RestartCount}}\thealth={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}}\tstarted={{.State.StartedAt}}' "$c"
 done
 ```
@@ -217,7 +217,7 @@ Expected:
 
 ```bash
 docker stats --no-stream --format '{{.Name}}\tCPU={{.CPUPerc}}\tMEM={{.MemUsage}}\tNET={{.NetIO}}\tBLOCK={{.BlockIO}}' \
-  | rg 'infra_observability-(grafana|prometheus|loki|alloy|node_exporter|cadvisor)-1'
+  | rg 'logging-(grafana|prometheus|loki|alloy|host-monitor|docker-metrics)-1'
 
 df -h / /var/lib/docker
 docker system df
@@ -235,8 +235,8 @@ sudo -n ufw status verbose
 ```
 
 Expected:
-- `9001` and `9004` bound to loopback (`127.0.0.1`)
-- UFW active with expected policy
+- `9001` and `9004` bound to `0.0.0.0` (all interfaces, protected by UFW)
+- UFW active with expected policy restricting access to LAN
 
 ## Troubleshooting Patterns
 
@@ -337,10 +337,10 @@ If health checks fail after config changes:
 
 ```bash
 # restart stack
-COMPOSE_PROJECT_NAME=infra_observability docker compose -f "$OBS" up -d
+COMPOSE_PROJECT_NAME=logging docker compose -f "$OBS" up -d
 
 # if needed, recreate only a failing service
-COMPOSE_PROJECT_NAME=infra_observability docker compose -f "$OBS" up -d --force-recreate <service>
+COMPOSE_PROJECT_NAME=logging docker compose -f "$OBS" up -d --force-recreate <service>
 ```
 
 Re-run Level 1 and Level 2 checks after recovery.

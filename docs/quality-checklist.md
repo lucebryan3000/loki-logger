@@ -5,10 +5,10 @@ This checklist ensures documentation correctness, operational validity, and styl
 ## Correctness Checks
 
 ### Ports and Bindings
-- [ ] Grafana port is 127.0.0.1:9001 (loopback only)
-- [ ] Prometheus port is 127.0.0.1:9004 (loopback only)
+- [ ] Grafana port is 0.0.0.0:9001 (all interfaces, UFW-protected)
+- [ ] Prometheus port is 0.0.0.0:9004 (all interfaces, UFW-protected)
 - [ ] Loki is internal-only (no external binding)
-- [ ] All port references in docs match `docker-compose.observability.yml`
+- [ ] All port references in docs match `docker-compose.observability.yml` + `.env`
 
 ### File Paths
 - [ ] Config paths point to `infra/logging/` directory
@@ -75,14 +75,14 @@ This checklist ensures documentation correctness, operational validity, and styl
 - [ ] Secrets are never logged in evidence files
 
 ### Exposure
-- [ ] All external services bound to 127.0.0.1 (not 0.0.0.0)
+- [ ] External services bound to expected interface (0.0.0.0 or 127.0.0.1 per .env)
+- [ ] UFW is active and restricts access to trusted IPs/subnets
 - [ ] Loki has no exposed ports (internal-only)
 - [ ] No authentication bypasses documented
-- [ ] Remote access uses SSH tunnel (not direct binding)
 
 ### Authentication
 - [ ] Grafana requires username/password
-- [ ] Prometheus has no auth (loopback trusted)
+- [ ] Prometheus has no auth (UFW-protected LAN)
 - [ ] Admin password reset instructions are correct
 
 ## Style Checks
@@ -101,7 +101,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 
 ### Terminology
 - [ ] "Stack" not "cluster" (single-node deployment)
-- [ ] "Loopback" not "localhost" (127.0.0.1 binding)
+- [ ] "0.0.0.0" or "all interfaces" for LAN-accessible services (not "loopback")
 - [ ] "Internal-only" for services without exposed ports
 - [ ] "Evidence" for proof archives, not "logs" or "reports"
 

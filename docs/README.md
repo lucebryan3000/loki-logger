@@ -100,7 +100,7 @@ Alloy ingests logs from:
 - **15-day metrics retention** (configurable)
 - **Label-based filtering** (env, host, container_name, log_source)
 - **Evidence generation** (cryptographically verifiable proofs)
-- **Loopback-only exposure** (127.0.0.1, no network access)
+- **LAN-accessible** (0.0.0.0 binding, UFW-protected)
 - **Internal-only Loki** (no external API exposure)
 
 ## Common Operations
@@ -186,7 +186,7 @@ See [troubleshooting.md](troubleshooting.md#common-pitfalls) for full list.
 
 ## Security
 
-- **Loopback-only binding:** Grafana and Prometheus bound to 127.0.0.1
+- **UFW-protected LAN access:** Grafana and Prometheus bound to 0.0.0.0
 - **Internal-only Loki:** No external API exposure
 - **Secrets in .env:** Mode 600, gitignored, never logged
 - **No secrets in evidence:** Evidence files never contain passwords/keys
