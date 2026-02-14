@@ -177,6 +177,27 @@ loki.process "codeswarm" {
       log_source = "codeswarm_mcp",
     }
   }
+
+  // --- safe JSON parsing (Sprint-3 Phase 3) ---
+  // Parse JSON lines; do not drop malformed lines.
+  stage.json {
+    expressions = {
+      mcp_kind  = "kind",
+      mcp_tool  = "tool",
+      mcp_level = "level",
+    }
+  }
+
+  // Promote only bounded fields to labels (selected via live probe; <=20 unique values).
+  stage.labels {
+    values = {
+      mcp_kind  = "mcp_kind",
+      mcp_tool  = "mcp_tool",
+      mcp_level = "mcp_level",
+    }
+  }
+  // --- end safe JSON parsing ---
+
   forward_to = [loki.write.default.receiver]
 
   // --- redaction (Sprint-3 Phase 1) ---
@@ -194,8 +215,6 @@ loki.process "codeswarm" {
     replace    = "$1[REDACTED]"
   }
   // --- end redaction ---
-
-
 }
 
 loki.write "default" {
