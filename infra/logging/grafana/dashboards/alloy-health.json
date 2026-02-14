@@ -1,0 +1,41 @@
+{
+  "uid": "alloy_health_v1",
+  "title": "Alloy Health",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": [
+    "sprint-3",
+    "baseline"
+  ],
+  "panels": [
+    {
+      "type": "logs",
+      "title": "Alloy Errors (Loki)",
+      "datasource": {
+        "type": "loki",
+        "uid": null,
+        "name": "Loki"
+      },
+      "targets": [
+        {
+          "expr": "{env=~\".+\"} |= \"level=error\"",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  }
+}

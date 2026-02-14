@@ -1,0 +1,62 @@
+{
+  "uid": "prom_health_v1",
+  "title": "Prometheus Health",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": [
+    "sprint-3",
+    "baseline"
+  ],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Targets Up (count)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": null,
+        "name": "Prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(up)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Scrape failures (rate)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": null,
+        "name": "Prometheus"
+      },
+      "targets": [
+        {
+          "expr": "rate(prometheus_target_scrapes_exceeded_sample_limit_total[5m])",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      }
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  }
+}
