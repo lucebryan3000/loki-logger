@@ -36,3 +36,5 @@ limits_config:
   retention_period: 720h
   max_label_names_per_series: 15
   reject_old_samples: false
+  unordered_writes: true
+  max_line_size: 256KB
