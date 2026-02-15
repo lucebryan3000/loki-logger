@@ -57,12 +57,12 @@ discovery.relabel "docker_filtered" {
 loki.source.docker "dockerlogs" {
   host       = "unix:///var/run/docker.sock"
   targets    = discovery.relabel.docker_filtered.output
-  forward_to = [loki.process.main.receiver]
+  forward_to = [loki.process.docker.receiver]
 }
 
 // journald -> Loki (optional)
 loki.source.journal "journald" {
-  forward_to = [loki.process.main.receiver]
+  forward_to = [loki.process.journald.receiver]
 }
 
 // tool sink
@@ -72,7 +72,7 @@ local.file_match "tool_sink" {
 loki.source.file "tool_sink" {
   targets       = local.file_match.tool_sink.targets
   tail_from_end = true
-  forward_to    = [loki.process.main.receiver]
+  forward_to    = [loki.process.tool_sink.receiver]
 }
 
 // telemetry
@@ -82,7 +82,7 @@ local.file_match "telemetry" {
 loki.source.file "telemetry" {
   targets       = local.file_match.telemetry.targets
   tail_from_end = true
-  forward_to    = [loki.process.main.receiver]
+  forward_to    = [loki.process.telemetry.receiver]
 }
 
 // --- NVIDIA telemetry-as-logs (Sprint-3 Phase 4a) ---
