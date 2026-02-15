@@ -126,6 +126,21 @@ loki.process "nvidia_telem" {
     }
   }
 
+  // --- redaction (phase 7b remediation) ---
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+  // --- end redaction ---
+
   forward_to = [loki.write.default.receiver]
 }
 // --- end NVIDIA telemetry-as-logs ---
@@ -143,30 +158,45 @@ loki.source.file "codeswarm_mcp" {
   forward_to    = [loki.process.codeswarm.receiver]
 }
 
+// --- VS Code Server logs ---
+local.file_match "vscode_server" {
+  path_targets = [
+    { "__path__" = "/host/home/luce/.vscode-server/**/*.log" },
+    { "__path__" = "/host/home/luce/.vscode-server/**/log.txt" },
+  ]
+}
+
+loki.source.file "vscode_server" {
+  targets       = local.file_match.vscode_server.targets
+  tail_from_end = true
+  forward_to    = [loki.process.vscode.receiver]
+}
+// --- end VS Code Server logs ---
+
  loki.process "main" {
   stage.static_labels {
     values = {
       env = "sandbox",
     }
   }
-  forward_to = [loki.write.default.receiver]
 
   // --- redaction (Sprint-3 Phase 1) ---
   // Fake-secret patterns only; prevent credentials from being stored in Loki.
   stage.replace {
-    expression = "(?i)\\b(bearer\\s+)[A-Za-z0-9._~-]+\\b"
-    replace    = "$1[REDACTED]"
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
   }
   stage.replace {
-    expression = "(?i)\\b(cookie\\s*[:=]\\s*)[^;\\s\\r\\n]+"
-    replace    = "$1[REDACTED]"
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
   }
   stage.replace {
-    expression = "(?i)\\b(api[_-]?key\\s*[:=]\\s*)[A-Za-z0-9._~-]+"
-    replace    = "$1[REDACTED]"
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
   }
   // --- end redaction ---
 
+  forward_to = [loki.write.default.receiver]
 
 }
 
@@ -198,24 +228,51 @@ loki.process "codeswarm" {
   }
   // --- end safe JSON parsing ---
 
-  forward_to = [loki.write.default.receiver]
-
   // --- redaction (Sprint-3 Phase 1) ---
   // Fake-secret patterns only; prevent credentials from being stored in Loki.
   stage.replace {
-    expression = "(?i)\\b(bearer\\s+)[A-Za-z0-9._~-]+\\b"
-    replace    = "$1[REDACTED]"
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
   }
   stage.replace {
-    expression = "(?i)\\b(cookie\\s*[:=]\\s*)[^;\\s\\r\\n]+"
-    replace    = "$1[REDACTED]"
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
   }
   stage.replace {
-    expression = "(?i)\\b(api[_-]?key\\s*[:=]\\s*)[A-Za-z0-9._~-]+"
-    replace    = "$1[REDACTED]"
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
   }
   // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
 }
+
+// --- VS Code Server processor ---
+loki.process "vscode" {
+  stage.static_labels {
+    values = {
+      env        = "sandbox",
+      log_source = "vscode_server",
+    }
+  }
+
+  // Redaction — same patterns as main/codeswarm processors
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end VS Code Server processor ---
 
 loki.write "default" {
   endpoint {

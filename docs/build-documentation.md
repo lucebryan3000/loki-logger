@@ -27,7 +27,7 @@ Consolidated all production runtime scripts into a unified `scripts/prod/` direc
 **Updates:**
 - Updated all references in README.md, docs/*.md, _build/Sprint files
 - Updated relative paths in mcp/*.sh scripts (cd paths, internal references)
-- Updated temp/codex validation snapshots
+- Updated temp/codex validation artifacts
 
 ### Directory Structure Before/After
 

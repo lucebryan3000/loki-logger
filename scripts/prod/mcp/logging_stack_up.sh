@@ -26,7 +26,7 @@ EOF
 fi
 
 ENV_FILE=".env"
-OBS="infra/logging/docker compose -p logging.observability.yml"
+OBS="infra/logging/docker-compose.observability.yml"
 
 scripts/prod/mcp/validate_env.sh "$ENV_FILE"
 
@@ -36,4 +36,4 @@ set -a
 set +a
 
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
-docker compose --env-file "$ENV_FILE" -f "$OBS" up -d
+docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$ENV_FILE" -f "$OBS" up -d

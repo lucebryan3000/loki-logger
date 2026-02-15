@@ -2,21 +2,21 @@ groups:
 - name: sprint3_minimum_v1
   rules:
   - alert: PrometheusScrapeFailure
-    expr: increase(prometheus_target_scrapes_exceeded_sample_limit_total[10m]) > 0
+    expr: sprint3:prometheus_scrape_failures:rate5m > 0
     for: 5m
     labels:
       severity: warning
     annotations:
       summary: "Prometheus scrape sample limit exceeded"
   - alert: PrometheusTargetDown
-    expr: up == 0
+    expr: sprint3:targets_down:count > 0
     for: 5m
     labels:
       severity: critical
     annotations:
       summary: "Prometheus target is down"
   - alert: LokiIngestionErrors
-    expr: increase(loki_distributor_ingester_appends_failed_total[10m]) > 0
+    expr: sprint3:loki_ingestion_errors:increase10m > 0
     for: 5m
     labels:
       severity: warning

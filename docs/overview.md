@@ -11,6 +11,20 @@ This repository provides a **production-grade Loki logging stack** for local dev
 - Retention management (30 days default for logs, 15 days for metrics)
 - Evidence capture for audit and compliance workflows
 
+## Authoritative Source Of Truth
+
+Use these files/scripts as the authoritative contract for current behavior:
+
+- `infra/logging/docker-compose.observability.yml`
+- `infra/logging/alloy-config.alloy`
+- `infra/logging/prometheus/rules/loki_logging_rules.yml`
+- `infra/logging/prometheus/rules/sprint3_minimum_alerts.yml`
+- `infra/logging/grafana/dashboards/*.json`
+- `scripts/prod/mcp/logging_stack_health.sh`
+- `scripts/prod/mcp/logging_stack_audit.sh`
+- `docs/query-contract.md`
+- `_build/Sprint-3/reference/uat_outcome_report.json`
+
 ## Stack Components
 
 | Service | Image | Purpose | Exposure |
@@ -61,9 +75,10 @@ All services run on a dedicated Docker bridge network: **`obs`**
 ## Compose Project
 
 - **Name:** `logging`
-- **Location:** `infra/logging/docker compose -p logging.observability.yml`
+- **Location:** `infra/logging/docker-compose.observability.yml`
 - **Secrets:** `.env` (mode 600, never committed)
-- **Control scripts:** `scripts/prod/mcp/logging_stack_{up,down,health}.sh`
+- **Control scripts:** `scripts/prod/mcp/logging_stack_{up,down,health,audit}.sh`
+- **Query contract:** `docs/query-contract.md`
 
 ## Scope and Guardrails
 
@@ -80,7 +95,7 @@ All services run on a dedicated Docker bridge network: **`obs`**
 - Distributed tracing (use Jaeger/Tempo separately if needed)
 
 **Design constraints:**
-- All config changes require container restart (Alloy, Loki, Prometheus)
+- Prometheus/Loki config changes require container restart; Alloy supports `SIGHUP` reload
 - Loki is **internal-only** for security (no direct external access)
 - Secrets are **never logged or printed** in evidence/docs
 - Prometheus retention is **enforced at runtime** via CLI flags (cannot be changed in prometheus.yml)
@@ -104,9 +119,15 @@ scripts/prod/mcp/logging_stack_up.sh
 # Verify health
 scripts/prod/mcp/logging_stack_health.sh
 
+# Run deep audit
+scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
+
 # Access Grafana
 open http://127.0.0.1:9001
 # Login with credentials from .env
+
+# Access Prometheus
+open http://127.0.0.1:9004
 
 # Query logs in Grafana Explore
 # Example: {env=~".+"} |= "error"

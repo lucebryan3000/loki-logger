@@ -26,7 +26,7 @@ limits_config:
    ```
 2. Restart Loki:
    ```bash
-   docker compose -p logging -f infra/logging/docker compose.observability.yml restart loki
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml restart loki
    ```
 
 **Verify retention is active:**
@@ -56,19 +56,19 @@ services:
 ```
 
 **Change retention:**
-1. Edit `infra/logging/docker compose -p logging.observability.yml`:
+1. Edit `infra/logging/docker-compose.observability.yml`:
    ```yaml
    command:
      - "--storage.tsdb.retention.time=30d"
    ```
 2. Restart Prometheus:
    ```bash
-   docker compose -p logging -f infra/logging/docker compose.observability.yml up -d prometheus
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d prometheus
    ```
 
 **Verify retention:**
 ```bash
-curl -s http://127.0.0.1:9004/api/v1/status/runtimeinfo | jq '.data.storageRetention'
+curl -s http://127.0.0.1:9004/api/v1/status/flags | jq '.data["storage.tsdb.retention.time"]'
 ```
 
 **Critical:** Prometheus retention **cannot** be set in `prometheus.yml`. Must use CLI flag.
@@ -137,7 +137,7 @@ ls -lh /home/luce/backups/grafana/$(date +%Y%m%d)/
 
 ```bash
 # Stop Grafana
-docker compose -p logging -f infra/logging/docker compose.observability.yml stop grafana
+docker compose -p logging -f infra/logging/docker-compose.observability.yml stop grafana
 
 # Restore from backup
 docker run --rm \
@@ -146,7 +146,7 @@ docker run --rm \
   alpine sh -c 'rm -rf /data/* && tar xzf /backup/grafana-data.tar.gz -C /data'
 
 # Start Grafana
-docker compose -p logging -f infra/logging/docker compose.observability.yml start grafana
+docker compose -p logging -f infra/logging/docker-compose.observability.yml start grafana
 ```
 
 ### Backup Secrets (.env)
@@ -177,7 +177,7 @@ chmod 600 .env
 
 **Check current versions:**
 ```bash
-docker compose -p logging -f infra/logging/docker compose.observability.yml images
+docker compose -p logging -f infra/logging/docker-compose.observability.yml images
 ```
 
 **Upgrade process:**
@@ -196,12 +196,12 @@ docker compose -p logging -f infra/logging/docker compose.observability.yml imag
 
 3. **Pull new images:**
    ```bash
-   docker compose -p logging -f infra/logging/docker compose.observability.yml pull
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml pull
    ```
 
 4. **Recreate containers:**
    ```bash
-   docker compose -p logging -f infra/logging/docker compose.observability.yml up -d
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
    ```
 
 5. **Verify health:**
@@ -212,10 +212,10 @@ docker compose -p logging -f infra/logging/docker compose.observability.yml imag
 **Rollback if issues:**
 ```bash
 # Revert compose file to old version
-git checkout infra/logging/docker compose -p logging.observability.yml
+git checkout infra/logging/docker-compose.observability.yml
 
 # Redeploy old version
-docker compose up -d
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
 ```
 
 ### Version Compatibility
@@ -265,20 +265,20 @@ docker volume inspect logging_grafana-data --format '{{.Mountpoint}}' | xargs du
 
 **Reduce Loki data:**
 1. Lower retention: Edit `loki-config.yml` → `retention_period: 360h` (15 days)
-2. Restart Loki: `docker compose restart loki`
+2. Restart Loki: `docker compose -p logging -f infra/logging/docker-compose.observability.yml restart loki`
 3. Wait for compaction (runs every 10 min)
 
 **Reduce Prometheus data:**
 1. Lower retention: Edit compose file → `--storage.tsdb.retention.time=7d`
-2. Restart Prometheus: `docker compose up -d prometheus`
+2. Restart Prometheus: `docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d prometheus`
 
 **Emergency cleanup (delete all data):**
 ```bash
 # WARNING: This deletes all logs and metrics
-docker compose -p logging -f infra/logging/docker compose.observability.yml down -v
+docker compose -p logging -f infra/logging/docker-compose.observability.yml down -v
 
 # Redeploy
-docker compose up -d
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
 ```
 
 ### Prune Docker System
@@ -320,7 +320,7 @@ services:
 
 **Apply changes:**
 ```bash
-docker compose up -d
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
 ```
 
 ### Query Limits (Loki)
@@ -338,7 +338,7 @@ limits_config:
 
 **Restart Loki after changes:**
 ```bash
-docker compose restart loki
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart loki
 ```
 
 ## Log File Management
@@ -421,7 +421,7 @@ See [Prometheus Alerting Docs](https://prometheus.io/docs/alerting/latest/overvi
 - [ ] Review Grafana access logs (audit user activity)
 - [ ] Test restore procedure (backup is useless if you can't restore)
 - [ ] Verify health checks passing
-- [ ] Check for container restart loops (`docker compose ps`)
+- [ ] Check for container restart loops (`docker compose -p logging -f infra/logging/docker-compose.observability.yml ps`)
 
 ## Troubleshooting Maintenance Tasks
 
@@ -443,7 +443,7 @@ level=info msg="retention enabled"
 **If not running:**
 - Check `loki-config.yml` → `retention_enabled: true`
 - Verify compactor config is valid
-- Restart Loki: `docker compose restart loki`
+- Restart Loki: `docker compose -p logging -f infra/logging/docker-compose.observability.yml restart loki`
 
 ### Prometheus TSDB Corruption
 
@@ -457,13 +457,13 @@ docker logs logging-prometheus-1 | grep -i corrupt
 **Fix:**
 ```bash
 # Stop Prometheus
-docker compose stop prometheus
+docker compose -p logging -f infra/logging/docker-compose.observability.yml stop prometheus
 
 # Remove corrupted TSDB (loses metrics data)
 docker volume rm logging_prometheus-data
 
 # Recreate volume and restart
-docker compose up -d prometheus
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d prometheus
 ```
 
 **Prevention:** Ensure adequate disk space before TSDB fills up.

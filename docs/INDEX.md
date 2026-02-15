@@ -6,6 +6,8 @@ Complete navigation for the Loki logging stack documentation.
 
 - **First-time users:** Start with [README.md](README.md) for quick start
 - **Operators:** See [operations.md](operations.md) for runbooks
+- **Health entry point:** `./scripts/prod/mcp/logging_stack_health.sh`
+- **Audit entry point:** `./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json`
 - **Troubleshooting:** See [troubleshooting.md](troubleshooting.md) for common issues
 - **Reference:** See [reference.md](reference.md) for ports, labels, paths
 
@@ -25,6 +27,7 @@ Complete navigation for the Loki logging stack documentation.
 
 - **[operations.md](operations.md)** — Common tasks, runbooks, queries, evidence
 - **[validation.md](validation.md)** — Strict validation proofs, health checks
+- **[query-contract.md](query-contract.md)** — Canonical query IDs shared by rules, dashboards, alerts, and machine checks
 - **[troubleshooting.md](troubleshooting.md)** — Symptoms → causes → fixes
 
 ### Security and Maintenance
@@ -59,6 +62,7 @@ Complete navigation for the Loki logging stack documentation.
 - [Restarting services](operations.md#restarting-services)
 - [Log queries (LogQL)](operations.md#log-queries-logql)
 - [Metrics queries (PromQL)](operations.md#metrics-queries-promql)
+- [Query contract](query-contract.md)
 - [Evidence generation](operations.md#evidence-generation)
 - [Grafana administration](operations.md#grafana-administration)
 
@@ -124,13 +128,13 @@ Canonical config excerpts (synced from `infra/logging/` configs):
 
 ## Archive
 
-Historical/snapshot documentation (not part of primary navigation):
+Historical archive documentation (not part of primary navigation):
 
-- **[archive/10-as-installed.md](archive/10-as-installed.md)** — Installation snapshot
-- **[archive/20-as-configured.md](archive/20-as-configured.md)** — Configuration snapshot
+- **[archive/10-as-installed.md](archive/10-as-installed.md)** — Installation archive record
+- **[archive/20-as-configured.md](archive/20-as-configured.md)** — Configuration archive record
 - **[archive/monitoring.md](archive/monitoring.md)** — Old monitoring notes
 
-**Purpose:** Audit trail and historical reference. Not maintained for operational use.
+**Purpose:** Audit trail and historical reference. Non-authoritative for current operations.
 
 ## External Resources
 
@@ -150,7 +154,7 @@ Historical/snapshot documentation (not part of primary navigation):
 
 ## Documentation Maintenance
 
-- **Last updated:** 2026-02-12 (full docs reconstruction)
+- **Last updated:** 2026-02-14 (Sprint-3 native contract alignment)
 - **Quality checklist:** [quality-checklist.md](quality-checklist.md)
 - **Review frequency:** After every doc change (before commit)
 - **Full audit:** Monthly or before major releases
@@ -187,6 +191,9 @@ Historical/snapshot documentation (not part of primary navigation):
 # Health
 ./scripts/prod/mcp/logging_stack_health.sh
 
+# Audit
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
+
 # Evidence
 ./scripts/prod/prism/evidence.sh
 
@@ -214,7 +221,7 @@ Historical/snapshot documentation (not part of primary navigation):
 - Prometheus: http://192.168.1.150:9004
 
 ### Essential Files
-- Compose: `infra/logging/docker compose -p logging.observability.yml`
+- Compose: `infra/logging/docker-compose.observability.yml`
 - Secrets: `.env` (mode 600)
 - Loki config: `infra/logging/loki-config.yml`
 - Alloy config: `infra/logging/alloy-config.alloy`

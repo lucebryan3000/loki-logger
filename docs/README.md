@@ -2,6 +2,30 @@
 
 Production-grade logging and observability stack for local development. Centralized log aggregation from Docker containers, file-based sources, and custom telemetry streams, with metrics collection and unified dashboards.
 
+## Authoritative Source Of Truth
+
+These files define the current runtime contract and should be treated as authoritative:
+
+- `infra/logging/docker-compose.observability.yml`
+- `infra/logging/alloy-config.alloy`
+- `infra/logging/prometheus/rules/loki_logging_rules.yml`
+- `infra/logging/prometheus/rules/sprint3_minimum_alerts.yml`
+- `infra/logging/grafana/dashboards/*.json`
+- `scripts/prod/mcp/logging_stack_health.sh`
+- `scripts/prod/mcp/logging_stack_audit.sh`
+- `docs/query-contract.md`
+- `_build/Sprint-3/reference/uat_outcome_report.json`
+
+## Recent Documentation Update (2026-02-14)
+
+- Standardized compose command contract across active docs:
+  `docker compose -p logging -f infra/logging/docker-compose.observability.yml ...`
+- Promoted native entry points:
+  - `scripts/prod/mcp/logging_stack_health.sh`
+  - `scripts/prod/mcp/logging_stack_audit.sh`
+- Aligned PromQL examples to Sprint-3 recording rules from `query-contract.md`.
+- Clarified archive docs as historical/non-authoritative and replaced ambiguous "snapshot" wording in active runbooks with "artifact" where appropriate.
+
 ## Quick Start
 
 ### Prerequisites
@@ -17,12 +41,18 @@ Production-grade logging and observability stack for local development. Centrali
 
 # Verify health
 ./scripts/prod/mcp/logging_stack_health.sh
+
+# Run deep audit
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
 ```
 
 **Expected output:**
 ```
 grafana_ok=1
-prometheus_ok=1
+prometheus_ready_ok=1
+prometheus_targets_ok=1
+loki_ready_ok=1
+overall=pass
 ```
 
 ### Access Grafana
@@ -41,6 +71,11 @@ open http://127.0.0.1:9001
 3. Run query: `{env="sandbox"} | limit 10`
 4. Verify logs appear
 
+**Primary query entry points:**
+- Grafana UI/API: `http://127.0.0.1:9001`
+- Prometheus UI/API: `http://127.0.0.1:9004`
+- Loki API (internal only): `http://loki:3100` from Docker network `obs`
+
 ### Query Logs
 
 In Grafana → Explore → Loki:
@@ -58,6 +93,8 @@ In Grafana → Explore → Loki:
 # CodeSwarm MCP logs
 {env="sandbox", log_source="codeswarm_mcp"}
 ```
+
+Canonical query IDs and expressions are defined in [query-contract.md](query-contract.md).
 
 ### Generate Evidence
 
@@ -109,11 +146,14 @@ Alloy ingests logs from:
 # Health check
 ./scripts/prod/mcp/logging_stack_health.sh
 
+# Deep audit
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
+
 # View all logs
-docker compose -p logging -f infra/logging/docker compose.observability.yml logs -f
+docker compose -p logging -f infra/logging/docker-compose.observability.yml logs -f
 
 # Restart service
-docker compose -p logging -f infra/logging/docker compose.observability.yml restart <service>
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart <service>
 
 # Stop stack
 ./scripts/prod/mcp/logging_stack_down.sh
@@ -207,10 +247,10 @@ See [security.md](security.md) for security posture and best practices.
 ### Upgrades
 ```bash
 # Pull new images
-docker compose -p logging -f infra/logging/docker compose.observability.yml pull
+docker compose -p logging -f infra/logging/docker-compose.observability.yml pull
 
 # Recreate containers
-docker compose up -d
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
 
 # Verify health
 ./scripts/prod/mcp/logging_stack_health.sh
@@ -229,10 +269,11 @@ See [maintenance.md](maintenance.md) for full maintenance procedures.
 │   ├── alloy-config.alloy
 │   └── prometheus/
 ├── scripts/
-│   ├── mcp/                    # Control scripts
+│   ├── prod/mcp/               # Control scripts
 │   │   ├── logging_stack_up.sh
 │   │   ├── logging_stack_down.sh
-│   │   └── logging_stack_health.sh
+│   │   ├── logging_stack_health.sh
+│   │   └── logging_stack_audit.sh
 │   └── prism/
 │       └── evidence.sh         # Evidence generation
 ├── docs/                       # Documentation (you are here)

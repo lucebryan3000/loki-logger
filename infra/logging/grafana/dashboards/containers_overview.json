@@ -34,7 +34,7 @@
       },
       "targets": [
         {
-          "expr": "topk(10, rate(container_cpu_usage_seconds_total{container!=\"\",container!=\"POD\"}[5m]))",
+          "expr": "topk(10, sprint3:container_cpu_usage_cores:rate5m)",
           "refId": "A"
         }
       ],
@@ -66,7 +66,7 @@
       },
       "targets": [
         {
-          "expr": "topk(10, container_memory_working_set_bytes{container!=\"\",container!=\"POD\"})",
+          "expr": "topk(10, sprint3:container_memory_workingset_bytes)",
           "refId": "A"
         }
       ],

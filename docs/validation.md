@@ -2,6 +2,8 @@
 
 This document provides **strict validation proofs** to confirm the logging stack is operational and meets the label contract requirements.
 
+Canonical metric/log query semantics are defined in [query-contract.md](query-contract.md).
+
 ## Validation Levels
 
 1. **L1: Service Health** — Services are running and responsive
@@ -59,7 +61,7 @@ Prometheus Server is Healthy.
 ### Container Status
 
 ```bash
-docker compose -p logging -f infra/logging/docker compose.observability.yml ps --format "table {{.Service}}\t{{.Status}}"
+docker compose -p logging -f infra/logging/docker-compose.observability.yml ps --format "table {{.Service}}\t{{.Status}}"
 ```
 
 **Expected output:**
@@ -94,17 +96,18 @@ rate(loki_distributor_lines_received_total[5m])
 Run in Grafana → Explore → Prometheus:
 
 ```promql
-up
+sprint3:targets_up:count
 ```
 
 **Expected output:**
-```
-up{instance="docker-metrics:8080", job="docker-metrics"} = 1
-up{instance="host-monitor:9100", job="host-monitor"} = 1
-up{instance="prometheus:9090", job="prometheus"} = 1
-```
+- `sprint3:targets_up:count` is numeric and > 0
 
-**Pass criteria:** All `up` metrics = 1 (no targets down)
+**Pass criteria:** `sprint3:targets_up:count` > 0 and `sprint3:targets_down:count` = 0
+
+Optional inverse check:
+```promql
+sprint3:targets_down:count
+```
 
 ### Docker Logs Ingested
 
@@ -181,17 +184,18 @@ Wait 10-15 seconds, then query:
 
 For each log entry, verify these labels exist (view in Grafana by expanding a log line):
 
-**All logs must have:**
-- `env` (e.g., `sandbox`, `dev`, `prod`)
-- `host` (e.g., `codeswarm`)
-- `job` (e.g., `dockerlogs`, `tool_sink`, `telemetry`)
+**All streams should include:**
+- `env` (e.g., `sandbox`)
 
-**Docker logs must have:**
-- `container_name` (e.g., `logging-grafana-1`)
-- `image` (e.g., `grafana/grafana:11.1.0`)
+**Docker streams should include bounded schema labels:**
+- `stack` (compose project source, e.g., `vllm`, `hex`)
+- `service` (compose service)
+- `source_type` = `docker`
+- `container_name` (runtime docker metadata, when present)
 
-**File-based logs must have:**
+**File streams should include:**
 - `filename` (e.g., `/host/home/luce/_logs/test.log`)
+- `source_type` may be absent for some file pipelines; treat as non-blocking unless contract requires it for that source.
 
 **CodeSwarm MCP logs must have:**
 - `log_source` = `codeswarm_mcp`
@@ -230,10 +234,19 @@ The health check script provides basic L1 validation:
 **Expected output:**
 ```
 grafana_ok=1
-prometheus_ok=1
+prometheus_ready_ok=1
+prometheus_targets_ok=1
+loki_ready_ok=1
+overall=pass
 ```
 
 **Exit code:** 0 on success, 1 on failure
+
+Run deep contract validation:
+
+```bash
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
+```
 
 ## Evidence Generation (Proof Archive)
 
@@ -246,7 +259,7 @@ Generate a full validation proof archive:
 **Output location:** `temp/evidence/loki-<timestamp>/`
 
 **Evidence includes:**
-- Container status snapshot
+- Container status artifact
 - Grafana health JSON
 - Prometheus readiness
 - Loki query results (with label validation)
@@ -255,7 +268,7 @@ Generate a full validation proof archive:
 **Use cases:**
 - Audit trail for compliance
 - Baseline for regression testing
-- Incident response snapshots
+- Incident response artifacts
 
 ## Validation Checklist
 
@@ -298,7 +311,7 @@ Run this checklist after deployment or major changes:
 
 **Fix:**
 - Update Alloy config to add missing labels
-- Restart Alloy: `docker compose up -d --force-recreate alloy`
+- Restart Alloy: `docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy`
 
 ### Prometheus Targets Down (L2 Failure)
 
@@ -309,7 +322,7 @@ Run this checklist after deployment or major changes:
 2. Test endpoint manually: `curl http://<target>:9100/metrics` (from `obs` network)
 
 **Fix:**
-- Restart failed service: `docker compose restart <service>`
+- Restart failed service: `docker compose -p logging -f infra/logging/docker-compose.observability.yml restart <service>`
 - Check network connectivity: `docker network inspect obs`
 
 ## Regression Testing

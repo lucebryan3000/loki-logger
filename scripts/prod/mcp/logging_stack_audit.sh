@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../../.."
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   cat <<'EOF'
@@ -41,7 +41,7 @@ EOF
 fi
 
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
-OBS="infra/logging/docker compose -p logging.observability.yml"
+OBS="infra/logging/docker-compose.observability.yml"
 ENV_FILE=".env"
 
 # shellcheck disable=SC1090
@@ -77,7 +77,7 @@ warn() { add_result "$1" warn "$2" "$3"; }
 required_services=(grafana loki prometheus alloy host-monitor docker-metrics)
 
 # 1) Compose services running
-running_services="$(docker compose --env-file "$ENV_FILE" -f "$OBS" ps --services --status running | sort || true)"
+running_services="$(docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$ENV_FILE" -f "$OBS" ps --services --status running | sort || true)"
 missing=()
 for s in "${required_services[@]}"; do
   if ! grep -qx "$s" <<<"$running_services"; then
@@ -109,7 +109,7 @@ else
   fail loki_ready critical "loki ready endpoint failed"
 fi
 
-# 3) Prometheus targets and up query
+# 3) Prometheus targets and native query contract checks
 targets_json="$(mktemp)"
 if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/targets" > "$targets_json"; then
   bad_targets="$(jq -r '.data.activeTargets[] | select(.health!="up") | .labels.job' "$targets_json" | sort -u)"
@@ -134,6 +134,36 @@ else
   fail prometheus_up_query critical "unable to execute up query"
 fi
 
+targets_down_json="$(mktemp)"
+if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sprint3:targets_down:count' > "$targets_down_json"; then
+  td_val="$(jq -r '.data.result[0].value[1] // ""' "$targets_down_json")"
+  if [[ -z "$td_val" ]]; then
+    td_val="$(curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sum(1-up)' | jq -r '.data.result[0].value[1] // ""' || true)"
+  fi
+  if [[ "$td_val" =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ "$td_val" == "0" || "$td_val" == "0.0" ]]; then
+    pass prom_rule_targets_down critical "sprint3:targets_down:count is 0"
+  else
+    fail prom_rule_targets_down critical "sprint3:targets_down:count unexpected value=${td_val:-missing}"
+  fi
+else
+  fail prom_rule_targets_down critical "unable to query sprint3:targets_down:count"
+fi
+
+targets_up_json="$(mktemp)"
+if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sprint3:targets_up:count' > "$targets_up_json"; then
+  tu_val="$(jq -r '.data.result[0].value[1] // ""' "$targets_up_json")"
+  if [[ -z "$tu_val" ]]; then
+    tu_val="$(curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sum(up)' | jq -r '.data.result[0].value[1] // ""' || true)"
+  fi
+  if [[ "$tu_val" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    pass prom_rule_targets_up critical "sprint3:targets_up:count value=${tu_val}"
+  else
+    fail prom_rule_targets_up critical "sprint3:targets_up:count missing/non-numeric"
+  fi
+else
+  fail prom_rule_targets_up critical "unable to query sprint3:targets_up:count"
+fi
+
 # 4) Retention + rules
 flags_json="$(mktemp)"
 if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/status/flags" > "$flags_json"; then
@@ -149,18 +179,20 @@ fi
 
 rules_json="$(mktemp)"
 if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/rules" > "$rules_json"; then
-  groups="$(jq -r '.data.groups | length' "$rules_json")"
-  if [[ "$groups" =~ ^[0-9]+$ ]] && (( groups > 0 )); then
-    pass prometheus_rules warning "rule groups loaded: $groups"
+  has_core_groups="$(jq -r '[(.data.groups[]?.name // empty)] | (index("loki_logging_v1") != null and index("sprint3_minimum_v1") != null)' "$rules_json")"
+  has_recording_rules="$(jq -r '[.data.groups[]?.rules[]? | select(.type=="recording") | .name] | (index("sprint3:targets_up:count") != null and index("sprint3:targets_down:count") != null and index("sprint3:host_cpu_usage_percent") != null and index("sprint3:host_memory_usage_percent") != null and index("sprint3:host_disk_usage_percent") != null)' "$rules_json")"
+  has_min_alerts="$(jq -r '[.data.groups[]?.rules[]? | select(.type=="alerting") | .name] | (index("PrometheusScrapeFailure") != null and index("PrometheusTargetDown") != null and index("LokiIngestionErrors") != null)' "$rules_json")"
+  if [[ "$has_core_groups" == "true" && "$has_recording_rules" == "true" && "$has_min_alerts" == "true" ]]; then
+    pass prometheus_rules critical "required groups, recording rules, and minimum alerts are loaded"
   else
-    warn prometheus_rules warning "no rule groups loaded"
+    fail prometheus_rules critical "rule contract mismatch (groups=${has_core_groups} records=${has_recording_rules} alerts=${has_min_alerts})"
   fi
 else
-  warn prometheus_rules warning "unable to fetch /api/v1/rules"
+  fail prometheus_rules critical "unable to fetch /api/v1/rules"
 fi
 
 # 5) Config lint
-if docker compose --env-file "$ENV_FILE" -f "$OBS" config >/dev/null; then
+if docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$ENV_FILE" -f "$OBS" config >/dev/null; then
   pass compose_config_valid critical "docker compose config is valid"
 else
   fail compose_config_valid critical "docker compose config failed"

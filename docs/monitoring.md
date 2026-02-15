@@ -2,9 +2,11 @@
 
 This runbook explains how to validate the Loki logging stack comprehensively.
 
+Canonical query semantics are defined in [`query-contract.md`](query-contract.md).
+
 Scope:
 - Compose project: `logging`
-- Compose file: `infra/logging/docker compose -p logging.observability.yml`
+- Compose file: `infra/logging/docker-compose.observability.yml`
 - Host endpoints:
   - Grafana: `http://127.0.0.1:9001`
   - Prometheus: `http://127.0.0.1:9004`
@@ -20,7 +22,7 @@ set -euo pipefail
 REPO="/home/luce/apps/loki-logging"
 cd "$REPO"
 export COMPOSE_PROJECT_NAME=logging
-OBS="infra/logging/docker compose -p logging.observability.yml"
+OBS="infra/logging/docker-compose.observability.yml"
 ```
 
 ## Health Levels
@@ -36,7 +38,7 @@ Use these levels depending on urgency:
 ### 1) Service status
 
 ```bash
-docker compose -f "$OBS" ps
+docker compose -p "$COMPOSE_PROJECT_NAME" -f "$OBS" ps
 docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' \
   | rg 'NAMES|logging-(grafana|loki|prometheus|alloy|host-monitor|docker-metrics)-1'
 ```
@@ -67,7 +69,19 @@ scripts/prod/mcp/logging_stack_health.sh
 
 Expected:
 - `grafana_ok=1`
-- `prometheus_ok=1`
+- `prometheus_ready_ok=1`
+- `prometheus_targets_ok=1`
+- `loki_ready_ok=1`
+
+### 4) Native deep audit script
+
+```bash
+scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
+```
+
+Expected:
+- `audit_overall=pass`
+- JSON report written to `_build/Sprint-3/reference/native_audit.json`
 
 ## Level 2: Standard Health (5-10 min)
 
@@ -172,7 +186,7 @@ Expected:
 
 ```bash
 export COMPOSE_PROJECT_NAME=logging
-docker compose -f "$OBS" config >/tmp/compose.rendered.yml
+docker compose -p "$COMPOSE_PROJECT_NAME" -f "$OBS" config >/tmp/compose.rendered.yml
 
 PROM_IMAGE=$(sed -nE 's/^[[:space:]]*image:[[:space:]]*(prom\/prometheus:[^[:space:]]+).*/\1/p' "$OBS" | head -n1)
 [ -n "$PROM_IMAGE" ] || PROM_IMAGE='prom/prometheus:latest'
@@ -192,7 +206,7 @@ Expected:
 ```bash
 for s in grafana prometheus loki alloy host-monitor docker-metrics; do
   echo "=== $s (last 5m) ==="
-  COMPOSE_PROJECT_NAME=logging docker compose -f "$OBS" logs --since=5m --no-color "$s" \
+  docker compose -p "$COMPOSE_PROJECT_NAME" -f "$OBS" logs --since=5m --no-color "$s" \
     | rg -in 'error|fatal|panic|failed|status=400|too far behind|empty ring' \
     | sed -n '1,40p' || echo "none"
 done
@@ -245,7 +259,7 @@ Expected:
 1. Confirm container is running:
 
 ```bash
-docker compose -f "$OBS" ps
+docker compose -p "$COMPOSE_PROJECT_NAME" -f "$OBS" ps
 ```
 
 2. Check target errors quickly:
@@ -258,7 +272,7 @@ curl -sf 'http://127.0.0.1:9004/api/v1/targets' \
 3. Inspect service logs:
 
 ```bash
-docker compose -f "$OBS" logs --since=10m --no-color <service>
+docker compose -p "$COMPOSE_PROJECT_NAME" -f "$OBS" logs --since=10m --no-color <service>
 ```
 
 ### B) Loki query returns empty or errors
@@ -285,14 +299,14 @@ docker run --rm --network obs curlimages/curl:8.6.0 -sfG \
 3. Check Alloy send errors:
 
 ```bash
-docker compose -f "$OBS" logs --since=10m --no-color alloy | rg -in 'error|status=400|too far behind'
+docker compose -p "$COMPOSE_PROJECT_NAME" -f "$OBS" logs --since=10m --no-color alloy | rg -in 'error|status=400|too far behind'
 ```
 
 ### C) Config drift suspicion
 
 ```bash
 sha256sum \
-  infra/logging/docker compose -p logging.observability.yml \
+  infra/logging/docker-compose.observability.yml \
   infra/logging/loki-config.yml \
   infra/logging/alloy-config.alloy \
   infra/logging/prometheus/prometheus.yml \
@@ -301,21 +315,21 @@ sha256sum \
   infra/logging/grafana/provisioning/dashboards/dashboards.yml
 ```
 
-Compare against your last known-good snapshot in `docs/20-as-configured.md`.
+Compare against your last known-good archive artifact in `docs/archive/20-as-configured.md`.
 
-## Optional: One-Command Comprehensive Snapshot
+## Optional: One-Command Comprehensive Artifact
 
-Use this when you want a timestamped health artifact:
+Use this when you want a timestamped health artifact without any side process:
 
 ```bash
 OUT="temp/codex/monitoring/health-$(date -u +%Y%m%dT%H%M%SZ).txt"
 mkdir -p "$(dirname "$OUT")"
 {
-  echo "# monitoring snapshot"
+  echo "# monitoring artifact"
   date -u
   echo
   echo "## compose ps"
-  docker compose -f "$OBS" ps
+  docker compose -p "$COMPOSE_PROJECT_NAME" -f "$OBS" ps
   echo
   echo "## endpoint health"
   curl -sf 'http://127.0.0.1:9001/api/health'
@@ -337,10 +351,10 @@ If health checks fail after config changes:
 
 ```bash
 # restart stack
-COMPOSE_PROJECT_NAME=logging docker compose -f "$OBS" up -d
+docker compose -p "$COMPOSE_PROJECT_NAME" -f "$OBS" up -d
 
 # if needed, recreate only a failing service
-COMPOSE_PROJECT_NAME=logging docker compose -f "$OBS" up -d --force-recreate <service>
+docker compose -p "$COMPOSE_PROJECT_NAME" -f "$OBS" up -d --force-recreate <service>
 ```
 
 Re-run Level 1 and Level 2 checks after recovery.

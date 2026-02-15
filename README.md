@@ -16,9 +16,23 @@ This repository runs a complete observability stack on headless Ubuntu host `192
 | **cAdvisor** | Internal only | Container-level metrics | Internal only |
 
 **Network:** All services run on isolated Docker network `obs`
-**Compose project:** `infra_observability`
+**Compose project:** `logging`
 **Data retention:** 30 days (logs), 15 days (metrics)
 **LAN access:** Grafana (9001) and Prometheus (9004) bound to 0.0.0.0 with UFW firewall rules allowing 192.168.1.0/24
+
+## Authoritative Source Of Truth
+
+The current runtime and operational contract is defined by these files:
+
+- `infra/logging/docker-compose.observability.yml`
+- `infra/logging/alloy-config.alloy`
+- `infra/logging/prometheus/rules/loki_logging_rules.yml`
+- `infra/logging/prometheus/rules/sprint3_minimum_alerts.yml`
+- `infra/logging/grafana/dashboards/*.json`
+- `scripts/prod/mcp/logging_stack_health.sh`
+- `scripts/prod/mcp/logging_stack_audit.sh`
+- `docs/query-contract.md`
+- `_build/Sprint-3/reference/uat_outcome_report.json`
 
 ## Getting Started
 
@@ -30,15 +44,20 @@ This repository runs a complete observability stack on headless Ubuntu host `192
 
 **From host (SSH session):**
 ```bash
-# Check stack health
+# Quick health gate
 ./scripts/prod/mcp/logging_stack_health.sh
 
-# View all logs
-docker compose -p logging -f infra/logging/docker compose.observability.yml logs -f
+# Deep audit (writes JSON report)
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
 
-# Generate evidence/proof archive
-./scripts/prod/prism/evidence.sh
+# View current stack logs
+docker compose -p logging -f infra/logging/docker-compose.observability.yml logs -f
 ```
+
+**Primary query entry points:**
+- Grafana UI/API: `http://127.0.0.1:9001`
+- Prometheus API/UI: `http://127.0.0.1:9004`
+- Loki API (internal network only): `http://loki:3100`
 
 **Login credentials:** See `infra/logging/.env` for Grafana admin user/password
 
@@ -105,8 +124,11 @@ All logs are labeled with `env=sandbox`, `host=codeswarm`, and additional source
 # Health check
 ./scripts/prod/mcp/logging_stack_health.sh
 
+# Deep audit
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
+
 # Restart a service (e.g., after config change)
-docker compose -p logging -f infra/logging/docker compose.observability.yml restart alloy
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart alloy
 
 # Stop the stack
 ./scripts/prod/mcp/logging_stack_down.sh
@@ -115,8 +137,8 @@ docker compose -p logging -f infra/logging/docker compose.observability.yml rest
 ./scripts/prod/mcp/logging_stack_up.sh
 
 # View service logs
-docker logs infra_observability-grafana-1 --tail 100
-docker logs infra_observability-loki-1 --tail 100
+docker compose -p logging -f infra/logging/docker-compose.observability.yml logs --tail 100 grafana
+docker compose -p logging -f infra/logging/docker-compose.observability.yml logs --tail 100 loki
 ```
 
 ## Documentation
@@ -129,6 +151,7 @@ Quick links:
 - **[docs/operations.md](docs/operations.md)** — Runbooks and common tasks
 - **[docs/troubleshooting.md](docs/troubleshooting.md)** — Common issues and fixes
 - **[docs/validation.md](docs/validation.md)** — Validation proofs and health checks
+- **[docs/query-contract.md](docs/query-contract.md)** — Canonical query IDs for dashboards/rules/alerts/checks
 
 **By topic:**
 - Architecture: [docs/architecture.md](docs/architecture.md)
@@ -146,7 +169,7 @@ Quick links:
 docker ps | grep alloy
 
 # Check Alloy logs for errors
-docker logs infra_observability-alloy-1 --tail 50
+docker logs logging-alloy-1 --tail 50
 
 # Verify log files exist and are readable
 ls -lh /home/luce/_logs/
@@ -159,7 +182,7 @@ ls -lh /home/luce/_logs/
 grep GRAFANA_ADMIN infra/logging/.env
 
 # Reset password
-docker exec -it infra_observability-grafana-1 \
+docker exec -it logging-grafana-1 \
   grafana cli admin reset-admin-password <new-password>
 ```
 
@@ -226,7 +249,7 @@ sudo ufw status numbered
 
 | File | Purpose |
 |------|---------|
-| `infra/logging/docker compose -p logging.observability.yml` | Stack definition |
+| `infra/logging/docker-compose.observability.yml` | Stack definition |
 | `infra/logging/loki-config.yml` | Loki retention and storage |
 | `infra/logging/alloy-config.alloy` | Log ingestion pipelines |
 | `infra/logging/prometheus/prometheus.yml` | Metrics scrape targets |
@@ -255,7 +278,8 @@ sudo ufw status numbered
 │       ├── mcp/                  # Control scripts
 │       │   ├── logging_stack_up.sh
 │       │   ├── logging_stack_down.sh
-│       │   └── logging_stack_health.sh
+│       │   ├── logging_stack_health.sh
+│       │   └── logging_stack_audit.sh
 │       └── prism/
 │           └── evidence.sh       # Evidence/proof generation
 ├── docs/                         # Full documentation
@@ -271,7 +295,7 @@ sudo ufw status numbered
 │   ├── maintenance.md
 │   ├── reference.md
 │   ├── quality-checklist.md
-│   ├── archive/                  # Historical snapshots
+│   ├── archive/                  # Historical archives
 │   └── snippets/                 # Config excerpts
 ├── temp/evidence/                # Evidence archives (gitignored)
 ├── .env -> infra/logging/.env    # Symlink for convenience
@@ -300,7 +324,7 @@ sudo ufw status numbered
 
 Change retention in:
 - Loki: `infra/logging/loki-config.yml` → `retention_period`
-- Prometheus: `infra/logging/docker compose -p logging.observability.yml` → CLI flag `--storage.tsdb.retention.time`
+- Prometheus: `infra/logging/docker-compose.observability.yml` → CLI flag `--storage.tsdb.retention.time`
 
 ### Backups
 
@@ -308,7 +332,7 @@ Change retention in:
 # Backup Grafana dashboards
 mkdir -p ~/backups/grafana/$(date +%Y%m%d)
 docker run --rm \
-  -v infra_observability_grafana-data:/data:ro \
+  -v logging_grafana-data:/data:ro \
   -v ~/backups/grafana/$(date +%Y%m%d):/backup \
   alpine tar czf /backup/grafana-data.tar.gz -C /data .
 ```

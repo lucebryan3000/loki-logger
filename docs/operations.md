@@ -12,8 +12,18 @@
 **Expected output:**
 ```
 grafana_ok=1
-prometheus_ok=1
+prometheus_ready_ok=1
+prometheus_targets_ok=1
+loki_ready_ok=1
+overall=pass
 ```
+
+**Deep contract audit:**
+```bash
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
+```
+
+Canonical query semantics are defined in [query-contract.md](query-contract.md).
 
 **Manual health checks:**
 ```bash
@@ -31,7 +41,7 @@ curl -sf http://127.0.0.1:9004/-/healthy
 
 **Container status:**
 ```bash
-docker compose -p logging -f infra/logging/docker compose.observability.yml ps
+docker compose -p logging -f infra/logging/docker-compose.observability.yml ps
 ```
 
 **All containers should show `Up` status.** If any container is restarting or exited, check logs.
@@ -40,7 +50,7 @@ docker compose -p logging -f infra/logging/docker compose.observability.yml ps
 
 **All stack logs:**
 ```bash
-docker compose -p logging -f infra/logging/docker compose.observability.yml logs -f
+docker compose -p logging -f infra/logging/docker-compose.observability.yml logs -f
 ```
 
 **Single service logs:**
@@ -59,8 +69,7 @@ docker logs --tail 100 logging-alloy-1
 
 **Single service:**
 ```bash
-cd infra/logging
-docker compose restart <service>
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart <service>
 ```
 
 **Common restart scenarios:**
@@ -79,13 +88,12 @@ docker compose restart <service>
 When config changes don't apply after restart:
 
 ```bash
-cd infra/logging
-docker compose up -d --force-recreate <service>
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d --force-recreate <service>
 ```
 
 **Example: Reload Alloy config:**
 ```bash
-docker compose -p logging -f infra/logging/docker compose.observability.yml up -d --force-recreate alloy
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy
 ```
 
 **Note:** `--force-recreate` stops and destroys the container, then creates a new one. **Ephemeral state is lost** (e.g., Alloy log file positions).
@@ -203,17 +211,15 @@ sum by (container_name) (count_over_time({env="sandbox"}[5m]))
 
 **All Prometheus targets:**
 ```promql
-up
+sprint3:targets_up:count
 ```
 
 **Expected output:**
-- `up{job="prometheus"} = 1`
-- `up{job="host-monitor"} = 1`
-- `up{job="docker-metrics"} = 1`
+- `sprint3:targets_up:count` is numeric and > 0
 
 **Failed targets:**
 ```promql
-up == 0
+sprint3:targets_down:count
 ```
 
 ### Node Metrics
@@ -237,12 +243,12 @@ node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100
 
 **CPU by container:**
 ```promql
-rate(container_cpu_usage_seconds_total{name=~".+"}[5m])
+topk(10, sprint3:container_cpu_usage_cores:rate5m)
 ```
 
 **Memory by container:**
 ```promql
-container_memory_usage_bytes{name=~".+"}
+topk(10, sprint3:container_memory_workingset_bytes)
 ```
 
 **Network I/O:**
@@ -265,7 +271,7 @@ loki_ingester_streams
 
 **Failed ingestion:**
 ```promql
-rate(loki_discarded_samples_total[5m])
+sprint3:loki_ingestion_errors:rate5m
 ```
 
 ## Evidence Generation
@@ -291,7 +297,7 @@ temp/evidence/loki-<timestamp>/
 **Evidence use cases:**
 1. **Audit trail:** Prove ingestion was working at specific time
 2. **Compliance:** Show log retention and query capability
-3. **Debugging:** Snapshot of stack state for troubleshooting
+3. **Debugging:** Time-bounded stack-state artifact for troubleshooting
 4. **Validation:** Confirm label contract compliance
 
 **Evidence best practices:**
@@ -334,7 +340,7 @@ docker cp logging-grafana-1:/var/lib/grafana /tmp/grafana-backup
 **Restore dashboards:**
 ```bash
 docker cp /tmp/grafana-backup/. logging-grafana-1:/var/lib/grafana
-docker compose -p logging -f infra/logging/docker compose.observability.yml restart grafana
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart grafana
 ```
 
 ### Data Source Validation
@@ -344,7 +350,7 @@ docker compose -p logging -f infra/logging/docker compose.observability.yml rest
 3. Click **Prometheus** → **Test** (should show "Data source is working")
 
 **If test fails:**
-- Check Loki/Prometheus are running (`docker compose ps`)
+- Check Loki/Prometheus are running (`docker compose -p logging -f infra/logging/docker-compose.observability.yml ps`)
 - Verify internal network connectivity (`docker network inspect obs`)
 - Check Loki URL is `http://loki:3100` (not 127.0.0.1)
 
@@ -371,7 +377,7 @@ curl -X POST http://127.0.0.1:9004/-/reload
 
 **Recommended:** Use restart for config changes:
 ```bash
-docker compose -p logging -f infra/logging/docker compose.observability.yml restart prometheus
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart prometheus
 ```
 
 ### Query API (Direct)
@@ -422,11 +428,11 @@ docker run --rm --network obs alpine/curl:latest \
 **Symptom:** Logs missing after Alloy restart (position state lost).
 
 **Solution:** Alloy uses `tail_from_end = true` by default. To force re-read from beginning:
-1. Stop Alloy: `docker compose stop alloy`
+1. Stop Alloy: `docker compose -p logging -f infra/logging/docker-compose.observability.yml stop alloy`
 2. Edit config: Set `tail_from_end = false` temporarily
-3. Restart: `docker compose up -d alloy`
+3. Restart: `docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d alloy`
 4. Revert config: Set `tail_from_end = true`
-5. Restart again: `docker compose up -d --force-recreate alloy`
+5. Restart again: `docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy`
 
 **Better approach:** Generate new log entries instead of re-ingesting old ones.
 
@@ -469,7 +475,7 @@ curl -s http://127.0.0.1:9004/api/v1/status/runtimeinfo | grep -i retention
 ```
 
 **Change retention:**
-1. Edit `infra/logging/docker compose -p logging.observability.yml`
+1. Edit `infra/logging/docker-compose.observability.yml`
 2. Update `--storage.tsdb.retention.time=15d` to desired value
 3. Restart Prometheus
 
@@ -481,13 +487,13 @@ curl -s http://127.0.0.1:9004/api/v1/status/runtimeinfo | grep -i retention
 
 **All services running:**
 ```bash
-docker compose -p logging -f infra/logging/docker compose.observability.yml ps | grep -c "Up"
+docker compose -p logging -f infra/logging/docker-compose.observability.yml ps | grep -c "Up"
 # Expected: 6 (alloy, docker-metrics, grafana, loki, host-monitor, prometheus)
 ```
 
 **No restart loops:**
 ```bash
-docker compose ps --format "table {{.Service}}\t{{.Status}}" | grep -i restarting
+docker compose -p logging -f infra/logging/docker-compose.observability.yml ps --format "table {{.Service}}\t{{.Status}}" | grep -i restarting
 # Expected: no output
 ```
 

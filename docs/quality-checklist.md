@@ -45,7 +45,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 ### Health Validation
 - [ ] Grafana health: `curl -sf http://127.0.0.1:9001/api/health`
 - [ ] Prometheus ready: `curl -sf http://127.0.0.1:9004/-/ready`
-- [ ] All containers show `Up` status in `docker compose ps`
+- [ ] All containers show `Up` status in `docker compose -p logging -f infra/logging/docker-compose.observability.yml ps`
 
 ### Query Examples
 - [ ] All LogQL queries have non-empty selectors (not `{}`)
@@ -54,7 +54,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 - [ ] Example queries are syntactically valid
 
 ### Command Validity
-- [ ] All `docker compose -p logging` commands include `-f infra/logging/docker compose.observability.yml`
+- [ ] All docker compose commands in active docs use `-p logging -f infra/logging/docker-compose.observability.yml` (or `$COMPOSE_PROJECT_NAME` + `$OBS` pattern)
 - [ ] All script paths are executable: `scripts/prod/mcp/*.sh`, `scripts/prod/prism/*.sh`
 - [ ] curl commands use `-sf` for silent failures where appropriate
 - [ ] No commands contain placeholders like `<service>` without context
@@ -131,6 +131,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 ### Runtime Verification
 - [ ] Deploy stack: `./scripts/prod/mcp/logging_stack_up.sh`
 - [ ] Health check passes: `./scripts/prod/mcp/logging_stack_health.sh`
+- [ ] Audit check passes: `./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json`
 - [ ] Generate test log: `echo "test_$(date +%s)" >> /home/luce/_logs/test.log`
 - [ ] Wait 15 seconds: `sleep 15`
 - [ ] Query returns results: `{env="sandbox", filename=~".*test.log"} |= "test_"`
@@ -140,7 +141,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 
 ### File Organization
 - [ ] All primary docs in `docs/` root
-- [ ] Snapshot docs in `docs/archive/`
+- [ ] Historical archive docs in `docs/archive/` are clearly marked non-authoritative
 - [ ] Config snippets in `docs/snippets/`
 - [ ] Evidence in `temp/evidence/` (gitignored)
 
@@ -199,7 +200,7 @@ sleep 15
 ./scripts/prod/prism/evidence.sh
 
 # 7. Verify no errors in logs
-docker compose -p logging -f infra/logging/docker compose.observability.yml logs --tail 100 | grep -i error
+docker compose -p logging -f infra/logging/docker-compose.observability.yml logs --tail 100 | grep -i error
 
 # 8. Tear down
 ./scripts/prod/mcp/logging_stack_down.sh
@@ -215,4 +216,4 @@ docker compose -p logging -f infra/logging/docker compose.observability.yml logs
 
 **Owner:** Documentation maintainer
 
-**Last reviewed:** 2026-02-12 (during docs reconstruction)
+**Last reviewed:** 2026-02-14 (Sprint-3 native contract alignment)

@@ -2,14 +2,16 @@
 
 This document maps **symptoms → causes → fixes** for common issues with the Loki logging stack.
 
+Canonical query IDs and expressions are defined in [query-contract.md](query-contract.md).
+
 ## Quick Diagnostic Commands
 
 ```bash
 # Container status
-docker compose -p logging -f infra/logging/docker compose.observability.yml ps
+docker compose -p logging -f infra/logging/docker-compose.observability.yml ps
 
 # Recent logs (all services)
-docker compose -p logging -f infra/logging/docker compose.observability.yml logs --tail 50
+docker compose -p logging -f infra/logging/docker-compose.observability.yml logs --tail 50
 
 # Health checks
 curl -sf http://127.0.0.1:9001/api/health || echo "Grafana FAILED"
@@ -46,7 +48,7 @@ grep "^#" infra/logging/alloy-config.alloy
 # If any matches, replace with //
 
 # Restart Alloy
-docker compose -p logging -f infra/logging/docker compose.observability.yml up -d --force-recreate alloy
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy
 ```
 
 ### Cause 2: Loki Not Reachable
@@ -66,7 +68,7 @@ docker exec logging-alloy-1 curl -s http://loki:3100/ready
 **Fix:**
 ```bash
 # Restart Loki
-docker compose -p logging -f infra/logging/docker compose.observability.yml restart loki
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart loki
 
 # Verify network membership
 docker inspect logging-alloy-1 | grep -A5 Networks
@@ -116,7 +118,7 @@ sleep 15
 - Check Loki logs: `docker logs logging-loki-1 | grep -i error`
 
 **Fix:**
-- Restart Alloy: `docker compose restart alloy`
+- Restart Alloy: `docker compose -p logging -f infra/logging/docker-compose.observability.yml restart alloy`
 - If persistent, check disk space: `df -h /var/lib/docker`
 
 ## Symptom: Alloy Config Parse Errors
@@ -139,7 +141,7 @@ grep "^#" infra/logging/alloy-config.alloy
 sed -i 's|^#|//|g' infra/logging/alloy-config.alloy
 
 # Restart
-docker compose -p logging -f infra/logging/docker compose.observability.yml up -d --force-recreate alloy
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy
 ```
 
 ### Cause: Invalid HCL Syntax
@@ -251,9 +253,9 @@ docker inspect logging-prometheus-1 | grep -A10 Args
 ```
 
 **Fix:**
-1. Edit `infra/logging/docker compose -p logging.observability.yml`
+1. Edit `infra/logging/docker-compose.observability.yml`
 2. Update command: `--storage.tsdb.retention.time=30d` (or desired value)
-3. Restart: `docker compose up -d prometheus`
+3. Restart: `docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d prometheus`
 
 **Do NOT edit `prometheus.yml`** — retention setting there has no effect.
 
@@ -285,7 +287,7 @@ curl -sf http://127.0.0.1:9001/api/health
 
 **Fix:**
 ```bash
-docker compose -p logging -f infra/logging/docker compose.observability.yml restart grafana
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart grafana
 ```
 
 ## Symptom: High CPU/Memory Usage
@@ -309,7 +311,7 @@ docker stats --no-stream | grep loki
     max_query_lookback: 720h  # Max lookback from now
     max_entries_limit_per_query: 5000
   ```
-- Restart Loki: `docker compose restart loki`
+- Restart Loki: `docker compose -p logging -f infra/logging/docker-compose.observability.yml restart loki`
 
 ### Cause 2: High Ingestion Rate
 
@@ -334,7 +336,7 @@ rate(loki_distributor_lines_received_total[5m])
 
 ```bash
 # Check restart count
-docker compose ps --format "table {{.Service}}\t{{.Status}}"
+docker compose -p logging -f infra/logging/docker-compose.observability.yml ps --format "table {{.Service}}\t{{.Status}}"
 
 # View recent logs
 docker logs --tail 100 logging-<service>-1
@@ -399,7 +401,7 @@ docker stats --no-stream | grep loki
             memory: 4G
             cpus: '2.0'
   ```
-- Restart: `docker compose up -d loki`
+- Restart: `docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d loki`
 
 ## Symptom: Labels Missing from Logs
 
@@ -424,7 +426,7 @@ loki.source.file "codeswarm_mcp" {
 **Fix:**
 - Ensure `forward_to` points to correct `loki.process` block
 - Verify `loki.process.codeswarm` has correct `stage.static_labels`
-- Restart: `docker compose up -d --force-recreate alloy`
+- Restart: `docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy`
 
 ## Symptom: Evidence Script Fails
 
@@ -496,7 +498,7 @@ docker exec -it logging-grafana-1 \
 **Issue:** Editing config but not restarting service
 **Fix:** Always restart after config changes:
 ```bash
-docker compose up -d --force-recreate <service>
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d --force-recreate <service>
 ```
 
 ## Escalation Path
@@ -506,16 +508,16 @@ If issue persists after troubleshooting:
 1. **Collect diagnostic data:**
    ```bash
    # Container status
-   docker compose ps > /tmp/compose-ps.txt
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml ps > /tmp/compose-ps.txt
 
    # All logs (last 500 lines)
-   docker compose logs --tail 500 > /tmp/compose-logs.txt
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml logs --tail 500 > /tmp/compose-logs.txt
 
    # System resources
    df -h > /tmp/disk.txt
    free -h > /tmp/memory.txt
 
-   # Evidence snapshot
+   # Evidence artifact
    ./scripts/prod/prism/evidence.sh
    ```
 
@@ -532,13 +534,13 @@ If issue persists after troubleshooting:
 4. **Reset to known-good state:**
    ```bash
    # Stop stack
-   docker compose -p logging -f infra/logging/docker compose.observability.yml down
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml down
 
    # Restore configs from git
    git checkout infra/logging/*.yml infra/logging/*.alloy
 
    # Redeploy
-   docker compose -p logging -f infra/logging/docker compose.observability.yml up -d
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
    ```
 
 ## Next Steps

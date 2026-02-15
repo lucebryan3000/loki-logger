@@ -1,26 +1,60 @@
 groups:
   - name: loki_logging_v1
     rules:
+      # Canonical recording rules used by dashboards, alerts, and machine checks.
+      - record: sprint3:targets_up:count
+        expr: sum(up)
+
+      - record: sprint3:targets_down:count
+        expr: sum(1 - up)
+
+      - record: sprint3:job_up:ratio
+        expr: avg by (job) (up)
+
+      - record: sprint3:prometheus_scrape_failures:rate5m
+        expr: rate(prometheus_target_scrapes_exceeded_sample_limit_total[5m])
+
+      - record: sprint3:loki_ingestion_errors:rate5m
+        expr: rate(loki_distributor_ingester_appends_failed_total[5m])
+
+      - record: sprint3:loki_ingestion_errors:increase10m
+        expr: increase(loki_distributor_ingester_appends_failed_total[10m])
+
+      - record: sprint3:host_cpu_usage_percent
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+      - record: sprint3:host_memory_usage_percent
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+      - record: sprint3:host_disk_usage_percent
+        expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) * 100
+
+      - record: sprint3:container_cpu_usage_cores:rate5m
+        expr: rate(container_cpu_usage_seconds_total{container!="",container!="POD"}[5m])
+
+      - record: sprint3:container_memory_workingset_bytes
+        expr: container_memory_working_set_bytes{container!="",container!="POD"}
+
       - alert: TargetDown
-        expr: up == 0
+        expr: sprint3:targets_down:count > 0
         for: 2m
         labels:
           severity: warning
         annotations:
           summary: "Prometheus target down"
-          description: "Target {{ $labels.job }} at {{ $labels.instance }} is down."
+          description: "One or more scrape targets are down."
 
       - alert: NodeDiskSpaceLow
-        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) < 0.10
+        expr: sprint3:host_disk_usage_percent > 90
         for: 5m
         labels:
           severity: warning
         annotations:
           summary: "Disk space low (<10%)"
-          description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is below 10% free."
+          description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is above 90% used."
 
       - alert: NodeMemoryHigh
-        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.90
+        expr: sprint3:host_memory_usage_percent > 90
         for: 5m
         labels:
           severity: warning
@@ -29,7 +63,7 @@ groups:
           description: "Host {{ $labels.instance }} memory usage above 90%."
 
       - alert: NodeCPUHigh
-        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 90
+        expr: sprint3:host_cpu_usage_percent > 90
         for: 5m
         labels:
           severity: warning

@@ -20,7 +20,7 @@
       },
       "targets": [
         {
-          "expr": "sum(up)",
+          "expr": "sprint3:targets_up:count",
           "refId": "A"
         }
       ],
@@ -41,7 +41,7 @@
       },
       "targets": [
         {
-          "expr": "rate(prometheus_target_scrapes_exceeded_sample_limit_total[5m])",
+          "expr": "sprint3:prometheus_scrape_failures:rate5m",
           "refId": "A"
         }
       ],
@@ -50,6 +50,27 @@
         "w": 24,
         "x": 0,
         "y": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Loki ingestion errors (rate)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": null,
+        "name": "Prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sprint3:loki_ingestion_errors:rate5m",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
       }
     }
   ],

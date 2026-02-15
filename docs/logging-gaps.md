@@ -382,7 +382,7 @@ These will be stored in Loki unredacted.
 2. **Implement Docker allowlist** (1 hour)
    - Filter by compose project (vllm + hex)
    - Exclude logging
-   - Verify with `docker compose ps`
+   - Verify with `docker compose -p logging -f infra/logging/docker-compose.observability.yml ps`
 
 3. **Implement journald allowlist** (1 hour)
    - Filter by 14-unit allowlist

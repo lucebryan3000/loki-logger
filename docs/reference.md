@@ -50,10 +50,11 @@ Stable reference data for the Loki logging stack.
 │       ├── prometheus.yml                 # Scrape targets
 │       └── rules/                         # Alert rules
 ├── scripts/
-│   ├── mcp/
+│   ├── prod/mcp/
 │   │   ├── logging_stack_up.sh            # Deploy stack
 │   │   ├── logging_stack_down.sh          # Stop stack
-│   │   └── logging_stack_health.sh        # Health checks
+│   │   ├── logging_stack_health.sh        # Health checks
+│   │   └── logging_stack_audit.sh         # Deep contract audit
 │   └── prism/
 │       └── evidence.sh                    # Generate evidence archive
 ├── docs/                                  # Documentation (this file)
@@ -135,17 +136,18 @@ services:
 
 | Label | Source | Example Values | Required |
 |-------|--------|----------------|----------|
-| `env` | Alloy static label | `sandbox`, `dev`, `prod` | Yes |
-| `host` | Auto-detected | `codeswarm` | Yes |
-| `job` | Alloy source name | `dockerlogs`, `tool_sink`, `telemetry` | Yes |
+| `env` | Alloy static label | `sandbox` | Yes |
 
 ### Docker-Specific Labels
 
 | Label | Source | Example | Required for Docker Logs |
 |-------|--------|---------|--------------------------|
-| `container_name` | Docker metadata | `logging-grafana-1` | Yes |
+| `stack` | Docker relabel | `vllm`, `hex` | Yes |
+| `service` | Docker relabel | `codeswarm-mcp` | Yes |
+| `source_type` | Docker relabel | `docker` | Yes |
+| `container_name` | Docker metadata | `logging-grafana-1` | Preferred |
 | `image` | Docker metadata | `grafana/grafana:11.1.0` | No |
-| `compose_project` | Docker metadata | `logging` | No |
+| `compose_project` | Docker metadata | `vllm`, `hex` | No |
 
 ### File-Based Log Labels
 
@@ -285,23 +287,23 @@ rate({env="sandbox"} |= "error" [5m])
 ### PromQL (Prometheus)
 
 ```promql
-# All targets up
-up
+# All targets up (recording rule)
+sprint3:targets_up:count
 
-# Failed targets
-up == 0
+# Failed targets (recording rule)
+sprint3:targets_down:count
 
 # CPU usage
-100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+sprint3:host_cpu_usage_percent
 
 # Memory available
-node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100
+sprint3:host_memory_usage_percent
 
 # Loki ingestion rate
-rate(loki_distributor_lines_received_total[5m])
+sprint3:loki_ingestion_errors:rate5m
 
 # Container memory usage
-container_memory_usage_bytes{name=~".+"}
+topk(10, sprint3:container_memory_workingset_bytes)
 
 # Network I/O
 rate(container_network_receive_bytes_total[5m])
@@ -320,10 +322,13 @@ curl -sf http://127.0.0.1:9004/-/ready
 curl -sf http://127.0.0.1:9004/-/healthy
 
 # All containers running
-docker compose -p logging -f infra/logging/docker compose.observability.yml ps
+docker compose -p logging -f infra/logging/docker-compose.observability.yml ps
 
 # Stack health script
 ./scripts/prod/mcp/logging_stack_health.sh
+
+# Stack audit script
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
 ```
 
 ## Common Exit Codes
@@ -366,4 +371,5 @@ temp/evidence/loki-<timestamp>/
 - [troubleshooting.md](troubleshooting.md) — Common issues
 - [security.md](security.md) — Security posture
 - [maintenance.md](maintenance.md) — Retention and backups
+- [query-contract.md](query-contract.md) — Canonical query IDs and expressions
 - [snippets/](snippets/) — Config file excerpts

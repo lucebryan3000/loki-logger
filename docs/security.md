@@ -205,6 +205,19 @@ docker inspect logging-alloy-1 | grep -A5 docker.sock
 
 ## Log Data Security
 
+### Redaction Controls (Runtime)
+
+Redaction is enforced in Alloy processing stages before write-to-Loki for main and codeswarm pipelines.
+
+Synthetic redaction proof artifacts:
+- `_build/Sprint-3/reference/uat_native/redaction_marker_any.json`
+- `_build/Sprint-3/reference/uat_native/redaction_marker_redacted.json`
+- `_build/Sprint-3/reference/uat_outcome_report.json`
+
+Expected behavior:
+- raw bearer/cookie/api_key probe values are not queryable
+- `[REDACTED]` markers are present in stored log lines
+
 ### Sensitive Data in Logs
 
 **Assumption:** Logs may contain sensitive data (API keys, user info, errors with stack traces)
@@ -259,7 +272,7 @@ All images are from official sources:
 
 **Verification:**
 ```bash
-docker compose images
+docker compose -p logging -f infra/logging/docker-compose.observability.yml images
 # All images should be from official registries (no third-party)
 ```
 
@@ -273,8 +286,8 @@ docker compose images
 3. Test in dev environment
 4. Pull and redeploy:
    ```bash
-   docker compose pull
-   docker compose up -d
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml pull
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
    ```
 
 See [maintenance.md](maintenance.md#upgrades) for version compatibility.

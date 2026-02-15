@@ -2,6 +2,19 @@
 
 **Headless Ubuntu Host:** 192.168.1.150
 
+## Authoritative Sources
+
+Use these files as the contract for current behavior and runtime checks:
+
+- `infra/logging/docker-compose.observability.yml`
+- `infra/logging/alloy-config.alloy`
+- `infra/logging/prometheus/rules/loki_logging_rules.yml`
+- `infra/logging/prometheus/rules/sprint3_minimum_alerts.yml`
+- `infra/logging/grafana/dashboards/*.json`
+- `scripts/prod/mcp/logging_stack_health.sh`
+- `scripts/prod/mcp/logging_stack_audit.sh`
+- `docs/query-contract.md`
+
 ## Web Interfaces (LAN Access)
 
 ### Grafana
@@ -36,14 +49,18 @@ sudo ufw status numbered
 
 **From host (SSH):**
 ```bash
-curl -sf http://192.168.1.150:9001/api/health
-curl -sf http://192.168.1.150:9004/-/ready
+# Quick health gate
+./scripts/prod/mcp/logging_stack_health.sh
+
+# Deep audit report
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
 ```
 
 **Or using localhost:**
 ```bash
 curl -sf http://127.0.0.1:9001/api/health
 curl -sf http://127.0.0.1:9004/-/ready
+docker run --rm --network obs curlimages/curl:8.6.0 -sf http://loki:3100/ready
 ```
 
 ## Common Queries
@@ -67,33 +84,37 @@ curl -sf http://127.0.0.1:9004/-/ready
 **In Prometheus → Graph:**
 
 ```promql
-# All targets up/down
-up
+# Recording-rule based target health
+sprint3:targets_up:count
+sprint3:targets_down:count
 
-# Loki ingestion rate
-rate(loki_distributor_lines_received_total[5m])
+# Scrape failure rate
+sprint3:prometheus_scrape_failures:rate5m
 
 # Container memory usage
-container_memory_usage_bytes{name=~".+"}
+topk(10, sprint3:container_memory_workingset_bytes)
 ```
 
 ## Stack Control (SSH)
 
 ```bash
 # Health check
-./scripts/mcp/logging_stack_health.sh
+./scripts/prod/mcp/logging_stack_health.sh
+
+# Audit
+./scripts/prod/mcp/logging_stack_audit.sh _build/Sprint-3/reference/native_audit.json
 
 # View logs
-docker compose -p logging -f infra/logging/docker compose.observability.yml logs -f
+docker compose -p logging -f infra/logging/docker-compose.observability.yml logs -f
 
 # Restart service
-docker compose -p logging -f infra/logging/docker compose.observability.yml restart grafana
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart grafana
 
 # Stop stack
-./scripts/mcp/logging_stack_down.sh
+./scripts/prod/mcp/logging_stack_down.sh
 
 # Start stack
-./scripts/mcp/logging_stack_up.sh
+./scripts/prod/mcp/logging_stack_up.sh
 ```
 
 ## Accessing from Different Devices
@@ -124,9 +145,10 @@ docker compose -p logging -f infra/logging/docker compose.observability.yml rest
 - **README:** [README.md](README.md)
 - **Operations:** [docs/operations.md](docs/operations.md)
 - **Troubleshooting:** [docs/troubleshooting.md](docs/troubleshooting.md)
+- **Query contract:** [docs/query-contract.md](docs/query-contract.md)
 
 ---
 
-**Last updated:** 2026-02-13
+**Last updated:** 2026-02-14
 **Host IP:** 192.168.1.150
 **Network:** 192.168.1.0/24

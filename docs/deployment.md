@@ -42,24 +42,24 @@
 
 **Expected output (health check):**
 ```
-✓ Grafana:    http://127.0.0.1:9001/api/health -> OK
-✓ Prometheus: http://127.0.0.1:9004/-/ready -> OK
-✓ Loki:       (internal only, check via Grafana)
+grafana_ok=1
+prometheus_ready_ok=1
+prometheus_targets_ok=1
+loki_ready_ok=1
+overall=pass
 ```
 
 ### Manual Deployment
 
 ```bash
-cd infra/logging
-
 # Pull latest images
-docker compose -f docker-compose.observability.yml pull
+docker compose -p logging -f infra/logging/docker-compose.observability.yml pull
 
 # Start stack (detached)
-docker compose -f docker-compose.observability.yml up -d
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
 
 # Verify all containers running
-docker compose -f docker-compose.observability.yml ps
+docker compose -p logging -f infra/logging/docker-compose.observability.yml ps
 ```
 
 **Expected container states:**
@@ -131,28 +131,24 @@ up
 
 ## Compose Project Conventions
 
-- **Project name:** `logging` (set via `name:` in compose file)
+- **Project name:** `logging` (enforced by operator command contract)
 - **Network:** `obs` (explicit name for stable DNS)
 - **Container naming:** `logging-<service>-1`
 
-**Working directory matters:**
+**Canonical compose contract:**
 ```bash
-# These are equivalent:
-cd infra/logging && docker compose up -d
-docker compose -p logging -f infra/logging/docker compose.observability.yml up -d
+docker compose -p logging -f infra/logging/docker-compose.observability.yml <subcommand>
 ```
 
-**Avoid `-p` flag:** Project name is defined in compose file; don't override.
+Use the contract above in docs and operator commands to avoid project/file drift.
 
 ## Redeployment
 
 ### Update Single Service
 
 ```bash
-cd infra/logging
-
 # Example: Update Alloy config and reload
-docker compose up -d --force-recreate alloy
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d --force-recreate alloy
 ```
 
 **Services requiring restart for config changes:**
@@ -176,16 +172,14 @@ docker compose up -d --force-recreate alloy
 ### Update Images (Upgrade)
 
 ```bash
-cd infra/logging
-
 # Pull new image versions
-docker compose pull
+docker compose -p logging -f infra/logging/docker-compose.observability.yml pull
 
 # Recreate containers with new images
-docker compose up -d
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
 
 # Verify versions
-docker compose ps --format "table {{.Service}}\t{{.Image}}"
+docker compose -p logging -f infra/logging/docker-compose.observability.yml ps --format "table {{.Service}}\t{{.Image}}"
 ```
 
 See [maintenance.md](maintenance.md#upgrades) for version compatibility notes.
@@ -204,7 +198,7 @@ PROM_PORT=9004
 
 To change ports or bind address:
 1. Edit `.env`
-2. Restart services: `docker compose up -d`
+2. Restart services: `docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d`
 
 **Security:** Default binding is `0.0.0.0` (all interfaces) for headless LAN access. Ensure UFW is active to restrict access. Set to `127.0.0.1` for loopback-only access.
 
@@ -239,17 +233,15 @@ docker system df -v | grep logging
 **Warning:** This deletes all logs, metrics, and Grafana dashboards.
 
 ```bash
-cd infra/logging
-
 # Stop and remove containers + volumes
-docker compose down -v
+docker compose -p logging -f infra/logging/docker-compose.observability.yml down -v
 
 # Verify volumes deleted
 docker volume ls | grep logging
 # (should return nothing)
 
 # Redeploy from scratch
-docker compose up -d
+docker compose -p logging -f infra/logging/docker-compose.observability.yml up -d
 ```
 
 ## Firewall Considerations
@@ -305,7 +297,7 @@ chmod 755 /home/luce/_logs /home/luce/_telemetry
 
 ```bash
 # Check logs
-docker compose -p logging -f infra/logging/docker compose.observability.yml logs <service>
+docker compose -p logging -f infra/logging/docker-compose.observability.yml logs <service>
 
 # Common issues:
 # - Port already in use (check with `ss -tln`)

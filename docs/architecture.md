@@ -191,9 +191,13 @@ curl -sf http://127.0.0.1:9004/-/healthy
 | Alloy | `infra/logging/alloy-config.alloy` | `/etc/alloy/config.alloy` |
 | Grafana | `infra/logging/grafana/provisioning/` | `/etc/grafana/provisioning/` |
 
-**Config changes require container restart:**
+**Config change application:**
 ```bash
-docker compose -p logging -f infra/logging/docker compose.observability.yml restart <service>
+# Prometheus/Loki/Grafana changes
+docker compose -p logging -f infra/logging/docker-compose.observability.yml restart <service>
+
+# Alloy supports config reload without recreate
+docker kill -s HUP logging-alloy-1
 ```
 
 ## Label Schema
@@ -202,17 +206,18 @@ docker compose -p logging -f infra/logging/docker compose.observability.yml rest
 
 | Label | Source | Example Values |
 |-------|--------|----------------|
-| `env` | Alloy static label | `sandbox`, `dev`, `prod` |
-| `host` | Auto-detected | `codeswarm` |
-| `job` | Alloy source name | `dockerlogs`, `tool_sink`, `telemetry` |
+| `env` | Alloy static label | `sandbox` |
 
 ### Docker-Specific Labels
 
 | Label | Source | Example |
 |-------|--------|---------|
+| `stack` | Docker relabel | `vllm`, `hex` |
+| `service` | Docker relabel | `codeswarm-mcp` |
+| `source_type` | Docker relabel | `docker` |
 | `container_name` | Docker metadata | `logging-grafana-1` |
 | `image` | Docker metadata | `grafana/grafana:11.1.0` |
-| `compose_project` | Docker metadata | `logging` |
+| `compose_project` | Docker metadata | `vllm`, `hex` |
 
 ### File-Based Log Labels
 
@@ -273,7 +278,7 @@ docker-metrics
 ## Configuration Files
 
 ### Primary Configs
-- [infra/logging/docker compose -p logging.observability.yml](../infra/logging/docker compose.observability.yml) — Stack definition
+- [infra/logging/docker-compose.observability.yml](../infra/logging/docker-compose.observability.yml) — Stack definition
 - [infra/logging/loki-config.yml](../infra/logging/loki-config.yml) — Loki schema, retention, compaction
 - [infra/logging/alloy-config.alloy](../infra/logging/alloy-config.alloy) — Log ingestion pipelines
 - [infra/logging/prometheus/prometheus.yml](../infra/logging/prometheus/prometheus.yml) — Scrape targets, alerting
