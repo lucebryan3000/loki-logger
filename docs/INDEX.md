@@ -115,6 +115,7 @@ Complete navigation for the Loki logging stack documentation.
 - [Image versions](reference.md#image-versions)
 - [Query examples](reference.md#query-examples)
 - [Health check commands](reference.md#health-check-commands)
+- [Host SystemD services](reference.md#host-systemd-services)
 
 ## Config Snippets
 

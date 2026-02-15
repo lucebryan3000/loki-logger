@@ -1,0 +1,89 @@
+# Managed by loki-logging/src/log-truncation
+# Generated from: src/log-truncation/config/retention.conf
+# Last updated: {{GENERATION_TIMESTAMP}}
+
+# Tool sink logs
+{{TOOL_SINK_PATH}} {
+    {{TOOL_SINK_FREQUENCY}}
+    rotate {{TOOL_SINK_ROTATE_COUNT}}
+    maxsize {{TOOL_SINK_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    dateext
+    dateformat -%Y%m%d
+    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+}
+
+# Telemetry JSONL
+{{TELEMETRY_PATH}} {
+    {{TELEMETRY_FREQUENCY}}
+    rotate {{TELEMETRY_ROTATE_COUNT}}
+    maxsize {{TELEMETRY_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    dateext
+    dateformat -%Y%m%d
+    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+}
+
+# CodeSwarm MCP logs
+{{MCP_LOGS_PATH}} {
+    {{MCP_LOGS_FREQUENCY}}
+    rotate {{MCP_LOGS_ROTATE_COUNT}}
+    maxsize {{MCP_LOGS_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    dateext
+    dateformat -%Y%m%d
+    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+}
+
+# NVIDIA telemetry
+{{NVIDIA_TELEM_PATH}} {
+    {{NVIDIA_TELEM_FREQUENCY}}
+    rotate {{NVIDIA_TELEM_ROTATE_COUNT}}
+    maxsize {{NVIDIA_TELEM_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    dateext
+    dateformat -%Y%m%d
+    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+}
+
+# VSCode Server
+{{VSCODE_PATH}} {
+    {{VSCODE_FREQUENCY}}
+    rotate {{VSCODE_ROTATE_COUNT}}
+    maxsize {{VSCODE_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+}
+
+# Code-Server
+{{CODE_SERVER_PATH}} {
+    {{CODE_SERVER_FREQUENCY}}
+    rotate {{CODE_SERVER_ROTATE_COUNT}}
+    maxsize {{CODE_SERVER_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+}

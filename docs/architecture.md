@@ -4,19 +4,21 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Log Sources                          │
+│                     Log Sources (7 total)                   │
 ├─────────────────────────────────────────────────────────────┤
-│ • Docker containers (/var/run/docker.sock)                  │
-│ • Systemd journal (/run/log/journal)                        │
-│ • File logs (/home/luce/_logs/*.log)                        │
-│ • Telemetry (/home/luce/_telemetry/*.jsonl)                 │
-│ • CodeSwarm MCP (/home/luce/apps/vLLM/_data/mcp-logs/*.log) │
+│ • Systemd journal → rsyslog (imjournal) → TCP:1514          │
+│ • Docker containers (vllm, hex projects)                    │
+│ • VS Code Server logs (.vscode-server/**/*.log)             │
+│ • CodeSwarm MCP logs (_data/mcp-logs/*.log)                 │
+│ • NVIDIA telemetry (vLLM/logs/telemetry/nvidia/*.jsonl)     │
+│ • Telemetry (_telemetry/*.jsonl)                            │
+│ • Tool logs (_logs/*.log)                                   │
 └─────────────────────────────────────────────────────────────┘
-                              ↓
+                 ↓ (file tail)         ↓ (rsyslog TCP)
                          ┌────────┐
                          │ Alloy  │  (Log ingestion agent)
-                         └────────┘  Adds labels: env, log_source
-                              ↓
+                         └────────┘  loki.source.{file,docker,syslog}
+                              ↓      Adds labels: env, log_source
                          ┌────────┐
                          │  Loki  │  (Log aggregation & storage)
                          └────────┘  Retention: 720h (30 days)
@@ -100,25 +102,41 @@ curl -sf http://127.0.0.1:9004/-/healthy
 ### Alloy (grafana/alloy:v1.2.1)
 **Purpose:** Log ingestion agent (Grafana's replacement for Promtail)
 
-- **Exposed port:** None (HTTP UI at 12345 internal only)
+- **Exposed ports:**
+  - None (HTTP UI at 12345 internal only)
+  - 127.0.0.1:1514 (rsyslog → Alloy syslog listener, TCP, localhost only)
 - **Config:** `infra/logging/alloy-config.alloy` (mounted read-only)
-- **Runs as:** root (user: "0:0") for socket/journal access
+- **Runs as:** root (user: "0:0") for Docker socket access
 - **Mounts:**
   - `/var/run/docker.sock` (Docker logs)
-  - `/run/log/journal`, `/var/log/journal` (systemd logs)
   - `/host/home` (file-based logs under /home/luce)
+  - `alloy-positions:/tmp` (persistent file positions & syslog cursor)
 
-**Log pipelines:**
-1. **Docker logs:** `loki.source.docker` → `loki.process.main` → Loki
-2. **Journal:** `loki.source.journal` → `loki.process.main` → Loki
-3. **File logs (_logs, _telemetry):** `loki.source.file` → `loki.process.main` → Loki
-4. **CodeSwarm MCP:** `loki.source.file` → `loki.process.codeswarm` → Loki (adds `log_source=codeswarm_mcp`)
+**Log pipelines (7 sources):**
+1. **Journald (via rsyslog):** Host rsyslog → TCP:1514 → `loki.source.syslog` → `loki.process.journald` → Loki
+2. **Docker containers:** `loki.source.docker` → `loki.process.docker` → Loki (filtered: vllm, hex projects)
+3. **VS Code Server:** `loki.source.file` → `loki.process.vscode` → Loki
+4. **CodeSwarm MCP:** `loki.source.file` → `loki.process.codeswarm` → Loki
+5. **NVIDIA telemetry:** `loki.source.file` → `loki.process.nvidia_telem` → Loki
+6. **Telemetry (.jsonl):** `loki.source.file` → `loki.process.main` → Loki
+7. **Tool logs:** `loki.source.file` → `loki.process.main` → Loki
 
-**Label injection:**
+**Label injection (all processors):**
 - All logs: `env=sandbox`
-- CodeSwarm logs: `log_source=codeswarm_mcp`
+- Dedicated processors add: `log_source=journald|docker|vscode_server|codeswarm_mcp|nvidia_telem`
+
+**Redaction:** All processors have 3 canonical stages (bearer tokens, cookies, API keys)
 
 **Syntax gotcha:** Alloy uses `//` for comments, **not** `#` (HCL-style config)
+
+### rsyslog (system service)
+**Purpose:** Relay systemd journal to Alloy syslog listener
+
+- **Config:** `/etc/rsyslog.d/50-loki-alloy.conf`
+- **Module:** `imjournal` (systemd journal input)
+- **Forward target:** `127.0.0.1:1514` (TCP, RFC5424 format)
+- **Why:** `loki.source.journal` is buggy/unreliable; rsyslog is production-grade, battle-tested
+- **Health check:** `sudo systemctl status rsyslog`
 
 ### Node Exporter (prom/node-exporter:v1.8.1)
 **Purpose:** Host-level metrics (CPU, memory, disk, network)

@@ -24,3 +24,10 @@ scrape_configs:
   static_configs:
   - targets:
     - alloy:12345
+- job_name: wireguard
+  static_configs:
+  - targets:
+    - 172.20.0.1:9586
+    labels:
+      service: wireguard
+      interface: wg0

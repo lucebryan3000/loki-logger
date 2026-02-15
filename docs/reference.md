@@ -10,6 +10,7 @@ Stable reference data for the Loki logging stack.
 | Prometheus | 9090 | 0.0.0.0:9004 | HTTP | Web UI, API |
 | Loki | 3100 | None (internal) | HTTP | Push/query API |
 | Alloy | 12345 | None (internal) | HTTP | Admin UI |
+| Alloy (syslog) | 1514 | 127.0.0.1:1514 | TCP | rsyslog → Alloy syslog listener |
 | Node Exporter | 9100 | None (internal) | HTTP | Metrics endpoint |
 | cAdvisor | 8080 | None (internal) | HTTP | Metrics endpoint |
 
@@ -69,19 +70,30 @@ Stable reference data for the Loki logging stack.
 | Loki | `infra/logging/loki-config.yml` | `/etc/loki/loki-config.yml` |
 | Prometheus | `infra/logging/prometheus/prometheus.yml` | `/etc/prometheus/prometheus.yml` |
 | Alloy | `infra/logging/alloy-config.alloy` | `/etc/alloy/config.alloy` |
+| rsyslog | `/etc/rsyslog.d/50-loki-alloy.conf` | Host-only (not containerized) |
 | Grafana | `infra/logging/grafana/provisioning/` | `/etc/grafana/provisioning/` |
 
 **All configs mounted read-only (`:ro`).** Changes require container restart.
 
 ### Log Source Paths
 
-| Source | Host Path | Container Path (Alloy) | Label |
-|--------|-----------|------------------------|-------|
-| Tool logs | `/home/luce/_logs/*.log` | `/host/home/luce/_logs/*.log` | `filename` |
-| Telemetry | `/home/luce/_telemetry/*.jsonl` | `/host/home/luce/_telemetry/*.jsonl` | `filename` |
-| CodeSwarm MCP | `/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `/host/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `log_source=codeswarm_mcp` |
-| Docker logs | `/var/run/docker.sock` | `/var/run/docker.sock` | `container_name` |
-| Systemd journal | `/var/log/journal`, `/run/log/journal` | Same | `job=journald` |
+**Total: 7 active log sources**
+
+| Source | Type | Host Path | Container/Method | Labels |
+|--------|------|-----------|------------------|--------|
+| Systemd journal | rsyslog → syslog | `/var/log/journal` | rsyslog → TCP:1514 → Alloy | `log_source=journald` |
+| Docker containers | Docker socket | `/var/run/docker.sock` | `/var/run/docker.sock` | `log_source=docker`, `stack`, `service` |
+| VS Code Server | File tail | `/home/luce/.vscode-server/**/*.log` | `/host/home/luce/.vscode-server/**/*.log` | `log_source=vscode_server`, `filename` |
+| CodeSwarm MCP | File tail | `/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `/host/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `log_source=codeswarm_mcp`, `filename` |
+| NVIDIA telemetry | File tail | `/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl` | `/host/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl` | `log_source=nvidia_telem`, `filename` |
+| Telemetry | File tail | `/home/luce/_telemetry/*.jsonl` | `/host/home/luce/_telemetry/*.jsonl` | `filename` |
+| Tool logs | File tail | `/home/luce/_logs/*.log` | `/host/home/luce/_logs/*.log` | `filename` |
+
+**Architecture notes:**
+- **Systemd journal:** Uses rsyslog as relay (systemd journal → rsyslog imjournal → TCP:1514 → loki.source.syslog)
+- **Docker:** Filtered to vllm and hex compose projects only
+- **File sources:** Tailed via loki.source.file with position tracking
+- **rsyslog config:** `/etc/rsyslog.d/50-loki-alloy.conf` (RFC5424 format, TCP forwarding)
 
 ## Docker Resources
 
@@ -89,7 +101,7 @@ Stable reference data for the Loki logging stack.
 
 - **Project name:** `logging`
 - **Network:** `obs` (bridge)
-- **Volumes:** `grafana-data`, `loki-data`, `prometheus-data`
+- **Volumes:** `grafana-data`, `loki-data`, `prometheus-data`, `alloy-positions`
 
 ### Container Names
 
@@ -109,6 +121,7 @@ Stable reference data for the Loki logging stack.
 | `grafana-data` | grafana | `/var/lib/grafana` | Dashboards, users, settings |
 | `loki-data` | loki | `/loki` | Chunks, index, compactor state |
 | `prometheus-data` | prometheus | `/prometheus` | Time-series database (TSDB) |
+| `alloy-positions` | alloy | `/tmp` | File tail positions, syslog cursor tracking |
 
 ### Resource Limits (Default: None)
 
@@ -343,6 +356,101 @@ docker compose -p logging -f infra/logging/docker-compose.observability.yml ps
 **Diagnosis:**
 ```bash
 docker logs logging-<service>-1 --tail 50
+```
+
+## Host SystemD Services
+
+The CodeSwarm host runs several custom systemd services that interact with or support the logging stack.
+
+### loki-telemetry-writer.service
+
+**Purpose:** Continuously writes structured telemetry data to JSONL files for Loki ingestion
+
+**Status:** Running (enabled)
+
+**Key Details:**
+- Script: `/home/luce/apps/loki-logging/scripts/telemetry/telemetry_writer.py`
+- Output: `/home/luce/_telemetry/telemetry.jsonl`
+- Interval: 10 seconds
+- User: `luce`
+- Restart: Always (2s delay)
+
+**Integration:** Alloy ingests from `_telemetry/*.jsonl` with label `filename`
+
+**Service File:** `/etc/systemd/system/loki-telemetry-writer.service`
+
+### opencode-serve.service
+
+**Purpose:** Runs OpenCode headless server for LAN-accessible AI coding interface
+
+**Status:** Running (enabled)
+
+**Key Details:**
+- Binary: `/home/luce/.local/bin/opencode`
+- Port: 8082 (configurable via `OPENCODE_SERVE_PORT`)
+- Hostname: 0.0.0.0 (LAN-accessible)
+- Working directory: `/home/luce/apps/opencode`
+- Config: `/home/luce/.config/opencode/opencode.json`
+- Environment: `/home/luce/.config/opencode-service/opencode.env`
+- User: `luce`
+- Restart: Always (2s delay)
+
+**Logging:** Outputs to systemd journal with identifier `opencode-serve`
+
+**Service File:** `/etc/systemd/system/opencode-serve.service`
+
+### cloudflared.service
+
+**Purpose:** Cloudflare tunnel daemon for secure remote access
+
+**Status:** Running (enabled)
+
+**Key Details:**
+- Binary: `/usr/bin/cloudflared`
+- Config: `/etc/cloudflared/config.yml`
+- User: `root`
+- Restart: On failure (5s delay)
+- Auto-updates: Disabled (`--no-autoupdate`)
+
+**Integration:** Provides secure tunnel to expose Grafana/Prometheus without direct internet exposure
+
+**Service File:** `/etc/systemd/system/cloudflared.service`
+
+### Decommissioned Services
+
+The following services have been removed from the system (2026-02-14):
+
+**Removed:**
+- `codeswarm.service` — Auto-update service for AI coding tools (deprecated)
+- `codeswarm-home.service` — Homer dashboard (inactive, directory missing)
+- `system-stats-api.service` — Dashboard stats API (failing, script path invalid)
+- `cpu-performance.service` — CPU governor setting (boot-time configuration)
+- `kbgen-improver.service` — Knowledge base scheduler (never ran, script missing)
+
+**Reason for removal:** All services were either deprecated, failing, or had missing dependencies. Active functionality has been migrated to other services or is no longer needed.
+
+### Service Management Commands
+
+```bash
+# Check status
+systemctl status <service-name>
+
+# View logs
+journalctl -u <service-name> -n 50
+
+# Start/stop
+sudo systemctl start <service-name>
+sudo systemctl stop <service-name>
+
+# Enable/disable on boot
+sudo systemctl enable <service-name>
+sudo systemctl disable <service-name>
+
+# Restart
+sudo systemctl restart <service-name>
+
+# Reload systemd after editing service files
+sudo systemctl daemon-reload
 ```
 
 ## Evidence Archive Structure

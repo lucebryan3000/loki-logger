@@ -2,6 +2,47 @@
 
 ## Retention Policies
 
+### Local Log Rotation
+
+**Managed by:** [src/log-truncation/](../src/log-truncation/) module (replaced codeswarm-tidyup 2026-02-14)
+
+**Configuration:** `src/log-truncation/config/retention.conf`
+
+**Handlers:**
+- **logrotate:** File-based logs (Tool sink, Telemetry, MCP, NVIDIA, VSCode, Code-Server)
+- **journald:** systemd journal (1GB max, 7d retention)
+- **Docker:** Container logs (json-file driver, managed via compose configs)
+
+**Status check:**
+```bash
+cd /home/luce/apps/loki-logging/src/log-truncation
+./scripts/status.sh
+```
+
+**Change retention settings:**
+1. Edit `src/log-truncation/config/retention.conf`:
+   ```bash
+   # Example: Increase tool sink retention
+   TOOL_SINK_ROTATE_COUNT=14  # 14 days instead of 7
+   TOOL_SINK_MAX_SIZE=50M     # 50MB instead of 25MB
+   ```
+2. Rebuild and reinstall:
+   ```bash
+   ./scripts/build-configs.sh
+   sudo ./scripts/install.sh
+   ```
+3. Verify:
+   ```bash
+   ./scripts/validate.sh
+   ```
+
+**Troubleshooting:** See [src/log-truncation/docs/troubleshooting.md](../src/log-truncation/docs/troubleshooting.md)
+
+**Force rotation test:**
+```bash
+sudo ./src/log-truncation/scripts/test-rotation.sh
+```
+
 ### Loki Retention (Logs)
 
 **Current retention:** 720h (30 days)

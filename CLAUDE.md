@@ -34,6 +34,29 @@ All compose commands require the file flag: `docker compose -p logging -f infra/
 
 The compose project name is `logging` (set via `COMPOSE_PROJECT_NAME` in `.env`). Container names follow the pattern `logging-<service>-1`.
 
+## Log Rotation
+
+Managed by [src/log-truncation/](src/log-truncation/) module (replaced codeswarm-tidyup 2026-02-14).
+
+**Quick Commands:**
+```bash
+# Check disk usage and rotation status
+./src/log-truncation/scripts/status.sh
+
+# Rebuild configs after editing retention.conf
+./src/log-truncation/scripts/build-configs.sh
+sudo ./src/log-truncation/scripts/install.sh
+
+# Validate configuration
+./src/log-truncation/scripts/validate.sh
+
+# Test rotation (force rotate)
+sudo ./src/log-truncation/scripts/test-rotation.sh
+```
+
+**Config:** [src/log-truncation/config/retention.conf](src/log-truncation/config/retention.conf)
+**Docs:** [src/log-truncation/docs/design.md](src/log-truncation/docs/design.md), [src/log-truncation/docs/troubleshooting.md](src/log-truncation/docs/troubleshooting.md)
+
 ## Architecture
 
 ```

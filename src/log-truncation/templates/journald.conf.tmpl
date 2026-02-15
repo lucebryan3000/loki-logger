@@ -1,0 +1,19 @@
+# Managed by loki-logging/src/log-truncation
+# Generated from: src/log-truncation/config/retention.conf
+# Last updated: {{GENERATION_TIMESTAMP}}
+
+[Journal]
+# Limit total journal size
+SystemMaxUse={{JOURNAL_MAX_USE}}
+
+# Delete entries older than threshold
+MaxRetentionSec={{JOURNAL_MAX_RETENTION}}
+
+# Max file size before rotation
+SystemMaxFileSize={{JOURNAL_MAX_FILE_SIZE}}
+
+# Keep journal on disk (persistent across reboots)
+Storage=persistent
+
+# Forward to rsyslog (for Alloy ingestion via syslog:1514)
+ForwardToSyslog={{JOURNAL_FORWARD_TO_SYSLOG}}

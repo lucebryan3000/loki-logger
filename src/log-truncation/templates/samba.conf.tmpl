@@ -1,0 +1,14 @@
+# Managed by loki-logging/src/log-truncation
+# Generated from: src/log-truncation/config/retention.conf
+# Last updated: {{GENERATION_TIMESTAMP}}
+
+{{SAMBA_PATH}} {
+    {{SAMBA_FREQUENCY}}
+    rotate {{SAMBA_ROTATE_COUNT}}
+    maxsize {{SAMBA_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    create 0644 root root
+}

@@ -1,0 +1,36 @@
+
+[0;34m=== Log Rotation Status ===[0m
+
+
+=== System Health ===
+
+[0;34m→[0m Disk status
+[0;34m[INFO][0m Usage: 53% (alert threshold: 85%)
+[0;34m[INFO][0m Free: 395GB (alert threshold: 50GB)
+
+=== Disk Usage by Handler ===
+
+[0;34m→[0m Docker logs (json-file driver)
+[0;34m[INFO][0m Total: 19M
+[0;34m→[0m Alloy-ingested file sources
+[0;34m[INFO][0m Tool sink:        12K
+[0;34m[INFO][0m Telemetry:        3.2M
+[0;34m[INFO][0m MCP logs:         32K
+[0;34m[INFO][0m NVIDIA telemetry: 8.0K
+[0;34m[INFO][0m VSCode Server:    3.5G
+[0;34m→[0m systemd journal
+[0;34m[INFO][0m Total: 1013.1M (limit: 1G)
+[0;34m→[0m System logs (rsyslog)
+[0;34m[INFO][0m /var/log: 4.0G
+
+=== Logrotate Status ===
+
+[0;34m→[0m Last run timestamps (loki-sources)
+[0;34m[INFO][0m No runs recorded yet
+[0;34m→[0m Next scheduled run
+Sun 2026-02-15 00:49:06 CST 2h 47min Sat 2026-02-14 00:20:50 CST 21h ago logrotate.timer logrotate.service
+
+=== Installed Configs ===
+
+[0;32m[OK][0m /etc/logrotate.d/loki-sources
+[0;32m[OK][0m /etc/systemd/journald.conf.d/99-loki-retention.conf
