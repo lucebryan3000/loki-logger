@@ -60,8 +60,16 @@ loki.source.docker "dockerlogs" {
   forward_to = [loki.process.docker.receiver]
 }
 
-// journald -> Loki (optional)
-loki.source.journal "journald" {
+// journald -> rsyslog -> Alloy syslog listener -> Loki
+// rsyslog forwards journal via TCP:1514 in RFC5424 format
+loki.source.syslog "rsyslog" {
+  listener {
+    address  = "0.0.0.0:1514"
+    protocol = "tcp"
+    labels = {
+      source_type = "syslog",
+    }
+  }
   forward_to = [loki.process.journald.receiver]
 }
 
@@ -72,7 +80,7 @@ local.file_match "tool_sink" {
 loki.source.file "tool_sink" {
   targets       = local.file_match.tool_sink.targets
   tail_from_end = true
-  forward_to    = [loki.process.tool_sink.receiver]
+  forward_to    = [loki.process.main.receiver]
 }
 
 // telemetry
@@ -82,7 +90,7 @@ local.file_match "telemetry" {
 loki.source.file "telemetry" {
   targets       = local.file_match.telemetry.targets
   tail_from_end = true
-  forward_to    = [loki.process.telemetry.receiver]
+  forward_to    = [loki.process.main.receiver]
 }
 
 // --- NVIDIA telemetry-as-logs (Sprint-3 Phase 4a) ---
@@ -263,33 +271,6 @@ loki.process "vscode" {
 }
 // --- end VS Code Server processor ---
 
-// --- Docker processor ---
-loki.process "docker" {
-  stage.static_labels {
-    values = {
-      env        = "sandbox",
-      log_source = "docker",
-    }
-  }
-
-  // --- redaction ---
-  stage.replace {
-    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
-    replace    = "[REDACTED]"
-  }
-  // --- end redaction ---
-
-  forward_to = [loki.write.default.receiver]
-}
-
 // --- Journald processor ---
 loki.process "journald" {
   stage.static_labels {
@@ -299,7 +280,7 @@ loki.process "journald" {
     }
   }
 
-  // --- redaction ---
+  // Redaction — canonical patterns
   stage.replace {
     expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
     replace    = "[REDACTED]"
@@ -312,21 +293,24 @@ loki.process "journald" {
     expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
     replace    = "[REDACTED]"
   }
-  // --- end redaction ---
 
   forward_to = [loki.write.default.receiver]
 }
+// --- end Journald processor ---
 
-// --- Tool Sink processor ---
-loki.process "tool_sink" {
+// --- Docker container logs processor ---
+loki.process "docker" {
   stage.static_labels {
     values = {
       env        = "sandbox",
-      log_source = "tool_sink",
+      log_source = "docker",
     }
   }
 
-  // --- redaction ---
+  // Strip ANSI color codes (vLLM/codeswarm-mcp output)
+  stage.decolorize {}
+
+  // Redaction — canonical patterns
   stage.replace {
     expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
     replace    = "[REDACTED]"
@@ -339,37 +323,10 @@ loki.process "tool_sink" {
     expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
     replace    = "[REDACTED]"
   }
-  // --- end redaction ---
 
   forward_to = [loki.write.default.receiver]
 }
-
-// --- Telemetry processor ---
-loki.process "telemetry" {
-  stage.static_labels {
-    values = {
-      env        = "sandbox",
-      log_source = "telemetry",
-    }
-  }
-
-  // --- redaction ---
-  stage.replace {
-    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
-    replace    = "[REDACTED]"
-  }
-  // --- end redaction ---
-
-  forward_to = [loki.write.default.receiver]
-}
+// --- end Docker container logs processor ---
 
 loki.write "default" {
   endpoint {

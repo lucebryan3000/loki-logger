@@ -57,12 +57,12 @@ discovery.relabel "docker_filtered" {
 loki.source.docker "dockerlogs" {
   host       = "unix:///var/run/docker.sock"
   targets    = discovery.relabel.docker_filtered.output
-  forward_to = [loki.process.docker.receiver]
+  forward_to = [loki.process.main.receiver]
 }
 
 // journald -> Loki (optional)
 loki.source.journal "journald" {
-  forward_to = [loki.process.journald.receiver]
+  forward_to = [loki.process.main.receiver]
 }
 
 // tool sink
@@ -72,7 +72,7 @@ local.file_match "tool_sink" {
 loki.source.file "tool_sink" {
   targets       = local.file_match.tool_sink.targets
   tail_from_end = true
-  forward_to    = [loki.process.tool_sink.receiver]
+  forward_to    = [loki.process.main.receiver]
 }
 
 // telemetry
@@ -82,7 +82,7 @@ local.file_match "telemetry" {
 loki.source.file "telemetry" {
   targets       = local.file_match.telemetry.targets
   tail_from_end = true
-  forward_to    = [loki.process.telemetry.receiver]
+  forward_to    = [loki.process.main.receiver]
 }
 
 // --- NVIDIA telemetry-as-logs (Sprint-3 Phase 4a) ---
@@ -162,6 +162,35 @@ loki.source.file "vscode_server" {
 }
 // --- end VS Code Server logs ---
 
+// --- Homebrew package manager logs ---
+local.file_match "homebrew" {
+  path_targets = [{ "__path__" = "/host/home/luce/.cache/Homebrew/Logs/**/*.{log,out}" }]
+}
+
+loki.source.file "homebrew" {
+  targets        = local.file_match.homebrew.targets
+  tail_from_end  = true
+  forward_to     = [loki.process.homebrew.receiver]
+}
+// --- end Homebrew package manager logs ---
+
+// --- Samba SMB/CIFS logs ---
+local.file_match "samba" {
+  path_targets = [
+    { "__path__" = "/host/var/log/samba/log.smbd" },
+    { "__path__" = "/host/var/log/samba/log.nmbd" },
+    { "__path__" = "/host/var/log/samba/log.rpcd_*" },
+    { "__path__" = "/host/var/log/samba/log.samba-dcerpcd" },
+  ]
+}
+
+loki.source.file "samba" {
+  targets       = local.file_match.samba.targets
+  tail_from_end = true
+  forward_to    = [loki.process.samba.receiver]
+}
+// --- end Samba SMB/CIFS logs ---
+
  loki.process "main" {
   stage.static_labels {
     values = {
@@ -236,6 +265,33 @@ loki.process "codeswarm" {
   forward_to = [loki.write.default.receiver]
 }
 
+// --- Homebrew processor ---
+loki.process "homebrew" {
+  stage.static_labels {
+    values = {
+      env        = "sandbox",
+      log_source = "homebrew",
+    }
+  }
+
+  // Redaction — canonical patterns
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end Homebrew processor ---
+
 // --- VS Code Server processor ---
 loki.process "vscode" {
   stage.static_labels {
@@ -263,16 +319,17 @@ loki.process "vscode" {
 }
 // --- end VS Code Server processor ---
 
-// --- Docker processor ---
-loki.process "docker" {
+// --- Samba SMB/CIFS processor ---
+loki.process "samba" {
   stage.static_labels {
     values = {
       env        = "sandbox",
-      log_source = "docker",
+      log_source = "samba",
     }
   }
 
-  // --- redaction ---
+  // --- redaction (Sprint-3 Phase 1) ---
+  // Fake-secret patterns only; prevent credentials from being stored in Loki.
   stage.replace {
     expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
     replace    = "[REDACTED]"
@@ -289,87 +346,7 @@ loki.process "docker" {
 
   forward_to = [loki.write.default.receiver]
 }
-
-// --- Journald processor ---
-loki.process "journald" {
-  stage.static_labels {
-    values = {
-      env        = "sandbox",
-      log_source = "journald",
-    }
-  }
-
-  // --- redaction ---
-  stage.replace {
-    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
-    replace    = "[REDACTED]"
-  }
-  // --- end redaction ---
-
-  forward_to = [loki.write.default.receiver]
-}
-
-// --- Tool Sink processor ---
-loki.process "tool_sink" {
-  stage.static_labels {
-    values = {
-      env        = "sandbox",
-      log_source = "tool_sink",
-    }
-  }
-
-  // --- redaction ---
-  stage.replace {
-    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
-    replace    = "[REDACTED]"
-  }
-  // --- end redaction ---
-
-  forward_to = [loki.write.default.receiver]
-}
-
-// --- Telemetry processor ---
-loki.process "telemetry" {
-  stage.static_labels {
-    values = {
-      env        = "sandbox",
-      log_source = "telemetry",
-    }
-  }
-
-  // --- redaction ---
-  stage.replace {
-    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
-    replace    = "[REDACTED]"
-  }
-  stage.replace {
-    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
-    replace    = "[REDACTED]"
-  }
-  // --- end redaction ---
-
-  forward_to = [loki.write.default.receiver]
-}
+// --- end Samba SMB/CIFS processor ---
 
 loki.write "default" {
   endpoint {
