@@ -1,5 +1,8 @@
 # Alerts Checklist — Logging Pipeline
 
+> Supplemental notes only. Canonical source: `infra/logging/RUNBOOK.md`.
+
+
 These alerts are intentionally lightweight. They reference queries already proven in this environment.
 
 ## Alert 1 — E2E marker missing (15m)

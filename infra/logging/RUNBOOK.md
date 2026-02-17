@@ -17,7 +17,7 @@ journald -> rsyslog -> Alloy (syslog TCP 1514 localhost) -> Loki -> Grafana
 
 3) Grafana confirms visibility
 - Provisioned dashboards are the canonical view.
-- Provisioned alerts are the canonical failure signals.
+- Provisioned alert rules are the canonical failure signals.
 
 ## Proven queries (do not change without proof)
 - E2E marker (15m):
@@ -29,11 +29,14 @@ journald -> rsyslog -> Alloy (syslog TCP 1514 localhost) -> Loki -> Grafana
 - Pipeline Health: `infra/logging/grafana/dashboards/pipeline-health.json`
 - Host + Container Overview: `infra/logging/grafana/dashboards/host-container-overview.json`
 
-## Alerts (provisioned)
+## Alert posture (authoritative)
 - Rules file: `infra/logging/grafana/provisioning/alerting/logging-pipeline-rules.yml`
-- Rules UIDs:
+- Rule UIDs:
   - `logging-e2e-marker-missing`
   - `logging-total-ingest-down`
+- Delivery posture: **rules-only fallback**.
+  - Reason: current Grafana provisioning contact point is placeholder (`email receiver` with `<example@email.com>`) and policy points to default receiver; no deterministic real receiver endpoint is evidenced.
+  - Action: keep rules provisioned from file; do not provision notifications until a concrete receiver is provided.
 
 ## Reduction Pass (R/C/V)
 - Reduction objective: keep one canonical operator source and remove doc duplication.
