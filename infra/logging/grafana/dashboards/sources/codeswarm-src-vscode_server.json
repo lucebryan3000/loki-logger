@@ -121,9 +121,66 @@
         "x": 0,
         "y": 16
       }
+    },
+    {
+      "type": "table",
+      "title": "Top services (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (service_name) (count_over_time({log_source=\"vscode_server\", service_name=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Volume by env (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (env) (count_over_time({log_source=\"vscode_server\", env=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top files (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (filename) (count_over_time({log_source=\"vscode_server\", filename=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Error-like by service (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, (sum by (service_name) (rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])) or (sum by (service_name) (rate({log_source=\"vscode_server\"}[5m])) * 0)))"
+        }
+      ]
     }
   ],
   "annotations": {
     "list": []
-  }
+  },
+  "editable": true
 }
