@@ -1,0 +1,5 @@
+{
+  "max_minutes": 90,
+  "hard_gate_every": 3,
+  "dry_run_batches": 1
+}
