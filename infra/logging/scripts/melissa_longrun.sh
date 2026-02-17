@@ -61,7 +61,7 @@ ensure_precheck(){
 }
 
 build_queue(){
-  local loki_q loki_resp active_json offenders_json
+  local loki_q loki_resp active_json offenders_json adopted_json
   loki_q='topk(200, sum by (log_source) (count_over_time({log_source=~".+"}[6h])))'
   loki_resp=$(curl -fsS 'http://127.0.0.1:3200/loki/api/v1/query_range' --get --data-urlencode "query=$loki_q" --data-urlencode "start=$((($(date +%s)-21600)*1000000000))" --data-urlencode "end=$((($(date +%s)+60)*1000000000))" --data-urlencode "limit=200" --data-urlencode "direction=BACKWARD")
   active_json=$(printf '%s' "$loki_resp")
@@ -72,11 +72,18 @@ build_queue(){
     offenders_json='[]'
   fi
 
+  if [[ -f "$ROOT/_build/logging/adopted_dashboards_manifest.json" ]]; then
+    adopted_json=$(cat "$ROOT/_build/logging/adopted_dashboards_manifest.json")
+  else
+    adopted_json='[]'
+  fi
+
   python3 - "$QUEUE_JSON" "$QUEUE_MD" "$run_name" "$continue_on_fail" <<PY
 import json,sys
 qjson,qmd,run_name,cof=sys.argv[1:]
 active_resp=json.loads('''$active_json''')
 offenders=json.loads('''$offenders_json''')
+adopted=json.loads('''$adopted_json''')
 
 active=[]
 seen=set()
@@ -113,10 +120,18 @@ for src in active:
     add(f"SRC:{src}","dashboard_tune",f"infra/logging/grafana/dashboards/sources/codeswarm-src-{src}.json")
 
 # Adopted dashboard verification
+adopt_map={}
+for m in adopted:
+    src=m.get('src_uid')
+    new=m.get('new_uid')
+    if src and new:
+        adopt_map[src]=new
+
 for off in offenders:
     uid=off.get('uid')
     if uid:
-        add(f"ADOPT:{uid}","adopt_verify",uid)
+        tgt=adopt_map.get(uid,uid)
+        add(f"ADOPT:{tgt}","adopt_verify",tgt)
 
 # Audit / verifier checks
 add("AUDIT:per_dashboard_breakdown","audit_verify","infra/logging/scripts/dashboard_query_audit.sh")
