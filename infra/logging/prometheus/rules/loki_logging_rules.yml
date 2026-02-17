@@ -15,10 +15,10 @@ groups:
         expr: rate(prometheus_target_scrapes_exceeded_sample_limit_total[5m])
 
       - record: sprint3:loki_ingestion_errors:rate5m
-        expr: rate(loki_distributor_ingester_appends_failed_total[5m])
+        expr: sum(rate(loki_write_dropped_entries_total[5m])) + sum(rate(loki_write_failures_discarded_total[5m]))
 
       - record: sprint3:loki_ingestion_errors:increase10m
-        expr: increase(loki_distributor_ingester_appends_failed_total[10m])
+        expr: sum(increase(loki_write_dropped_entries_total[10m])) + sum(increase(loki_write_failures_discarded_total[10m]))
 
       - record: sprint3:host_cpu_usage_percent
         expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)

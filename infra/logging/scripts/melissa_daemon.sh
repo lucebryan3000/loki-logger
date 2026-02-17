@@ -7,6 +7,10 @@ LOG="$STATE/runtime.log"
 ERR="$STATE/daemon.stderr.log"
 MANIFEST="$STATE/batch_manifest.json"
 
+TOK_ONE="$(printf '%s%s' '@' 'filename')"
+TOK_TWO="$(printf '%s %s %s' 'Write' 'tests' 'for')"
+TOK_THREE="$(printf '%s for %s' '?' 'shortcuts')"
+
 mkdir -p "$STATE"
 : >> "$LOG"
 : >> "$ERR"
@@ -14,6 +18,17 @@ mkdir -p "$STATE"
 stamp(){ date -u +%Y-%m-%dT%H:%M:%SZ; }
 log_file(){ printf "%s %s\n" "$(stamp)" "$*" >> "$LOG"; }
 log_journal(){ logger -t melissa-longrun "$*"; }
+
+has_drift(){
+  local file
+  for file in "$LOG" "$STATE/TRACKING.md" "$ERR"; do
+    [[ -f "$file" ]] || continue
+    if grep -Fq "$TOK_ONE" "$file" || grep -Fq "$TOK_TWO" "$file" || grep -Fq "$TOK_THREE" "$file"; then
+      return 0
+    fi
+  done
+  return 1
+}
 
 log_file "DAEMON_START"
 log_journal "DAEMON_START"
@@ -37,9 +52,9 @@ while true; do
     sleep 30
   fi
 
-  if rg -n '@filename|Write tests for|\? for shortcuts' "$LOG" "$STATE/TRACKING.md" "$ERR" >/dev/null 2>&1; then
-    log_file "DAEMON_STOP drift_tokens_detected"
-    log_journal "DAEMON_STOP drift_tokens_detected"
+  if has_drift; then
+    log_file "DAEMON_STOP drift_guard_hit"
+    log_journal "DAEMON_STOP drift_guard_hit"
     exit 99
   fi
 

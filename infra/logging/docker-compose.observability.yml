@@ -46,6 +46,8 @@ services:
     - ./loki-config.yml:/etc/loki/loki-config.yml:ro
     networks:
     - obs
+    ports:
+    - "127.0.0.1:3200:3100"
     healthcheck:
       test:
       - CMD
@@ -73,6 +75,8 @@ services:
     - ./prometheus/rules:/etc/prometheus/rules:ro
     networks:
     - obs
+    ports:
+    - "127.0.0.1:3200:3100"
     healthcheck:
       test:
       - CMD
@@ -114,16 +118,19 @@ services:
     command:
     - run
     - --server.http.listen-addr=0.0.0.0:12345
+    - --storage.path=/var/lib/alloy
     - /etc/alloy/config.alloy
     user: "0:0"
     ports:
     - "127.0.0.1:1514:1514"
     volumes:
     - ${HOST_DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
+    - ${HOST_VAR_LOG_JOURNAL:-/var/log/journal}:/var/log/journal:ro
+    - ${HOST_RUN_LOG_JOURNAL:-/run/log/journal}:/run/log/journal:ro
     - ${HOST_HOME:-/home}:/host/home:ro
     - ${HOST_VAR_LOG_SAMBA:-/var/log/samba}:/host/var/log/samba:ro
     - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
-    - alloy-positions:/tmp
+    - alloy-positions:/var/lib/alloy
     networks:
     - obs
     depends_on:

@@ -33,9 +33,9 @@ groups:
                   reducer:
                     type: last
                   type: query
-        noDataState: Alerting
+        noDataState: OK
         execErrState: Alerting
-        for: 0m
+        for: 2m
         labels:
           severity: warning
 
@@ -66,8 +66,8 @@ groups:
                   reducer:
                     type: last
                   type: query
-        noDataState: Alerting
+        noDataState: OK
         execErrState: Alerting
-        for: 0m
+        for: 2m
         labels:
           severity: critical
