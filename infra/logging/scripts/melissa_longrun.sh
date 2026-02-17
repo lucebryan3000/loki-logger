@@ -237,6 +237,11 @@ PY
 }
 
 patch_loki_port_bind_local(){
+  local needs_change=0
+  if ! rg -q '127.0.0.1:3200:3100' "$COMPOSE_FILE"; then
+    needs_change=1
+  fi
+
   python3 - "$COMPOSE_FILE" <<'PY'
 import sys,re
 p=sys.argv[1]
@@ -245,7 +250,9 @@ if '  loki:' in s and '127.0.0.1:3200:3100' not in s:
     s=s.replace('    networks:\n    - obs\n    healthcheck:','    networks:\n    - obs\n    ports:\n    - "127.0.0.1:3200:3100"\n    healthcheck:')
 open(p,'w').write(s)
 PY
-  docker compose -f "$COMPOSE_FILE" up -d --force-recreate --no-deps loki >/dev/null 2>&1
+  if [[ "$needs_change" -eq 1 ]]; then
+    docker compose -f "$COMPOSE_FILE" up -d --force-recreate --no-deps loki >/dev/null 2>&1
+  fi
   local ports
   ports=$(docker ps --format '{{.Names}}\t{{.Ports}}' | rg '^logging-loki-1' || true)
   if printf '%s' "$ports" | grep -Fq '0.0.0.0:3200'; then
@@ -257,6 +264,11 @@ PY
 
 patch_grafana_metrics_scrape(){
   local f="$ROOT/infra/logging/prometheus/prometheus.yml"
+  local needs_change=0
+  if ! rg -q '^- job_name: grafana$' "$f"; then
+    needs_change=1
+  fi
+
   python3 - "$f" <<'PY'
 import sys
 p=sys.argv[1]
@@ -268,7 +280,9 @@ if 'job_name: grafana' not in s:
     s += block
 open(p,'w').write(s)
 PY
-  docker compose -f "$COMPOSE_FILE" up -d --force-recreate --no-deps prometheus >/dev/null 2>&1
+  if [[ "$needs_change" -eq 1 ]]; then
+    docker compose -f "$COMPOSE_FILE" up -d --force-recreate --no-deps prometheus >/dev/null 2>&1
+  fi
   item_note="grafana_scrape_added"
 }
 
@@ -323,26 +337,18 @@ svc_limits={
   'prometheus':('2g','1.00'),
   'alloy':('1g','0.75'),
 }
+
 for svc,(mem,cpu) in svc_limits.items():
-    marker=f'  {svc}:\n'
-    idx=s.find(marker)
-    if idx<0:
+    pat=rf'(^  {re.escape(svc)}:\n)(.*?)(?=\n  [A-Za-z0-9_-]+:|\Z)'
+    m=re.search(pat,s,flags=re.M|re.S)
+    if not m:
         continue
-    sec=s[idx:]
-    end=sec.find('\n  ')
-    if end>0:
-        block=sec[:end+1]
-        rest=sec[end+1:]
-    else:
-        block=sec
-        rest=''
-    if 'mem_limit:' in block and 'cpus:' in block:
+    head,body=m.group(1),m.group(2)
+    if 'mem_limit:' in body and 'cpus:' in body:
         continue
-    if '    restart:' in block:
-        block=block.replace('    restart: unless-stopped',f'    mem_limit: {mem}\n    cpus: "{cpu}"\n    restart: unless-stopped')
-    else:
-        block += f'    mem_limit: {mem}\n    cpus: "{cpu}"\n'
-    s=s[:idx]+block+rest
+    body=f'    mem_limit: {mem}\n    cpus: "{cpu}"\n'+body
+    s=s[:m.start()]+head+body+s[m.end():]
+
 open(p,'w').write(s)
 PY
   item_note="resource_limits_alloy_health_applied"
