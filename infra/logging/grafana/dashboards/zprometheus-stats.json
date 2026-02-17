@@ -22,7 +22,11 @@
       "targets": [
         {
           "expr": "time() - process_start_time_seconds{job=\"prometheus\"}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "gridPos": {
@@ -43,7 +47,11 @@
       "targets": [
         {
           "expr": "prometheus_tsdb_head_series",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "gridPos": {
@@ -64,7 +72,11 @@
       "targets": [
         {
           "expr": "rate(prometheus_tsdb_head_samples_appended_total[5m])",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "gridPos": {
@@ -85,7 +97,11 @@
       "targets": [
         {
           "expr": "rate(prometheus_target_interval_length_seconds_count[5m])",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "gridPos": {

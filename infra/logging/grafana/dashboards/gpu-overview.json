@@ -16,13 +16,17 @@
       "title": "GPU Alerts (transitions)",
       "datasource": {
         "type": "loki",
-        "uid": null,
+        "uid": "P8E80F9AEF21F6940",
         "name": "Loki"
       },
       "targets": [
         {
           "expr": "{log_source=\"nvidia_telem\",telemetry_tier=\"alerts\"}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
         }
       ],
       "gridPos": {
@@ -37,13 +41,17 @@
       "title": "GPU Raw (last 5m)",
       "datasource": {
         "type": "loki",
-        "uid": null,
+        "uid": "P8E80F9AEF21F6940",
         "name": "Loki"
       },
       "targets": [
         {
           "expr": "{log_source=\"nvidia_telem\",telemetry_tier=\"raw30\"}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
         }
       ],
       "gridPos": {

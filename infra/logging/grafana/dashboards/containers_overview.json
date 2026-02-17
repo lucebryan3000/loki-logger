@@ -35,7 +35,11 @@
       "targets": [
         {
           "expr": "topk(10, rate(container_cpu_usage_seconds_total{id=~\"/system.slice/docker-.*\\\\.scope\"}[5m]))",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "title": "Top 10 Containers by CPU (rate)",
@@ -67,7 +71,11 @@
       "targets": [
         {
           "expr": "topk(10, container_memory_working_set_bytes{id=~\"/system.slice/docker-.*\\\\.scope\"})",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "title": "Top 10 Containers by Memory (working set)",

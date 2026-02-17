@@ -35,7 +35,11 @@
       "targets": [
         {
           "expr": "sprint3:host_cpu_usage_percent",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "title": "CPU Usage % (instance)",
@@ -67,7 +71,11 @@
       "targets": [
         {
           "expr": "sprint3:host_memory_usage_percent",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "title": "Memory Usage % (instance)",
@@ -99,7 +107,11 @@
       "targets": [
         {
           "expr": "sprint3:host_disk_usage_percent",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "title": "Disk Usage % (mountpoint)",

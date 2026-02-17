@@ -76,7 +76,11 @@
           "direction": "backward",
           "expr": "sum(count_over_time({log_source=~\"$log_source\"}[5m]))",
           "queryType": "range",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
         }
       ],
       "title": "Loki queryable (streams in 5m)",
@@ -126,7 +130,11 @@
           "direction": "backward",
           "expr": "sum by (log_source) (rate({log_source=\"rsyslog_syslog\"}[5m]))",
           "queryType": "range",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
         }
       ],
       "title": "Syslog ingest volume (rsyslog_syslog)",
@@ -176,7 +184,11 @@
           "direction": "backward",
           "expr": "sum(rate({log_source=~\"$log_source\"}[5m]))",
           "queryType": "range",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
         }
       ],
       "title": "Total log ingest rate",
@@ -240,7 +252,11 @@
           "direction": "backward",
           "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"(omfwd|suspend|refused|error)\" [30m]))",
           "queryType": "range",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
         }
       ],
       "title": "Rsyslog forward errors (30m)",
@@ -301,7 +317,11 @@
           "expr": "changes(process_start_time_seconds{job=\"alloy\"}[6h])",
           "legendFormat": "alloy",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "title": "Alloy restarts (6h)",
@@ -326,7 +346,11 @@
           "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"MARKER=\" [15m]))",
           "refId": "A",
           "queryType": "range",
-          "direction": "backward"
+          "direction": "backward",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
         }
       ],
       "fieldConfig": {

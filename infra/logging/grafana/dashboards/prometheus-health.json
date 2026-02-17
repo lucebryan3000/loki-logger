@@ -15,13 +15,17 @@
       "title": "Targets Up (count)",
       "datasource": {
         "type": "prometheus",
-        "uid": null,
+        "uid": "PBFA97CFB590B2093",
         "name": "Prometheus"
       },
       "targets": [
         {
           "expr": "sprint3:targets_up:count",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "gridPos": {
@@ -36,13 +40,17 @@
       "title": "Scrape failures (rate)",
       "datasource": {
         "type": "prometheus",
-        "uid": null,
+        "uid": "PBFA97CFB590B2093",
         "name": "Prometheus"
       },
       "targets": [
         {
           "expr": "sprint3:prometheus_scrape_failures:rate5m",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "gridPos": {
@@ -57,13 +65,17 @@
       "title": "Loki ingestion bytes/s (rate)",
       "datasource": {
         "type": "prometheus",
-        "uid": null,
+        "uid": "PBFA97CFB590B2093",
         "name": "Prometheus"
       },
       "targets": [
         {
           "expr": "rate(loki_distributor_bytes_received_total[5m])",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ],
       "gridPos": {

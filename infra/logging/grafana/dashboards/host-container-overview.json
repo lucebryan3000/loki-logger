@@ -34,7 +34,11 @@
       "targets": [
         {
           "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ]
     },
@@ -55,7 +59,11 @@
       "targets": [
         {
           "expr": "100 * (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ]
     },
@@ -76,7 +84,11 @@
       "targets": [
         {
           "expr": "100 * (1 - node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"})",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ]
     },
@@ -97,7 +109,11 @@
       "targets": [
         {
           "expr": "topk(10, rate(container_cpu_usage_seconds_total{id=~\"/system.slice/docker-.*\\\\.scope\"}[5m]))",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ]
     },
@@ -118,7 +134,11 @@
       "targets": [
         {
           "expr": "topk(10, container_memory_working_set_bytes{id=~\"/system.slice/docker-.*\\\\.scope\"})",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ]
     },
@@ -139,7 +159,11 @@
       "targets": [
         {
           "expr": "changes(process_start_time_seconds{job=~\"alloy|prometheus\"}[6h])",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          }
         }
       ]
     }

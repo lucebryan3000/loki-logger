@@ -15,13 +15,17 @@
       "title": "Log volume (count_over_time)",
       "datasource": {
         "type": "loki",
-        "uid": null,
+        "uid": "P8E80F9AEF21F6940",
         "name": "Loki"
       },
       "targets": [
         {
           "expr": "sum(count_over_time({env=~\".+\"}[5m]))",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
         }
       ],
       "gridPos": {
