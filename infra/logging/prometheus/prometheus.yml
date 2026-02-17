@@ -31,3 +31,7 @@ scrape_configs:
     labels:
       service: wireguard
       interface: wg0
+- job_name: grafana
+  static_configs:
+  - targets:
+    - grafana:3000
