@@ -65,6 +65,20 @@ loki.source.journal "journald" {
   forward_to = [loki.process.journald.receiver]
 }
 
+// rsyslog TCP syslog ingress (localhost port mapping on host)
+loki.source.syslog "rsyslog" {
+  listener {
+    address  = "0.0.0.0:1514"
+    protocol = "tcp"
+    labels = {
+      log_source  = "rsyslog_syslog",
+      source_type = "syslog",
+    }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
 // tool sink
 local.file_match "tool_sink" {
   path_targets = [{ "__path__" = "/host/home/luce/_logs/*.log" }]
