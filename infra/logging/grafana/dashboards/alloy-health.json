@@ -12,7 +12,7 @@
   "panels": [
     {
       "type": "logs",
-      "title": "Alloy Errors (Loki)",
+      "title": "Rsyslog Syslog Stream (Loki)",
       "datasource": {
         "type": "loki",
         "uid": null,
@@ -20,7 +20,7 @@
       },
       "targets": [
         {
-          "expr": "{env=~\".+\"} |= \"level=error\"",
+          "expr": "{log_source=\"rsyslog_syslog\"}",
           "refId": "A"
         }
       ],

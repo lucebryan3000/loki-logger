@@ -1,26 +1,27 @@
 {
-  "uid": "prom_health_v1",
-  "title": "Prometheus Health",
+  "uid": "isFoa0z7k",
+  "title": "Grafana metrics",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
   "tags": [
-    "sprint-3",
-    "baseline"
+    "baseline",
+    "patched",
+    "prometheus"
   ],
   "panels": [
     {
       "type": "timeseries",
-      "title": "Targets Up (count)",
+      "title": "Prometheus Targets Up by Job",
       "datasource": {
         "type": "prometheus",
-        "uid": null,
+        "uid": "PBFA97CFB590B2093",
         "name": "Prometheus"
       },
       "targets": [
         {
-          "expr": "sprint3:targets_up:count",
+          "expr": "count by (job) (up)",
           "refId": "A"
         }
       ],
@@ -33,15 +34,15 @@
     },
     {
       "type": "timeseries",
-      "title": "Scrape failures (rate)",
+      "title": "Prometheus TSDB Head Series",
       "datasource": {
         "type": "prometheus",
-        "uid": null,
+        "uid": "PBFA97CFB590B2093",
         "name": "Prometheus"
       },
       "targets": [
         {
-          "expr": "sprint3:prometheus_scrape_failures:rate5m",
+          "expr": "prometheus_tsdb_head_series",
           "refId": "A"
         }
       ],
@@ -54,15 +55,15 @@
     },
     {
       "type": "timeseries",
-      "title": "Loki ingestion bytes/s (rate)",
+      "title": "Prometheus HTTP Requests (5m rate)",
       "datasource": {
         "type": "prometheus",
-        "uid": null,
+        "uid": "PBFA97CFB590B2093",
         "name": "Prometheus"
       },
       "targets": [
         {
-          "expr": "rate(loki_distributor_bytes_received_total[5m])",
+          "expr": "rate(prometheus_http_requests_total[5m])",
           "refId": "A"
         }
       ],

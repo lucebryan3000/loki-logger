@@ -1,26 +1,27 @@
 {
-  "uid": "prom_health_v1",
-  "title": "Prometheus Health",
+  "uid": "rpfmFFz7z",
+  "title": "zPrometheus Stats",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
   "tags": [
-    "sprint-3",
+    "prometheus",
+    "patched",
     "baseline"
   ],
   "panels": [
     {
       "type": "timeseries",
-      "title": "Targets Up (count)",
+      "title": "Uptime",
       "datasource": {
         "type": "prometheus",
-        "uid": null,
+        "uid": "PBFA97CFB590B2093",
         "name": "Prometheus"
       },
       "targets": [
         {
-          "expr": "sprint3:targets_up:count",
+          "expr": "time() - process_start_time_seconds{job=\"prometheus\"}",
           "refId": "A"
         }
       ],
@@ -33,15 +34,15 @@
     },
     {
       "type": "timeseries",
-      "title": "Scrape failures (rate)",
+      "title": "TSDB Head Series",
       "datasource": {
         "type": "prometheus",
-        "uid": null,
+        "uid": "PBFA97CFB590B2093",
         "name": "Prometheus"
       },
       "targets": [
         {
-          "expr": "sprint3:prometheus_scrape_failures:rate5m",
+          "expr": "prometheus_tsdb_head_series",
           "refId": "A"
         }
       ],
@@ -54,15 +55,15 @@
     },
     {
       "type": "timeseries",
-      "title": "Loki ingestion bytes/s (rate)",
+      "title": "Samples Ingested (rate 5m)",
       "datasource": {
         "type": "prometheus",
-        "uid": null,
+        "uid": "PBFA97CFB590B2093",
         "name": "Prometheus"
       },
       "targets": [
         {
-          "expr": "rate(loki_distributor_bytes_received_total[5m])",
+          "expr": "rate(prometheus_tsdb_head_samples_appended_total[5m])",
           "refId": "A"
         }
       ],
@@ -71,6 +72,27 @@
         "w": 24,
         "x": 0,
         "y": 16
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Target Scrapes (rate 5m)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093",
+        "name": "Prometheus"
+      },
+      "targets": [
+        {
+          "expr": "rate(prometheus_target_interval_length_seconds_count[5m])",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
       }
     }
   ],
