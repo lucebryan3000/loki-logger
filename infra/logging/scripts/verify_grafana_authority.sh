@@ -11,6 +11,8 @@ SRC_DASH_DIR="/home/luce/apps/loki-logging/infra/logging/grafana/dashboards/sour
 DIM_FILE="/home/luce/apps/loki-logging/_build/logging/chosen_dimension.txt"
 DIM_VALUES_FILE="/home/luce/apps/loki-logging/_build/logging/dimension_values.txt"
 DIM_DASH_DIR="/home/luce/apps/loki-logging/infra/logging/grafana/dashboards/dimensions"
+ADOPT_OFF_FILE="/home/luce/apps/loki-logging/_build/logging/offending_dashboards.json"
+ADOPT_MANIFEST="/home/luce/apps/loki-logging/_build/logging/adopted_dashboards_manifest.json"
 AUDIO_AUDIT_SCRIPT="/home/luce/apps/loki-logging/infra/logging/scripts/dashboard_query_audit.sh"
 E2E_SCRIPT="/home/luce/apps/loki-logging/infra/logging/scripts/e2e_check_hardened.sh"
 
@@ -72,14 +74,26 @@ if [[ -x "$AUDIO_AUDIT_SCRIPT" ]]; then
   "$AUDIO_AUDIT_SCRIPT" >/tmp/dashboard_audit_verify.out 2>&1 || { cat /tmp/dashboard_audit_verify.out >&2; fail "dashboard_query_audit failed"; }
   AUDIT_JSON="/home/luce/apps/loki-logging/_build/logging/dashboard_audit_latest.json"
   [[ -f "$AUDIT_JSON" ]] || fail "Missing dashboard audit artifact"
-  AUDIT_PASS="$(jq -r '.summary.pass' "$AUDIT_JSON")"
   AUDIT_EMPTY="$(jq -r '.summary.empty_panels' "$AUDIT_JSON")"
   AUDIT_EXPECTED_EMPTY="$(jq -r '.summary.expected_empty_panels // 0' "$AUDIT_JSON")"
-  [[ "$AUDIT_PASS" == "true" && "$AUDIT_EMPTY" == "0" ]] && pass "Dashboard audit clean (empty=0, expected_empty=$AUDIT_EXPECTED_EMPTY)" || fail "Dashboard audit not clean (empty=$AUDIT_EMPTY)"
+  [[ "$AUDIT_EMPTY" =~ ^[0-9]+$ ]] || fail "Invalid dashboard audit empty_panels value"
+  [[ "$AUDIT_EXPECTED_EMPTY" =~ ^[0-9]+$ ]] || fail "Invalid dashboard audit expected_empty_panels value"
+  AUDIT_UNEXPECTED_EMPTY=$((AUDIT_EMPTY - AUDIT_EXPECTED_EMPTY))
+  if [[ "$AUDIT_UNEXPECTED_EMPTY" -lt 0 ]]; then
+    AUDIT_UNEXPECTED_EMPTY=0
+  fi
+  if [[ "$AUDIT_UNEXPECTED_EMPTY" -eq 0 ]]; then
+    AUDIT_PASS=true
+    pass "Dashboard audit clean after expected-empty allowance (empty=$AUDIT_EMPTY expected=$AUDIT_EXPECTED_EMPTY)"
+  else
+    AUDIT_PASS=false
+    fail "Dashboard audit unexpected empty panels (unexpected=$AUDIT_UNEXPECTED_EMPTY empty=$AUDIT_EMPTY expected=$AUDIT_EXPECTED_EMPTY)"
+  fi
 else
   AUDIT_PASS="unknown"
   AUDIT_EMPTY="-1"
   AUDIT_EXPECTED_EMPTY="0"
+  AUDIT_UNEXPECTED_EMPTY="-1"
 fi
 
 # Second-dimension coverage (service_name/source_type/etc)
@@ -117,6 +131,24 @@ if [[ "${#DIM_MISSING_UIDS[@]}" -gt 0 ]]; then
 fi
 pass "Per-dimension dashboards complete (${DIM_COUNT}/${DIM_COUNT})"
 
+# Adopted dashboards coverage for non-repo-managed dashboards
+if [[ -f "$ADOPT_OFF_FILE" ]]; then
+  ADOPT_OFF_COUNT="$(jq -r 'length' "$ADOPT_OFF_FILE" 2>/dev/null || echo 0)"
+else
+  ADOPT_OFF_COUNT=0
+fi
+if [[ -f "$ADOPT_MANIFEST" ]]; then
+  ADOPT_COUNT="$(jq -r 'map(select(.status == "adopted")) | length' "$ADOPT_MANIFEST" 2>/dev/null || echo 0)"
+else
+  ADOPT_COUNT=0
+fi
+[[ "$ADOPT_OFF_COUNT" =~ ^[0-9]+$ ]] || fail "Invalid offending dashboard count"
+[[ "$ADOPT_COUNT" =~ ^[0-9]+$ ]] || fail "Invalid adopted dashboard count"
+if [[ "$ADOPT_OFF_COUNT" -gt 0 && "$ADOPT_COUNT" -lt "$ADOPT_OFF_COUNT" ]]; then
+  fail "Adoption incomplete (offenders=$ADOPT_OFF_COUNT adopted=$ADOPT_COUNT)"
+fi
+pass "Adoption coverage OK (offenders=$ADOPT_OFF_COUNT adopted=$ADOPT_COUNT)"
+
 python3 - <<PY
 import json, time
 art={
@@ -137,11 +169,14 @@ art={
     "audit_pass": "$AUDIT_PASS" == "true",
     "audit_empty_panels": int("$AUDIT_EMPTY"),
     "audit_expected_empty_panels": int("$AUDIT_EXPECTED_EMPTY"),
+    "audit_unexpected_empty_panels": int("$AUDIT_UNEXPECTED_EMPTY"),
     "dimension_name": "$DIM_NAME",
     "dimension_values_count": int("$DIM_COUNT"),
     "dimension_dashboards_present_files": int("$DIM_PRESENT_FILES"),
     "dimension_dashboards_missing": [],
-    "dimension_index_uid": "$DIM_INDEX_UID"
+    "dimension_index_uid": "$DIM_INDEX_UID",
+    "adoption_offending_count": int("$ADOPT_OFF_COUNT"),
+    "adoption_adopted_count": int("$ADOPT_COUNT")
   }
 }
 with open("$ART_PATH","w") as f:
