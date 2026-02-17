@@ -76,7 +76,9 @@ loki.source.syslog "rsyslog" {
     }
   }
 
-  forward_to = [loki.write.default.receiver]
+  // Route through main processor so syslog also gets shared static labels
+  // and redaction stages before write.
+  forward_to = [loki.process.main.receiver]
 }
 
 // tool sink

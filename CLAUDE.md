@@ -121,11 +121,14 @@ Alloy ingests from these host paths (mounted under `/host/`):
 - Docker socket — container logs (labeled with `container_name`)
 - Systemd journal
 
-All logs get `env=sandbox` and `host=codeswarm` labels.
+All logs get `env=sandbox` through Alloy process stages. Source-specific
+pipelines add `log_source`/`source_type` labels where applicable.
 
 ## Label Schema
 
-Every log entry has: `env`, `host`, `job`. Docker logs add `container_name`. File logs add `filename`. MCP logs add `log_source=codeswarm_mcp`.
+Common labels: `env`. Docker logs add `stack`, `service`, `source_type`,
+and container metadata. File/syslog pipelines add `log_source` plus
+`filename`/`source_type` depending on source.
 
 ## Directory Layout
 

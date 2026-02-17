@@ -77,20 +77,21 @@ Stable reference data for the Loki logging stack.
 
 ### Log Source Paths
 
-**Total: 7 active log sources**
+**Total: 8 active log sources**
 
 | Source | Type | Host Path | Container/Method | Labels |
 |--------|------|-----------|------------------|--------|
-| Systemd journal | rsyslog → syslog | `/var/log/journal` | rsyslog → TCP:1514 → Alloy | `log_source=journald` |
-| Docker containers | Docker socket | `/var/run/docker.sock` | `/var/run/docker.sock` | `log_source=docker`, `stack`, `service` |
+| Journald direct | Journal API | `/var/log/journal` | `loki.source.journal` | `log_source=journald` |
+| rsyslog syslog relay | TCP syslog | `/etc/rsyslog.d/50-loki-alloy.conf` → 1514 | rsyslog → TCP:1514 → `loki.source.syslog` | `log_source=rsyslog_syslog`, `source_type=syslog` |
+| Docker containers | Docker socket | `/var/run/docker.sock` | `/var/run/docker.sock` | `log_source=docker`, `stack`, `service`, `source_type` |
 | VS Code Server | File tail | `/home/luce/.vscode-server/**/*.log` | `/host/home/luce/.vscode-server/**/*.log` | `log_source=vscode_server`, `filename` |
 | CodeSwarm MCP | File tail | `/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `/host/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `log_source=codeswarm_mcp`, `filename` |
-| NVIDIA telemetry | File tail | `/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl` | `/host/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl` | `log_source=nvidia_telem`, `filename` |
-| Telemetry | File tail | `/home/luce/_telemetry/*.jsonl` | `/host/home/luce/_telemetry/*.jsonl` | `filename` |
-| Tool logs | File tail | `/home/luce/_logs/*.log` | `/host/home/luce/_logs/*.log` | `filename` |
+| NVIDIA telemetry | File tail | `/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl` | `/host/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl` | `log_source=nvidia_telem`, `filename`, `telemetry_tier` |
+| Telemetry | File tail | `/home/luce/_telemetry/*.jsonl` | `/host/home/luce/_telemetry/*.jsonl` | `log_source=telemetry`, `filename` |
+| Tool logs | File tail | `/home/luce/_logs/*.log` | `/host/home/luce/_logs/*.log` | `log_source=tool_sink`, `filename` |
 
 **Architecture notes:**
-- **Systemd journal:** Uses rsyslog as relay (systemd journal → rsyslog imjournal → TCP:1514 → loki.source.syslog)
+- **Two systemd paths are active:** direct `loki.source.journal` and rsyslog relay (`imjournal` → TCP:1514).
 - **Docker:** Filtered to vllm and hex compose projects only
 - **File sources:** Tailed via loki.source.file with position tracking
 - **rsyslog config:** `/etc/rsyslog.d/50-loki-alloy.conf` (RFC5424 format, TCP forwarding)
@@ -167,7 +168,7 @@ services:
 | Label | Source | Example | Required for File Logs |
 |-------|--------|---------|------------------------|
 | `filename` | Alloy file match | `/host/home/luce/_logs/test.log` | Yes |
-| `log_source` | Alloy process pipeline | `codeswarm_mcp` (for MCP logs only) | Conditional |
+| `log_source` | Alloy/static listener labels | `docker`, `journald`, `rsyslog_syslog`, `codeswarm_mcp`, `vscode_server`, `tool_sink`, `telemetry`, `nvidia_telem` | Yes (source-specific value) |
 
 **Critical:** Loki queries **require non-empty selectors**. Always include at least one label (e.g., `{env=~".+"}`).
 
