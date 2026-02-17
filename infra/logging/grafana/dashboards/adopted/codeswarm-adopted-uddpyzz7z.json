@@ -1513,6 +1513,7 @@
   "tags": [
     "adopted",
     "codeswarm",
+    "logging",
     "prometheus"
   ],
   "templating": {

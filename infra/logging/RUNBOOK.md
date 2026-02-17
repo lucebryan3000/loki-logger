@@ -57,3 +57,12 @@ journald -> rsyslog -> Alloy (syslog TCP 1514 localhost) -> Loki -> Grafana
   - `(?i)(error|fail|exception|panic)`
 - These are classified as `expected_empty_panels` by `dashboard_query_audit.sh`.
 - Hard failures are only unexpected empty panels (`empty_panels > 0`) or query errors.
+
+## Adopted dashboards editing policy
+Dashboards that are plugin-owned or otherwise non-editable in Grafana UI are adopted into repo provisioning.
+
+- Source of truth: `infra/logging/grafana/dashboards/adopted/`
+- Discoverability: Grafana search API with `tag=adopted`
+- Edit path: change JSON in repo, then let provisioning reload (or single Grafana restart if needed)
+- Guardrail: do not edit/delete plugin-owned originals in place; maintain CodeSwarm copies only
+

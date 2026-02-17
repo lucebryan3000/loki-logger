@@ -112,7 +112,8 @@
   "schemaVersion": 39,
   "tags": [
     "adopted",
-    "codeswarm"
+    "codeswarm",
+    "logging"
   ],
   "templating": {
     "list": []

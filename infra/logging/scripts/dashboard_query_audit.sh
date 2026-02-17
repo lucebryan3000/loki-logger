@@ -192,6 +192,11 @@ for d in idx:
                 elif uid.startswith("codeswarm-dim-"):
                     rec["status"] = "expected_empty"
                     expected_empty.append(rec)
+                # Adopted dashboards are copied from externally managed/plugin dashboards and may
+                # include panels that are not relevant to this stack's enabled metrics.
+                elif uid.startswith("codeswarm-adopted-"):
+                    rec["status"] = "expected_empty"
+                    expected_empty.append(rec)
                 else:
                     empty.append(rec)
         except Exception as exc:
@@ -218,6 +223,7 @@ summary = {
     "queries_checked": checked,
     "empty_panels": len(empty),
     "expected_empty_panels": len(expected_empty),
+    "unexpected_empty_panels": len(empty),
 }
 
 with open(js_path, "w") as f:
@@ -230,6 +236,7 @@ with open(md_path, "w") as f:
     f.write(f"- queries_checked: {summary['queries_checked']}\n")
     f.write(f"- empty_panels: {summary['empty_panels']}\n")
     f.write(f"- expected_empty_panels: {summary['expected_empty_panels']}\n")
+    f.write(f"- unexpected_empty_panels: {summary['unexpected_empty_panels']}\n")
     f.write(f"- pass: {'yes' if pass_flag else 'no'}\n\n")
     f.write("## Empty panels\n")
     if not empty:

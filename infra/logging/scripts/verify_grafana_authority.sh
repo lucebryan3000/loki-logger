@@ -76,15 +76,13 @@ if [[ -x "$AUDIO_AUDIT_SCRIPT" ]]; then
   [[ -f "$AUDIT_JSON" ]] || fail "Missing dashboard audit artifact"
   AUDIT_EMPTY="$(jq -r '.summary.empty_panels' "$AUDIT_JSON")"
   AUDIT_EXPECTED_EMPTY="$(jq -r '.summary.expected_empty_panels // 0' "$AUDIT_JSON")"
+  AUDIT_UNEXPECTED_EMPTY="$(jq -r '.summary.unexpected_empty_panels // .summary.empty_panels // -1' "$AUDIT_JSON")"
   [[ "$AUDIT_EMPTY" =~ ^[0-9]+$ ]] || fail "Invalid dashboard audit empty_panels value"
   [[ "$AUDIT_EXPECTED_EMPTY" =~ ^[0-9]+$ ]] || fail "Invalid dashboard audit expected_empty_panels value"
-  AUDIT_UNEXPECTED_EMPTY=$((AUDIT_EMPTY - AUDIT_EXPECTED_EMPTY))
-  if [[ "$AUDIT_UNEXPECTED_EMPTY" -lt 0 ]]; then
-    AUDIT_UNEXPECTED_EMPTY=0
-  fi
+  [[ "$AUDIT_UNEXPECTED_EMPTY" =~ ^[0-9]+$ ]] || fail "Invalid dashboard audit unexpected_empty_panels value"
   if [[ "$AUDIT_UNEXPECTED_EMPTY" -eq 0 ]]; then
     AUDIT_PASS=true
-    pass "Dashboard audit clean after expected-empty allowance (empty=$AUDIT_EMPTY expected=$AUDIT_EXPECTED_EMPTY)"
+    pass "Dashboard audit clean after expected-empty allowance (unexpected=$AUDIT_UNEXPECTED_EMPTY empty=$AUDIT_EMPTY expected=$AUDIT_EXPECTED_EMPTY)"
   else
     AUDIT_PASS=false
     fail "Dashboard audit unexpected empty panels (unexpected=$AUDIT_UNEXPECTED_EMPTY empty=$AUDIT_EMPTY expected=$AUDIT_EXPECTED_EMPTY)"
