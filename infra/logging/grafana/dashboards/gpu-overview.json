@@ -21,7 +21,7 @@
       },
       "targets": [
         {
-          "expr": "{log_source=\"nvidia_telem\",telemetry_tier=\"alerts\"}",
+          "expr": "{log_source=\"telemetry\"}",
           "refId": "A",
           "datasource": {
             "type": "loki",
@@ -46,7 +46,7 @@
       },
       "targets": [
         {
-          "expr": "{log_source=\"nvidia_telem\",telemetry_tier=\"raw30\"}",
+          "expr": "{log_source=\"telemetry\"}",
           "refId": "A",
           "datasource": {
             "type": "loki",
