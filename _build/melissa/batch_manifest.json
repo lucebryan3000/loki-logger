@@ -1,5 +1,7 @@
 {
   "max_minutes": 90,
   "hard_gate_every": 3,
-  "dry_run_batches": 1
+  "checkpoint_every": 2,
+  "dry_run_batches": 1,
+  "real_run_batches": 3
 }
