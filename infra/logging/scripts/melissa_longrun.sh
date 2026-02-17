@@ -472,10 +472,12 @@ run_item(){
   local item_id="$1"
   local item_type="$2"
   local item_target="$3"
+  local rc=0
 
   item_note=""
   item_expected_zero="no"
 
+  set +e
   case "$item_id" in
     FIX:alloy_positions_storage)
       patch_alloy_positions_storage
@@ -542,11 +544,13 @@ run_item(){
       ;;
     *)
       item_note="unknown_item"
-      return 1
+      false
       ;;
   esac
+  rc=$?
+  set -e
 
-  return 0
+  return "$rc"
 }
 
 checkpoint_commit(){

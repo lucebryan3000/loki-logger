@@ -98,7 +98,7 @@ update_memory_runner_state(){
   local tmp
   tmp=$(mktemp)
 
-  if [[ -f "$mem" ]]; then
+  if [[ -s "$mem" ]] && jq -e . "$mem" >/dev/null 2>&1; then
     jq \
       --argjson idx "$idx" \
       --arg ts "$ts" \

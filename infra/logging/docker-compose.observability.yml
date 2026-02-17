@@ -81,8 +81,6 @@ services:
     - ./prometheus/rules:/etc/prometheus/rules:ro
     networks:
     - obs
-    ports:
-    - "127.0.0.1:3200:3100"
     healthcheck:
       test:
       - CMD
@@ -149,7 +147,7 @@ services:
       - wget
       - -q
       - -O
-      - -
+      - '-'
       - http://127.0.0.1:12345/-/ready
       interval: 60s
       timeout: 10s
