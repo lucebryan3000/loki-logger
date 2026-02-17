@@ -1,0 +1,73 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: logging-pipeline
+    folder: Logging
+    interval: 1m
+    rules:
+      - uid: logging-e2e-marker-missing
+        title: Logging E2E marker missing (15m)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: P8E80F9AEF21F6940
+            relativeTimeRange:
+              from: 900
+              to: 0
+            model:
+              expr: sum(count_over_time({log_source="rsyslog_syslog"} |~ "MARKER=" [15m]))
+              queryType: range
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 0m
+        labels:
+          severity: warning
+
+      - uid: logging-total-ingest-down
+        title: Logging ingest appears down (5m)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: P8E80F9AEF21F6940
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: sum(count_over_time({log_source=~".+"}[5m]))
+              queryType: range
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 0m
+        labels:
+          severity: critical
