@@ -177,6 +177,20 @@
           "expr": "topk(10, (sum by (service_name) (rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])) or (sum by (service_name) (rate({log_source=\"vscode_server\"}[5m])) * 0)))"
         }
       ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error rate (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))"
+        }
+      ]
     }
   ],
   "annotations": {

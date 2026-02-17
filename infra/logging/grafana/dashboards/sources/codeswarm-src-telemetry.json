@@ -163,6 +163,20 @@
           "expr": "topk(10, sum by (filename) (count_over_time({log_source=\"telemetry\", filename=~\".+\"}[5m])))"
         }
       ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error rate (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=\"telemetry\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))"
+        }
+      ]
     }
   ],
   "annotations": {
