@@ -1,7 +1,15 @@
 {
-  "max_minutes": 90,
-  "hard_gate_every": 3,
+  "mode": "real",
+  "max_minutes": 60,
+  "hard_gate_every": 2,
   "checkpoint_every": 2,
-  "dry_run_batches": 1,
-  "real_run_batches": 3
+  "heartbeat_minutes": 20,
+  "heal_max_attempts": 2,
+  "source_order": [
+    "rsyslog_syslog",
+    "docker",
+    "telemetry",
+    "codeswarm_mcp",
+    "vscode_server"
+  ]
 }

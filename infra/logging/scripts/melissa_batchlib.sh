@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="/home/luce/apps/loki-logging"
 STATE="$ROOT/_build/melissa"
 LOG="$STATE/runtime.log"
+TRACKING="$STATE/TRACKING.md"
 DRIFT_RE='@filename|Write tests for|\? for shortcuts'
 
 now_utc(){ date -u +%Y-%m-%dT%H:%M:%SZ; }
@@ -13,16 +14,16 @@ log(){
   printf "%s %s\n" "$(now_utc)" "$*" >> "$LOG"
 }
 
-# Never print to stdout; only log. Exit 99 if suspicious tokens appear.
-safe_echo(){
-  local s="$*"
-  case "$s" in
+pipe(){
+  local line="$*"
+  case "$line" in
     *"@filename"*|*"Write tests for"*|*"? for shortcuts"*)
-      log "DRIFT_TRIGGER_DETECTED msg=$(printf '%s' "$s" | tr '\n' ' ' | cut -c1-200)"
+      log "DRIFT_TRIGGER_DETECTED line=$(printf '%s' "$line" | tr '\n' ' ' | cut -c1-200)"
       exit 99
       ;;
   esac
-  log "STDOUT_SUPPRESSED msg=$(printf '%s' "$s" | tr '\n' ' ' | cut -c1-200)"
+  log "PIPE: $line"
+  printf "PIPE: %s\n" "$line" >> "$TRACKING"
 }
 
 scan_file_for_drift(){
@@ -34,35 +35,17 @@ scan_file_for_drift(){
   return 0
 }
 
+derive_grafana_pass(){
+  docker inspect logging-grafana-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | rg '^GF_SECURITY_ADMIN_PASSWORD=' | sed 's/^GF_SECURITY_ADMIN_PASSWORD=//'
+}
+
 require_endpoints(){
   curl -fsS http://127.0.0.1:3200/ready >/dev/null
   curl -fsS http://127.0.0.1:9004/-/healthy >/dev/null
   local gp
-  gp="$(docker inspect logging-grafana-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | rg '^GF_SECURITY_ADMIN_PASSWORD=' | sed 's/^GF_SECURITY_ADMIN_PASSWORD=//')"
+  gp="$(derive_grafana_pass)"
   test -n "$gp"
   curl -fsS -u "admin:$gp" http://127.0.0.1:9001/api/health >/dev/null
-}
-
-get_active_sources_6h(){
-  local out="$STATE/log_source_values_active_6h.txt"
-  local qr="$STATE/log_source_top_6h.json"
-  local lokiqr="http://127.0.0.1:3200/loki/api/v1/query_range"
-  local start_ns end_ns q resp count
-
-  start_ns=$((($(date +%s)-21600)*1000000000))
-  end_ns=$((($(date +%s)+60)*1000000000))
-  q='topk(50, sum by (log_source) (count_over_time({log_source=~".+"}[6h])))'
-  resp=$(curl -fsS "$lokiqr" --get --data-urlencode "query=$q" --data-urlencode "start=$start_ns" --data-urlencode "end=$end_ns" --data-urlencode "limit=50" --data-urlencode "direction=BACKWARD")
-
-  printf "%s" "$resp" > "$qr"
-  printf "%s" "$resp" | jq -r '.data.result[].metric.log_source' | sort -u > "$out"
-  count=$(wc -l < "$out" | tr -d ' ')
-  log "ACTIVE_6H_COUNT=$count"
-}
-
-micro_gates(){
-  require_endpoints
-  log "MICRO_GATES_OK=yes"
 }
 
 hard_gates(){
@@ -74,83 +57,84 @@ hard_gates(){
   pass=$(jq -r '.pass' "$ROOT/_build/logging/verify_grafana_authority_latest.json")
 
   if [[ "$unexpected" != "0" || "$pass" != "true" ]]; then
-    log "HARD_GATES_OK=no unexpected=$unexpected verify_pass=$pass"
+    pipe "⛔ BLOCK | reason=hard_gates_failed | unexpected=$unexpected verify_pass=$pass | next=stop"
     return 2
   fi
-  log "HARD_GATES_OK=yes unexpected=$unexpected verify_pass=$pass"
+
+  pipe "🧾 EVIDENCE hard_gates | state=ok | summary=unexpected_empty_panels=$unexpected verify_pass=$pass | canonical=audit+verifier"
   return 0
 }
 
 update_memory_runner_state(){
   local mem="$1"
-  local batch="$2"
+  local batch_idx="$2"
   local ts="$3"
-  local dry="$4"
-  local mode="$5"
-  local target_batches="$6"
+  local mode="$4"
+  local total="$5"
+  local run_name="$6"
   local tmp
 
   tmp=$(mktemp)
   if [[ -f "$mem" ]]; then
     jq \
-      --argjson b "$batch" \
+      --argjson idx "$batch_idx" \
       --arg ts "$ts" \
-      --argjson dry "$dry" \
       --arg mode "$mode" \
-      --argjson target "$target_batches" \
-      '.runner = ((.runner // {}) + {active_run:"melissa_longrun", mode:$mode, target_batches:$target, last_completed_batch:$b, last_updated:$ts, dry_run:$dry})' \
+      --argjson total "$total" \
+      --arg run "$run_name" \
+      '.runner = ((.runner // {}) + {active_run:$run, mode:$mode, target_batches:$total, last_completed_batch:$idx, last_updated:$ts, dry_run:false})' \
       "$mem" > "$tmp"
   else
     jq -n \
-      --argjson b "$batch" \
+      --argjson idx "$batch_idx" \
       --arg ts "$ts" \
-      --argjson dry "$dry" \
       --arg mode "$mode" \
-      --argjson target "$target_batches" \
-      '{runner:{active_run:"melissa_longrun", mode:$mode, target_batches:$target, last_completed_batch:$b, last_updated:$ts, dry_run:$dry}}' > "$tmp"
+      --argjson total "$total" \
+      --arg run "$run_name" \
+      '{runner:{active_run:$run, mode:$mode, target_batches:$total, last_completed_batch:$idx, last_updated:$ts, dry_run:false}}' > "$tmp"
   fi
   mv "$tmp" "$mem"
 }
 
-checkpoint_commit_if_needed(){
-  local dry="$1"
-  local checkpoint_id="$2"
+checkpoint_if_needed(){
+  local checkpoint_every="$1"
+  local idx="$2"
+  local run_name="$3"
 
-  if [[ "$dry" == "true" ]]; then
-    log "CHECKPOINT_ELIGIBLE=no reason=dry_run id=$checkpoint_id"
+  if (( checkpoint_every <= 0 )) || (( idx % checkpoint_every != 0 )); then
     return 0
+  fi
+
+  if ! hard_gates; then
+    return 2
   fi
 
   local files
   files=$(git -C "$ROOT" status --porcelain=v1 | awk '{print $2}' | rg '^infra/logging/grafana/dashboards/sources/codeswarm-src-.*\.json$' || true)
   if [[ -z "$files" ]]; then
-    log "CHECKPOINT_ELIGIBLE=no reason=no_dashboard_changes id=$checkpoint_id"
+    pipe "🧾 EVIDENCE checkpoint | state=skip | summary=no_dashboard_changes | canonical=allowlist"
     return 0
-  fi
-
-  if ! hard_gates; then
-    log "CHECKPOINT_ABORTED reason=hard_gates_failed id=$checkpoint_id"
-    return 2
   fi
 
   git -C "$ROOT" reset >/dev/null
   git -C "$ROOT" add $files
+
   local bad
   bad=$(git -C "$ROOT" diff --name-only --cached | rg -v '^infra/logging/grafana/dashboards/sources/codeswarm-src-.*\.json$' || true)
   if [[ -n "$bad" ]]; then
-    log "CHECKPOINT_ABORTED reason=bad_staged id=$checkpoint_id bad=$(printf '%s' "$bad" | tr '\n' ',')"
     git -C "$ROOT" reset >/dev/null
+    pipe "⛔ BLOCK | reason=checkpoint_bad_staged | gaps=allowlist_violation | next=stop"
     return 4
   fi
 
   if git -C "$ROOT" diff --cached --quiet; then
-    log "CHECKPOINT_ELIGIBLE=no reason=staged_empty id=$checkpoint_id"
+    pipe "🧾 EVIDENCE checkpoint | state=skip | summary=staged_empty | canonical=allowlist"
     return 0
   fi
 
-  git -C "$ROOT" commit -m "grafana: checkpoint source dashboards batch ${checkpoint_id}" >/dev/null
-  local h
-  h=$(git -C "$ROOT" rev-parse --short HEAD)
-  log "CHECKPOINT_COMMIT=yes id=$checkpoint_id hash=$h"
+  git -C "$ROOT" commit -m "ops: melissa checkpoint $run_name batch-$idx" >/dev/null
+  local hash
+  hash=$(git -C "$ROOT" rev-parse --short HEAD)
+  pipe "🧾 EVIDENCE checkpoint | state=commit | summary=hash=$hash batch=$idx | canonical=allowlist"
   return 0
 }
