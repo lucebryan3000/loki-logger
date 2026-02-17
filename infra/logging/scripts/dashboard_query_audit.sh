@@ -188,6 +188,10 @@ for d in idx:
                 if "(?i)(error|fail|exception|panic)" in resolved:
                     rec["status"] = "expected_empty"
                     expected_empty.append(rec)
+                # Per-dimension dashboards can legitimately be empty for inactive values.
+                elif uid.startswith("codeswarm-dim-"):
+                    rec["status"] = "expected_empty"
+                    expected_empty.append(rec)
                 else:
                     empty.append(rec)
         except Exception as exc:

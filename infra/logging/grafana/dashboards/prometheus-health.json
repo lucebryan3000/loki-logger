@@ -6,7 +6,6 @@
   "version": 1,
   "refresh": "30s",
   "tags": [
-    "sprint-3",
     "baseline"
   ],
   "panels": [

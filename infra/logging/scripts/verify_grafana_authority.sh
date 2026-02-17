@@ -8,6 +8,10 @@ ART_DIR="${ART_DIR:-/home/luce/apps/loki-logging/_build/logging}"
 ART_PATH="${ART_DIR}/verify_grafana_authority_latest.json"
 SRC_JSON="/home/luce/apps/loki-logging/_build/logging/log_source_values.json"
 SRC_DASH_DIR="/home/luce/apps/loki-logging/infra/logging/grafana/dashboards/sources"
+DIM_FILE="/home/luce/apps/loki-logging/_build/logging/chosen_dimension.txt"
+DIM_VALUES_FILE="/home/luce/apps/loki-logging/_build/logging/dimension_values.txt"
+DIM_DASH_DIR="/home/luce/apps/loki-logging/infra/logging/grafana/dashboards/dimensions"
+AUDIO_AUDIT_SCRIPT="/home/luce/apps/loki-logging/infra/logging/scripts/dashboard_query_audit.sh"
 E2E_SCRIPT="/home/luce/apps/loki-logging/infra/logging/scripts/e2e_check_hardened.sh"
 
 pass(){ echo "PASS: $*"; }
@@ -35,6 +39,7 @@ fi
 
 rules_json="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/ruler/grafana/api/v1/rules")"
 echo "$rules_json" | rg -q 'logging-e2e-marker-missing' && echo "$rules_json" | rg -q 'logging-total-ingest-down' && pass "Grafana alert rule UIDs present" || fail "Grafana alert rule UIDs missing"
+echo "$rules_json" | rg -q '"provenance":"file"' && pass "Grafana alert rules provenance=file" || fail "Grafana alert rules not file-provisioned"
 
 [[ -f "$SRC_JSON" ]] || fail "Missing log_source_values.json"
 SRC_COUNT="$(jq -r '.count' "$SRC_JSON")"
@@ -62,6 +67,56 @@ if [[ "${#MISSING_UIDS[@]}" -gt 0 ]]; then
 fi
 pass "Per-source dashboards complete ($PRESENT_FILES/$SRC_COUNT)"
 
+# Audit semantics: expected_empty panels are allowed; unexpected empty panels are not.
+if [[ -x "$AUDIO_AUDIT_SCRIPT" ]]; then
+  "$AUDIO_AUDIT_SCRIPT" >/tmp/dashboard_audit_verify.out 2>&1 || { cat /tmp/dashboard_audit_verify.out >&2; fail "dashboard_query_audit failed"; }
+  AUDIT_JSON="/home/luce/apps/loki-logging/_build/logging/dashboard_audit_latest.json"
+  [[ -f "$AUDIT_JSON" ]] || fail "Missing dashboard audit artifact"
+  AUDIT_PASS="$(jq -r '.summary.pass' "$AUDIT_JSON")"
+  AUDIT_EMPTY="$(jq -r '.summary.empty_panels' "$AUDIT_JSON")"
+  AUDIT_EXPECTED_EMPTY="$(jq -r '.summary.expected_empty_panels // 0' "$AUDIT_JSON")"
+  [[ "$AUDIT_PASS" == "true" && "$AUDIT_EMPTY" == "0" ]] && pass "Dashboard audit clean (empty=0, expected_empty=$AUDIT_EXPECTED_EMPTY)" || fail "Dashboard audit not clean (empty=$AUDIT_EMPTY)"
+else
+  AUDIT_PASS="unknown"
+  AUDIT_EMPTY="-1"
+  AUDIT_EXPECTED_EMPTY="0"
+fi
+
+# Second-dimension coverage (service_name/source_type/etc)
+[[ -f "$DIM_FILE" ]] || fail "Missing chosen_dimension.txt"
+[[ -f "$DIM_VALUES_FILE" ]] || fail "Missing dimension_values.txt"
+DIM_NAME="$(cat "$DIM_FILE" | tr -d '[:space:]')"
+[[ -n "$DIM_NAME" ]] || fail "chosen_dimension.txt empty"
+DIM_NAME_SLUG="$(echo "$DIM_NAME" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
+DIM_COUNT="$(rg -c '.' "$DIM_VALUES_FILE" || true)"
+[[ "$DIM_COUNT" =~ ^[0-9]+$ ]] || fail "Invalid dimension count"
+DIM_PRESENT_FILES="$(ls "$DIM_DASH_DIR" 2>/dev/null | rg -c "^codeswarm-dim-${DIM_NAME_SLUG}-.*\\.json$|^codeswarm-dim-index-${DIM_NAME}\\.json$|^codeswarm-dim-index-${DIM_NAME_SLUG}\\.json$" || echo 0)"
+
+DIM_INDEX_UID="codeswarm-dim-index-${DIM_NAME_SLUG}"
+DIM_INDEX_PROV="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/$DIM_INDEX_UID" | jq -r '.meta.provisioned' 2>/dev/null || echo false)"
+[[ "$DIM_INDEX_PROV" == "true" ]] && pass "Dimension index provisioned ($DIM_INDEX_UID)" || fail "Dimension index missing ($DIM_INDEX_UID)"
+
+DIM_MISSING_UIDS=()
+while IFS= read -r v; do
+  [[ -z "$v" ]] && continue
+  slug="$(echo "$v" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
+  prefix="codeswarm-dim-${DIM_NAME_SLUG}-"
+  max_slug_len=$((40 - ${#prefix}))
+  if [[ "$max_slug_len" -lt 1 ]]; then
+    max_slug_len=1
+  fi
+  uid="${prefix}${slug:0:max_slug_len}"
+  prov="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/$uid" | jq -r '.meta.provisioned' 2>/dev/null || echo false)"
+  if [[ "$prov" != "true" ]]; then
+    DIM_MISSING_UIDS+=("$uid")
+  fi
+done < "$DIM_VALUES_FILE"
+
+if [[ "${#DIM_MISSING_UIDS[@]}" -gt 0 ]]; then
+  fail "Per-dimension dashboards missing in Grafana provisioning: ${DIM_MISSING_UIDS[*]}"
+fi
+pass "Per-dimension dashboards complete (${DIM_COUNT}/${DIM_COUNT})"
+
 python3 - <<PY
 import json, time
 art={
@@ -73,11 +128,20 @@ art={
     "grafana_api": True,
     "e2e_marker_found": True,
     "rule_uids_present": ["logging-e2e-marker-missing","logging-total-ingest-down"],
+    "rule_provenance_file": True,
     "source_index_provisioned": True,
     "log_source_count": int("$SRC_COUNT"),
     "dashboards_expected": int("$SRC_COUNT"),
     "dashboards_present_files": int("$PRESENT_FILES"),
-    "dashboards_missing": []
+    "dashboards_missing": [],
+    "audit_pass": "$AUDIT_PASS" == "true",
+    "audit_empty_panels": int("$AUDIT_EMPTY"),
+    "audit_expected_empty_panels": int("$AUDIT_EXPECTED_EMPTY"),
+    "dimension_name": "$DIM_NAME",
+    "dimension_values_count": int("$DIM_COUNT"),
+    "dimension_dashboards_present_files": int("$DIM_PRESENT_FILES"),
+    "dimension_dashboards_missing": [],
+    "dimension_index_uid": "$DIM_INDEX_UID"
   }
 }
 with open("$ART_PATH","w") as f:

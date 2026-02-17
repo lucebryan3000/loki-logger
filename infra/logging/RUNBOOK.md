@@ -42,3 +42,18 @@ journald -> rsyslog -> Alloy (syslog TCP 1514 localhost) -> Loki -> Grafana
 - Reduction objective: keep one canonical operator source and remove doc duplication.
 - Consolidation target: move alert criteria into this runbook and avoid parallel checklist drift.
 - Validation gates: Loki ready, Prom ready, E2E script PASS, Grafana alert rules API readable.
+
+## Auditability completeness rules
+- `Source Index` dashboard must be provisioned: `codeswarm-source-index`.
+- Per-source dashboards must match the current `log_source` cardinality.
+- Second-dimension dashboards must match chosen dimension values:
+  - chosen dimension file: `_build/logging/chosen_dimension.txt`
+  - chosen values file: `_build/logging/dimension_values.txt`
+  - dimension index UID pattern: `codeswarm-dim-index-<dimension>`
+  - per-value UID pattern: `codeswarm-dim-<dimension>-<slug>`
+
+## Expected-empty semantics (deterministic)
+- Empty error-signature panels are not failures when they use regex:
+  - `(?i)(error|fail|exception|panic)`
+- These are classified as `expected_empty_panels` by `dashboard_query_audit.sh`.
+- Hard failures are only unexpected empty panels (`empty_panels > 0`) or query errors.

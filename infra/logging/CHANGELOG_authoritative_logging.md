@@ -160,3 +160,27 @@ Date:   Sat Feb 14 23:43:14 2026 -0600
 - Loki ready: `curl -fsS http://127.0.0.1:3200/ready`
 - Prom ready: `curl -fsS http://127.0.0.1:9004/-/healthy`
 - Verifier: `bash infra/logging/scripts/verify_grafana_authority.sh`
+
+## Milestone: auditability-by-source (80e8ee3)
+- Commit anchor: 80e8ee3
+- Delivered: Source Index + per-log_source dashboards + verifier source coverage + audit pass
+- Follow-up delivered: second-dimension dashboards (service_name) + verifier/runbook deterministic semantics
+
+### Proof pointers
+- Source index provisioned: GET /api/dashboards/uid/codeswarm-source-index
+- Source coverage artifact: _build/logging/log_source_values.json
+- Audit artifact: _build/logging/dashboard_audit_latest.json
+- Verifier artifact: _build/logging/verify_grafana_authority_latest.json
+- Dimension evidence: _build/logging/chosen_dimension.txt and _build/logging/dimension_values.txt
+
+### Recent commits (latest 10)
+80e8ee3 (HEAD -> logging-configuration, origin/logging-configuration) grafana: add source index and per-source auditability coverage
+a781ef8 grafana: clear empty panels and add top errors explorer
+2e4ff65 ops: normalize dashboard datasource UIDs and add query audit
+ec03325 grafana: fix empty dashboard queries against live Prom/Loki labels
+e9ac40c ops: harden E2E check and add deterministic state report
+619ccf7 docs: add authoritative logging state changelog
+41f4f0f ops: harden Grafana authority (alert posture + verifier v2 + docs consolidation)
+fd9f734 ops: make Grafana authoritative for logging (alerts + runbook + verification)
+f87ae91 docs: add logging visibility release notes and alert checklist
+f0c0570 grafana: add host + container overview dashboard
