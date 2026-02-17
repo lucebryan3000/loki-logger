@@ -6,6 +6,7 @@ STATE="$ROOT/_build/melissa"
 LOG="$STATE/runtime.log"
 TRACKING="$STATE/TRACKING.md"
 DRIFT_RE='@filename|Write tests for|\? for shortcuts'
+NODRIFT_HELPER="$ROOT/infra/logging/scripts/no_drift_print.sh"
 
 now_utc(){ date -u +%Y-%m-%dT%H:%M:%SZ; }
 
@@ -14,14 +15,27 @@ log(){
   printf "%s %s\n" "$(now_utc)" "$*" >> "$LOG"
 }
 
-pipe(){
+guard_message(){
   local line="$*"
+  if [[ -x "$NODRIFT_HELPER" ]]; then
+    if ! "$NODRIFT_HELPER" "$line" >/dev/null 2>&1; then
+      log "DRIFT_TRIGGER_DETECTED line=$(printf '%s' "$line" | tr '\n' ' ' | cut -c1-200)"
+      exit 99
+    fi
+    return 0
+  fi
+
   case "$line" in
     *"@filename"*|*"Write tests for"*|*"? for shortcuts"*)
       log "DRIFT_TRIGGER_DETECTED line=$(printf '%s' "$line" | tr '\n' ' ' | cut -c1-200)"
       exit 99
       ;;
   esac
+}
+
+pipe(){
+  local line="$*"
+  guard_message "$line"
   log "PIPE: $line"
   printf "PIPE: %s\n" "$line" >> "$TRACKING"
 }
