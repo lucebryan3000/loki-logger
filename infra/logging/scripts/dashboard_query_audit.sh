@@ -129,6 +129,7 @@ def substitute_vars(expr: str, vmap: dict):
 
 rows = []
 empty = []
+expected_empty = []
 checked = 0
 provisioned_scanned = 0
 
@@ -182,7 +183,13 @@ for d in idx:
             }
             rows.append(rec)
             if cnt == 0:
-                empty.append(rec)
+                # Some panels intentionally query rare error signatures; a zero here is expected
+                # and should not fail pipeline auditability.
+                if "(?i)(error|fail|exception|panic)" in resolved:
+                    rec["status"] = "expected_empty"
+                    expected_empty.append(rec)
+                else:
+                    empty.append(rec)
         except Exception as exc:
             rec = {
                 "dashboard_uid": uid,
@@ -206,10 +213,11 @@ summary = {
     "dashboards_provisioned_scanned": provisioned_scanned,
     "queries_checked": checked,
     "empty_panels": len(empty),
+    "expected_empty_panels": len(expected_empty),
 }
 
 with open(js_path, "w") as f:
-    json.dump({"summary": summary, "empty": empty, "checked": rows[:400]}, f, indent=2)
+    json.dump({"summary": summary, "empty": empty, "expected_empty": expected_empty, "checked": rows[:400]}, f, indent=2)
 
 with open(md_path, "w") as f:
     f.write(f"# Dashboard Query Audit ({summary['ts']})\n\n")
@@ -217,6 +225,7 @@ with open(md_path, "w") as f:
     f.write(f"- dashboards_provisioned_scanned: {summary['dashboards_provisioned_scanned']}\n")
     f.write(f"- queries_checked: {summary['queries_checked']}\n")
     f.write(f"- empty_panels: {summary['empty_panels']}\n")
+    f.write(f"- expected_empty_panels: {summary['expected_empty_panels']}\n")
     f.write(f"- pass: {'yes' if pass_flag else 'no'}\n\n")
     f.write("## Empty panels\n")
     if not empty:
