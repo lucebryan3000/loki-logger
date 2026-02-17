@@ -66,3 +66,9 @@ Dashboards that are plugin-owned or otherwise non-editable in Grafana UI are ado
 - Edit path: change JSON in repo, then let provisioning reload (or single Grafana restart if needed)
 - Guardrail: do not edit/delete plugin-owned originals in place; maintain CodeSwarm copies only
 
+
+## Adoption policy
+Plugin or non-editable dashboards are adopted into infra/logging/grafana/dashboards/adopted with CodeSwarm tags.
+
+## Label contract and expected-empty semantics
+Canonical label contract is log_source. Audit failure is only unexpected empty panels; expected-empty panels are tracked but not blocking.
