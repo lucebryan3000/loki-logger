@@ -125,7 +125,7 @@
     {
       "id": 5,
       "type": "table",
-      "title": "Top containers (5m)",
+      "title": "Top services (5m)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -133,7 +133,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (container) (count_over_time({log_source=\"rsyslog_syslog\"} | logfmt | container!=\"\" [5m])))",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\".+\"}[5m])))",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -150,7 +150,7 @@
     {
       "id": 6,
       "type": "table",
-      "title": "Top modules (5m)",
+      "title": "Top source types (5m)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -158,7 +158,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (module) (count_over_time({log_source=\"rsyslog_syslog\"} | logfmt | module!=\"\" [5m])))",
+          "expr": "topk(10, sum by (source_type) (count_over_time({log_source=\"rsyslog_syslog\", source_type=~\".+\"}[5m])))",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -175,7 +175,7 @@
     {
       "id": 7,
       "type": "table",
-      "title": "Top namespaces (5m)",
+      "title": "Error hits by service (5m)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -183,7 +183,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (namespace) (count_over_time({log_source=\"rsyslog_syslog\"} | logfmt | namespace!=\"\" [5m])))",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\".+\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])))",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -200,7 +200,7 @@
     {
       "id": 8,
       "type": "table",
-      "title": "Error rate by container (5m)",
+      "title": "Error hits by source type (5m)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -208,7 +208,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (container) (rate({log_source=\"rsyslog_syslog\"} | logfmt | container!=\"\" |~ \"(?i)(error|fail|exception|panic)\" [5m])))",
+          "expr": "topk(10, sum by (source_type) (count_over_time({log_source=\"rsyslog_syslog\", source_type=~\".+\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])))",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -225,7 +225,7 @@
     {
       "id": 9,
       "type": "timeseries",
-      "title": "Network/interface churn (5m)",
+      "title": "Service activity rate (5m)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -233,7 +233,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"rsyslog_syslog\"} |~ \"(?i)(veth|bridge|promiscuous|multicast|link is down|renamed from)\" [5m]))",
+          "expr": "topk(15, sum by (service_name) (rate({log_source=\"rsyslog_syslog\", service_name=~\".+\"}[5m])))",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -275,5 +275,6 @@
   ],
   "annotations": {
     "list": []
-  }
+  },
+  "editable": true
 }

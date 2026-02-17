@@ -73,7 +73,7 @@
     {
       "id": 3,
       "type": "timeseries",
-      "title": "Error-like rate (5m)",
+      "title": "Error-like by service (5m)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -81,7 +81,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"telemetry\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))",
+          "expr": "topk(10, (sum by (service_name) (rate({log_source=\"telemetry\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])) or (sum by (service_name) (rate({log_source=\"telemetry\"}[5m])) * 0)))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -121,9 +121,52 @@
         "x": 0,
         "y": 16
       }
+    },
+    {
+      "type": "table",
+      "title": "Top services (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (service_name) (count_over_time({log_source=\"telemetry\", service_name=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Volume by env (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (env) (count_over_time({log_source=\"telemetry\", env=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top files (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (filename) (count_over_time({log_source=\"telemetry\", filename=~\".+\"}[5m])))"
+        }
+      ]
     }
   ],
   "annotations": {
     "list": []
-  }
+  },
+  "editable": true
 }

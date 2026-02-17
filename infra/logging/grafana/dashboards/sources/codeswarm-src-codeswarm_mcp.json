@@ -81,7 +81,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))",
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])) or (sum(rate({log_source=\"codeswarm_mcp\"}[5m])) * 0)",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -121,9 +121,52 @@
         "x": 0,
         "y": 16
       }
+    },
+    {
+      "type": "table",
+      "title": "Top MCP levels (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (mcp_level) (count_over_time({log_source=\"codeswarm_mcp\", mcp_level=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top MCP files (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (filename) (count_over_time({log_source=\"codeswarm_mcp\", filename=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "MCP activity keywords (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(tool|request|response|latency|timeout)\" [5m]))"
+        }
+      ]
     }
   ],
   "annotations": {
     "list": []
-  }
+  },
+  "editable": true
 }
