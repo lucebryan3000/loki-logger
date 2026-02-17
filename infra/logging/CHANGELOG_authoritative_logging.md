@@ -368,3 +368,188 @@ Date:   Tue Feb 17 04:58:11 2026 -0600
  infra/logging/scripts/verify_grafana_authority.sh  | 30 +++++++++
  3 files changed, 144 insertions(+)
 
+## Milestone: deterministic audit gates + adopted navigation (ef73877)
+- Commit anchor: ef73877
+- Outcome: adopted dashboards normalized for discoverability via `tag=adopted`; audit/verifier determinism enforced with `unexpected_empty_panels==0`
+
+### Proof pointers
+- Audit artifact: `_build/logging/dashboard_audit_latest.json` (`summary.unexpected_empty_panels == 0`)
+- Verifier artifact: `_build/logging/verify_grafana_authority_latest.json` (`checks.audit_unexpected_empty_panels == 0`)
+- Discoverability proof: `GET /api/search?tag=adopted`
+
+### Recent commits (last 15)
+ef73877 (HEAD -> logging-configuration, origin/logging-configuration) ops: normalize adopted dashboard navigation and deterministic audit gates
+cfabc78 grafana: adopt non-managed dashboards into repo provisioning
+306d0e2 ops: extend auditability with dimension coverage and deterministic gates
+80e8ee3 grafana: add source index and per-source auditability coverage
+a781ef8 grafana: clear empty panels and add top errors explorer
+2e4ff65 ops: normalize dashboard datasource UIDs and add query audit
+ec03325 grafana: fix empty dashboard queries against live Prom/Loki labels
+e9ac40c ops: harden E2E check and add deterministic state report
+619ccf7 docs: add authoritative logging state changelog
+41f4f0f ops: harden Grafana authority (alert posture + verifier v2 + docs consolidation)
+fd9f734 ops: make Grafana authoritative for logging (alerts + runbook + verification)
+f87ae91 docs: add logging visibility release notes and alert checklist
+f0c0570 grafana: add host + container overview dashboard
+3e6292e grafana: enhance pipeline health dashboard
+0c55887 grafana: add pipeline health dashboard
+
+### Recent stats (last 10)
+commit ef73877f5272fc6b06d01ad82096cde8232db760
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 07:12:29 2026 -0600
+
+    ops: normalize adopted dashboard navigation and deterministic audit gates
+    
+    Update changelog/runbook for cfabc78 adoption milestone, normalize adopted tags, and enforce audit unexpected-empty determinism in audit/verifier.
+
+ infra/logging/CHANGELOG_authoritative_logging.md   | 184 +++++++++++++++++++++
+ infra/logging/RUNBOOK.md                           |   9 +
+ .../adopted/codeswarm-adopted-dfdgpdf22b9q8c.json  |   3 +-
+ .../adopted/codeswarm-adopted-dfdgqba65adj4b.json  |   3 +-
+ .../adopted/codeswarm-adopted-uddpyzz7z.json       |   1 +
+ infra/logging/scripts/dashboard_query_audit.sh     |   7 +
+ infra/logging/scripts/verify_grafana_authority.sh  |   8 +-
+ 7 files changed, 208 insertions(+), 7 deletions(-)
+
+commit cfabc7803c645136be881d01ae59502b42858a7f
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 06:52:04 2026 -0600
+
+    grafana: adopt non-managed dashboards into repo provisioning
+    
+    Adopt blocked/non-managed dashboards into dashboards/adopted, add adoption manifest workflow script, and enforce adoption coverage in verifier artifact.
+
+ .../adopted/codeswarm-adopted-dfdgpdf22b9q8c.json  |  401 +++++
+ .../adopted/codeswarm-adopted-dfdgqba65adj4b.json  |  129 ++
+ .../adopted/codeswarm-adopted-uddpyzz7z.json       | 1555 ++++++++++++++++++++
+ infra/logging/scripts/adopt_dashboards.sh          |   93 ++
+ infra/logging/scripts/verify_grafana_authority.sh  |   41 +-
+ 5 files changed, 2216 insertions(+), 3 deletions(-)
+
+commit 306d0e2c47a10344980215e7bb375058bdf96b0b
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 06:39:15 2026 -0600
+
+    ops: extend auditability with dimension coverage and deterministic gates
+    
+    Add service_name dimension dashboards, harden verifier/audit expected-empty handling, update runbook/changelog, and remove legacy sprint-3 dashboard tags.
+
+ infra/logging/CHANGELOG_authoritative_logging.md   |  24 ++++
+ infra/logging/RUNBOOK.md                           |  15 +++
+ infra/logging/grafana/dashboards/alloy-health.json |   3 +-
+ .../codeswarm-dim-index-service_name.json          | 122 +++++++++++++++++++
+ .../codeswarm-dim-service-name-atlas-sql.json      | 130 +++++++++++++++++++++
+ ...codeswarm-dim-service-name-atlas-typesense.json | 130 +++++++++++++++++++++
+ .../codeswarm-dim-service-name-codeswarm-mcp.json  | 130 +++++++++++++++++++++
+ ...codeswarm-dim-service-name-unknown-service.json | 130 +++++++++++++++++++++
+ infra/logging/grafana/dashboards/gpu-overview.json |   1 -
+ infra/logging/grafana/dashboards/loki-health.json  |   3 +-
+ .../grafana/dashboards/prometheus-health.json      |   3 +-
+ infra/logging/scripts/dashboard_query_audit.sh     |   4 +
+ infra/logging/scripts/verify_grafana_authority.sh  |  66 ++++++++++-
+ 13 files changed, 753 insertions(+), 8 deletions(-)
+
+commit 80e8ee3fcd13dd08486b68211b85e4d2199e41c8
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 06:29:49 2026 -0600
+
+    grafana: add source index and per-source auditability coverage
+    
+    Provision CodeSwarm Source Index and per-log_source dashboards; upgrade verifier and audit script for source-completeness evidence with machine-readable outputs.
+
+ .../grafana/dashboards/codeswarm-source-index.json | 122 +++++++++++++++++++
+ .../sources/codeswarm-src-codeswarm_mcp.json       | 129 ++++++++++++++++++++
+ .../dashboards/sources/codeswarm-src-docker.json   | 129 ++++++++++++++++++++
+ .../sources/codeswarm-src-rsyslog_syslog.json      | 129 ++++++++++++++++++++
+ .../sources/codeswarm-src-telemetry.json           | 129 ++++++++++++++++++++
+ .../sources/codeswarm-src-vscode_server.json       | 129 ++++++++++++++++++++
+ infra/logging/scripts/dashboard_query_audit.sh     |  13 +-
+ infra/logging/scripts/verify_grafana_authority.sh  | 135 +++++++++++----------
+ 8 files changed, 846 insertions(+), 69 deletions(-)
+
+commit a781ef845c25f8964d18516a8ec6e0ee3915110d
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 06:19:07 2026 -0600
+
+    grafana: clear empty panels and add top errors explorer
+    
+    Fix audit-reported empty panels, add provisioned Top Errors / Log Explorer dashboard, and harden dashboard query audit with provisioned-only scope, var substitution, and retries.
+
+ infra/logging/grafana/dashboards/gpu-overview.json |   6 +-
+ .../dashboards/top-errors-log-explorer.json        | 132 +++++++++++++
+ infra/logging/scripts/dashboard_query_audit.sh     | 207 ++++++++++++++++-----
+ 3 files changed, 294 insertions(+), 51 deletions(-)
+
+commit 2e4ff65023438c612677a6269303d863afd71377
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 06:10:46 2026 -0600
+
+    ops: normalize dashboard datasource UIDs and add query audit
+    
+    Set explicit datasource UIDs across provisioned dashboards, keep Grafana metrics in Prom-health mode, and add dashboard query audit script with md/json outputs.
+
+ infra/logging/grafana/dashboards/alloy-health.json |  10 +-
+ .../grafana/dashboards/containers_overview.json    |  14 ++-
+ infra/logging/grafana/dashboards/gpu-overview.json |  18 ++-
+ .../grafana/dashboards/grafana-metrics.json        |  25 ++++-
+ .../dashboards/host-container-overview.json        |  38 +++++--
+ .../logging/grafana/dashboards/host_overview.json  |  20 +++-
+ infra/logging/grafana/dashboards/loki-health.json  |  10 +-
+ .../grafana/dashboards/pipeline-health.json        |  38 +++++--
+ .../grafana/dashboards/prometheus-health.json      |  26 +++--
+ .../grafana/dashboards/zprometheus-stats.json      |  26 ++++-
+ infra/logging/scripts/dashboard_query_audit.sh     | 125 +++++++++++++++++++++
+ 11 files changed, 300 insertions(+), 50 deletions(-)
+
+commit ec0332584be2215ccf54b096ef11f98466305baf
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 06:02:12 2026 -0600
+
+    grafana: fix empty dashboard queries against live Prom/Loki labels
+    
+    Patch provisioned dashboards to use metrics/labels that exist in this stack and add provisioned JSON for legacy Grafana metrics and zPrometheus Stats UIDs.
+
+ infra/logging/grafana/dashboards/alloy-health.json |   4 +-
+ .../grafana/dashboards/containers_overview.json    |   4 +-
+ .../grafana/dashboards/grafana-metrics.json        |  84 +++++++++++++++++
+ .../grafana/dashboards/prometheus-health.json      |   4 +-
+ .../grafana/dashboards/zprometheus-stats.json      | 105 +++++++++++++++++++++
+ 5 files changed, 195 insertions(+), 6 deletions(-)
+
+commit e9ac40c9dd3593dfaf0eea6d88ded25e42ce3ee3
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 05:50:05 2026 -0600
+
+    ops: harden E2E check and add deterministic state report
+    
+    Add retry-based e2e_check_hardened.sh and state_report.sh (md+json) with fail-closed unknown handling.
+
+ infra/logging/scripts/e2e_check_hardened.sh |  47 +++++++++++++
+ infra/logging/scripts/state_report.sh       | 102 ++++++++++++++++++++++++++++
+ 2 files changed, 149 insertions(+)
+
+commit 619ccf796049888612766f7038fc9290fe128efb
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 05:43:13 2026 -0600
+
+    docs: add authoritative logging state changelog
+    
+    Capture Grafana-as-authority investigation evidence, verifier artifact pointer, and current blockers.
+
+ infra/logging/CHANGELOG_authoritative_logging.md | 162 +++++++++++++++++++++++
+ 1 file changed, 162 insertions(+)
+
+commit 41f4f0f959f29fe7199e606d18c00b2020b843ff
+Author: Bryan Luce <luce@appmelia.com>
+Date:   Tue Feb 17 05:19:17 2026 -0600
+
+    ops: harden Grafana authority (alert posture + verifier v2 + docs consolidation)
+    
+    Harden alert posture, upgrade verifier to v2 with JSON artifact, and consolidate alert docs canonically.
+
+ infra/logging/ALERTS_CHECKLIST.md                 |  3 +
+ infra/logging/RUNBOOK.md                          |  9 ++-
+ infra/logging/scripts/verify_grafana_authority.sh | 79 +++++++++++++++++++----
+ 3 files changed, 77 insertions(+), 14 deletions(-)
+

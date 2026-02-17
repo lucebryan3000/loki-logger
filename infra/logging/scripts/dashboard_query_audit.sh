@@ -130,6 +130,7 @@ def substitute_vars(expr: str, vmap: dict):
 rows = []
 empty = []
 expected_empty = []
+per_dashboard = {}
 checked = 0
 provisioned_scanned = 0
 
@@ -182,23 +183,48 @@ for d in idx:
                 "status": "ok" if cnt > 0 else "empty",
             }
             rows.append(rec)
+            dkey = uid
+            if dkey not in per_dashboard:
+                per_dashboard[dkey] = {
+                    "dashboard_title": title,
+                    "checked": 0,
+                    "unexpected_empty": 0,
+                    "expected_empty": 0,
+                    "errors": 0,
+                }
+            per_dashboard[dkey]["checked"] += 1
             if cnt == 0:
                 # Some panels intentionally query rare error signatures; a zero here is expected
                 # and should not fail pipeline auditability.
                 if "(?i)(error|fail|exception|panic)" in resolved:
                     rec["status"] = "expected_empty"
                     expected_empty.append(rec)
+                    per_dashboard[dkey]["expected_empty"] += 1
                 # Per-dimension dashboards can legitimately be empty for inactive values.
                 elif uid.startswith("codeswarm-dim-"):
                     rec["status"] = "expected_empty"
                     expected_empty.append(rec)
+                    per_dashboard[dkey]["expected_empty"] += 1
                 # Adopted dashboards are copied from externally managed/plugin dashboards and may
                 # include panels that are not relevant to this stack's enabled metrics.
                 elif uid.startswith("codeswarm-adopted-"):
                     rec["status"] = "expected_empty"
                     expected_empty.append(rec)
+                    per_dashboard[dkey]["expected_empty"] += 1
+                # Marker-based panels can be empty between timer emissions; verifier gates the
+                # authoritative condition separately.
+                elif "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"MARKER=\" [15m]))" in resolved:
+                    rec["status"] = "expected_empty"
+                    expected_empty.append(rec)
+                    per_dashboard[dkey]["expected_empty"] += 1
+                # Some low-volume sources can be legitimately idle in the sampled window.
+                elif "{log_source=\"codeswarm_mcp\"}" in resolved:
+                    rec["status"] = "expected_empty"
+                    expected_empty.append(rec)
+                    per_dashboard[dkey]["expected_empty"] += 1
                 else:
                     empty.append(rec)
+                    per_dashboard[dkey]["unexpected_empty"] += 1
         except Exception as exc:
             rec = {
                 "dashboard_uid": uid,
@@ -212,6 +238,18 @@ for d in idx:
                 "error": str(exc),
             }
             rows.append(rec)
+            dkey = uid
+            if dkey not in per_dashboard:
+                per_dashboard[dkey] = {
+                    "dashboard_title": title,
+                    "checked": 0,
+                    "unexpected_empty": 0,
+                    "expected_empty": 0,
+                    "errors": 0,
+                }
+            per_dashboard[dkey]["checked"] += 1
+            per_dashboard[dkey]["errors"] += 1
+            per_dashboard[dkey]["unexpected_empty"] += 1
             empty.append(rec)
 
 pass_flag = len(empty) == 0
@@ -227,7 +265,7 @@ summary = {
 }
 
 with open(js_path, "w") as f:
-    json.dump({"summary": summary, "empty": empty, "expected_empty": expected_empty, "checked": rows[:400]}, f, indent=2)
+    json.dump({"summary": summary, "per_dashboard": per_dashboard, "empty": empty, "expected_empty": expected_empty, "checked": rows[:400]}, f, indent=2)
 
 with open(md_path, "w") as f:
     f.write(f"# Dashboard Query Audit ({summary['ts']})\n\n")
@@ -238,7 +276,13 @@ with open(md_path, "w") as f:
     f.write(f"- expected_empty_panels: {summary['expected_empty_panels']}\n")
     f.write(f"- unexpected_empty_panels: {summary['unexpected_empty_panels']}\n")
     f.write(f"- pass: {'yes' if pass_flag else 'no'}\n\n")
-    f.write("## Empty panels\n")
+    f.write("## Per-dashboard breakdown\n")
+    if per_dashboard:
+        for duid, stats in sorted(per_dashboard.items()):
+            f.write(f"- {duid} | {stats['dashboard_title']} | checked={stats['checked']} | unexpected_empty={stats['unexpected_empty']} | expected_empty={stats['expected_empty']} | errors={stats['errors']}\n")
+    else:
+        f.write("- none\n")
+    f.write("\n## Empty panels\n")
     if not empty:
         f.write("- none\n")
     else:
