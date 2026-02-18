@@ -7,6 +7,8 @@ MANIFEST="$STATE/batch_manifest.json"
 MEM="$STATE/memory.json"
 QUEUE_JSON="$STATE/queue.json"
 QUEUE_MD="$STATE/queue.md"
+QUEUE_CURATED_JSON="$STATE/queue-curated.json"
+QUEUE_CURATED_MD="$STATE/queue-curated.md"
 TRACKING="$STATE/TRACKING.md"
 LOG="$STATE/runtime.log"
 COMPOSE_FILE="$ROOT/infra/logging/docker-compose.observability.yml"
@@ -60,7 +62,37 @@ ensure_precheck(){
   pipe "🚀 RUN_START | run=$run_name | total=0 | state=$STATE"
 }
 
+use_curated_queue(){
+  if [[ ! -f "$QUEUE_CURATED_JSON" ]]; then
+    pipe "⛔ BLOCK | reason=missing_queue_curated | gaps=queue_curated | next=create_queue"
+    return 1
+  fi
+
+  if ! jq -e '.items and (.items|type=="array") and ((.continue_on_fail // true)|type=="boolean")' "$QUEUE_CURATED_JSON" >/dev/null 2>&1; then
+    pipe "⛔ BLOCK | reason=invalid_queue_curated | gaps=schema | next=repair_queue"
+    return 1
+  fi
+
+  cp "$QUEUE_CURATED_JSON" "$QUEUE_JSON"
+  queue_write_markdown "$QUEUE_JSON" "$QUEUE_MD"
+
+  if [[ -f "$QUEUE_CURATED_MD" ]]; then
+    cp "$QUEUE_CURATED_MD" "$QUEUE_MD"
+  fi
+
+  local pending_now defer_count na_count
+  pending_now=$(jq -r '[.items[] | select((.bucket // "REMEDIATE_NOW")=="REMEDIATE_NOW" and (.status // "pending")=="pending")] | length' "$QUEUE_CURATED_JSON")
+  defer_count=$(jq -r '[.items[] | select((.bucket // "")=="DEFER")] | length' "$QUEUE_CURATED_JSON")
+  na_count=$(jq -r '[.items[] | select((.bucket // "")=="N_A")] | length' "$QUEUE_CURATED_JSON")
+  pipe "🧲 INTAKE_DONE | new=0 | moved=0 | curated=$pending_now | defer=$defer_count | na=$na_count"
+  return 0
+}
+
 build_queue(){
+  if use_curated_queue; then
+    return 0
+  fi
+
   local loki_q loki_resp active_json offenders_json adopted_json
   loki_q='topk(200, sum by (log_source) (count_over_time({log_source=~".+"}[6h])))'
   loki_resp=$(curl -fsS 'http://127.0.0.1:3200/loki/api/v1/query_range' --get --data-urlencode "query=$loki_q" --data-urlencode "start=$((($(date +%s)-21600)*1000000000))" --data-urlencode "end=$((($(date +%s)+60)*1000000000))" --data-urlencode "limit=200" --data-urlencode "direction=BACKWARD")
@@ -560,6 +592,46 @@ run_item(){
       ensure_runbook_section "Label contract and expected-empty semantics" "Canonical label contract is log_source. Audit failure is only unexpected empty panels; expected-empty panels are tracked but not blocking."
       item_note="runbook_label_contract_ok"
       ;;
+    ADR-021-HARDCODED-PATHS)
+      if rg -q 'REPO_ROOT=' "$ROOT/scripts/add-log-source.sh" && ! rg -q '/home/luce/apps/loki-logging/.claude/prompts' "$ROOT/scripts/add-log-source.sh"; then
+        item_note="add_source_paths_relative"
+      else
+        item_note="add_source_paths_not_relative"
+        false
+      fi
+      ;;
+    ADR-021-MISSING-STRICT-MODE)
+      if rg -q '^set -euo pipefail$' "$ROOT/scripts/add-log-source.sh"; then
+        item_note="add_source_strict_mode_enabled"
+      else
+        item_note="add_source_strict_mode_missing"
+        false
+      fi
+      ;;
+    ADR-021-SOURCE-COUNT-STALE)
+      if rg -q 'CURRENT SOURCES \\(8\\)' "$ROOT/scripts/add-log-source.sh"; then
+        item_note="add_source_count_updated"
+      else
+        item_note="add_source_count_stale"
+        false
+      fi
+      ;;
+    ADR-022-UFW-PROTECTED-CLAIM)
+      if ! rg -q 'UFW-protected' "$ROOT/docs/quality-checklist.md"; then
+        item_note="quality_checklist_ufw_claim_fixed"
+      else
+        item_note="quality_checklist_ufw_claim_present"
+        false
+      fi
+      ;;
+    ADR-022-HOST-LABEL-CLAIM)
+      if ! rg -q 'env`, `host`, `job' "$ROOT/docs/quality-checklist.md"; then
+        item_note="quality_checklist_host_label_claim_fixed"
+      else
+        item_note="quality_checklist_host_label_claim_present"
+        false
+      fi
+      ;;
     VERIFY:*)
       verify_item "$item_id"
       ;;
@@ -648,18 +720,42 @@ run_loop(){
       break
     fi
 
-    local item_json item_id item_type item_target attempt started ended dur
+    local item_json item_id item_type item_target item_bucket item_status attempt started ended dur
     item_json=$(jq -c ".items[] | select(.idx==$idx)" "$QUEUE_JSON")
+    [[ -z "$item_json" ]] && continue
     item_id=$(printf '%s' "$item_json" | jq -r '.id')
-    item_type=$(printf '%s' "$item_json" | jq -r '.type')
-    item_target=$(printf '%s' "$item_json" | jq -r '.target')
-    attempt=$(( $(printf '%s' "$item_json" | jq -r '.attempt') + 1 ))
+    item_type=$(printf '%s' "$item_json" | jq -r '.type // "adr_backlog"')
+    item_target=$(printf '%s' "$item_json" | jq -r '.target // ""')
+    item_bucket=$(printf '%s' "$item_json" | jq -r '.bucket // "REMEDIATE_NOW"')
+    item_status=$(printf '%s' "$item_json" | jq -r '.status // "pending"')
+
+    if [[ "$item_status" != "pending" ]]; then
+      continue
+    fi
+
+    attempt=$(( $(printf '%s' "$item_json" | jq -r '.attempt // 0') + 1 ))
 
     started=$(now_utc)
     queue_update_item "$QUEUE_JSON" "$idx" "running" "$attempt" "" "$started" ""
     queue_write_markdown "$QUEUE_JSON" "$QUEUE_MD"
 
-    pipe "🚧 ITEM_START $item_id | idx=$idx/$total | attempt=$attempt | type=$item_type" || true
+    pipe "🚧 ITEM_START $item_id | idx=$idx/$total | attempt=$attempt | bucket=$item_bucket" || true
+
+    if [[ "$item_bucket" != "REMEDIATE_NOW" ]]; then
+      ended=$(now_utc)
+      dur="00:00:00"
+      if [[ "$item_bucket" == "DEFER" ]]; then
+        item_note="deferred_this_cycle"
+      else
+        item_note="n_a_no_change"
+      fi
+      done_count=$((done_count+1))
+      queue_update_item "$QUEUE_JSON" "$idx" "skipped" "$attempt" "$item_note" "$started" "$ended"
+      queue_write_markdown "$QUEUE_JSON" "$QUEUE_MD"
+      pipe "✅ ITEM_DONE $item_id | dur=$dur | end=$ended | attempt=$attempt | status=ok | notes=$item_note" || true
+      update_memory_runner_state "$MEM" "$idx" "$(now_utc)" "$mode" "$total" "$run_name" "$last_checkpoint_hash"
+      continue
+    fi
 
     local rc=0
     if ! run_item "$item_id" "$item_type" "$item_target"; then

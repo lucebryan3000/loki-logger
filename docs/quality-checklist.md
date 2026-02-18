@@ -5,8 +5,8 @@ This checklist ensures documentation correctness, operational validity, and styl
 ## Correctness Checks
 
 ### Ports and Bindings
-- [ ] Grafana port is 0.0.0.0:9001 (all interfaces, UFW-protected)
-- [ ] Prometheus port is 0.0.0.0:9004 (all interfaces, UFW-protected)
+- [ ] Grafana port is bound to loopback by default (`127.0.0.1:9001`) unless intentionally overridden
+- [ ] Prometheus port is bound to loopback by default (`127.0.0.1:9004`) unless intentionally overridden
 - [ ] Loki is internal-only (no external binding)
 - [ ] All port references in docs match `docker-compose.observability.yml` + `.env`
 
@@ -22,7 +22,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 - [ ] Volume names include `logging_` prefix
 
 ### Labels
-- [ ] All logs have `env`, `host`, `job` labels
+- [ ] Label contract matches runtime truth (`log_source` required; `env` present where configured)
 - [ ] Docker logs have `container_name` label
 - [ ] CodeSwarm MCP logs have `log_source=codeswarm_mcp` label
 - [ ] No queries use empty selector `{}`
@@ -76,13 +76,13 @@ This checklist ensures documentation correctness, operational validity, and styl
 
 ### Exposure
 - [ ] External services bound to expected interface (0.0.0.0 or 127.0.0.1 per .env)
-- [ ] UFW is active and restricts access to trusted IPs/subnets
+- [ ] Docker-published ports are intentionally scoped (loopback preferred) and not assumed protected by UFW alone
 - [ ] Loki has no exposed ports (internal-only)
 - [ ] No authentication bypasses documented
 
 ### Authentication
 - [ ] Grafana requires username/password
-- [ ] Prometheus has no auth (UFW-protected LAN)
+- [ ] Prometheus exposure is either loopback-only or protected with explicit auth controls
 - [ ] Admin password reset instructions are correct
 
 ## Style Checks
@@ -101,7 +101,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 
 ### Terminology
 - [ ] "Stack" not "cluster" (single-node deployment)
-- [ ] "0.0.0.0" or "all interfaces" for LAN-accessible services (not "loopback")
+- [ ] Interface terminology matches deployed bind addresses (`127.0.0.1` vs `0.0.0.0`)
 - [ ] "Internal-only" for services without exposed ports
 - [ ] "Evidence" for proof archives, not "logs" or "reports"
 

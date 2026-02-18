@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # add-log-source.sh — Interactive wrapper for loki-logging-setup playbook
 # Usage: ./scripts/add-log-source.sh [application-name] [log-path]
 #
@@ -7,10 +7,11 @@
 # 2. Invoking the Claude Code playbook to configure Alloy
 # 3. Verifying the logs appear in Loki
 
-set -e
-
-PLAYBOOK_DIR="/home/luce/apps/loki-logging/.claude/prompts"
-PLAYBOOK_OPTIMIZED="$PLAYBOOK_DIR/loki-logging-setup-optimized.md"
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PLAYBOOK_DIR="${PLAYBOOK_DIR:-$REPO_ROOT/.claude/prompts}"
+PLAYBOOK_MAIN="$PLAYBOOK_DIR/loki-logging-setup-playbook.md"
 PLAYBOOK_REFERENCE="$PLAYBOOK_DIR/loki-logging-setup-reference.md"
 
 # Colors for output
@@ -22,13 +23,13 @@ echo -e "${GREEN}=== Loki Logging: Add New Log Source ===${NC}"
 echo ""
 
 # Check if playbooks exist
-if [ ! -f "$PLAYBOOK_OPTIMIZED" ]; then
-    echo "ERROR: Playbook not found at $PLAYBOOK_OPTIMIZED"
+if [ ! -f "$PLAYBOOK_MAIN" ]; then
+    echo "ERROR: Playbook not found at $PLAYBOOK_MAIN"
     exit 1
 fi
 
 # Usage help
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
     cat << 'EOF'
 Add a new log source to the Loki logging stack
 
@@ -68,21 +69,22 @@ OUTPUT:
     - Updated infra/logging/alloy-config.alloy
     - Logs queryable in Grafana: {log_source="<application>"}
 
-CURRENT SOURCES (7):
+CURRENT SOURCES (8):
     1. journald (via rsyslog)
-    2. docker (vllm, hex projects)
-    3. vscode_server
-    4. codeswarm_mcp
-    5. nvidia_telem
-    6. telemetry
-    7. tool_sink
+    2. rsyslog_syslog
+    3. docker (vllm, hex projects)
+    4. vscode_server
+    5. codeswarm_mcp
+    6. nvidia_telem
+    7. telemetry
+    8. tool_sink
 
 EOF
     exit 0
 fi
 
 # Interactive or argument-based input
-if [ -z "$1" ]; then
+if [ -z "${1:-}" ]; then
     echo -e "${YELLOW}Interactive mode${NC}"
     echo ""
     read -p "Application name (e.g., nginx, postgres, myapp): " APP_NAME
@@ -153,10 +155,10 @@ CLAUDE CODE PROMPT — Copy and paste this into Claude Code:
 Ingest logs from $APP_NAME at $LOG_PATH
 
 Use the loki-logging-setup playbook (v2.2) at:
-  /home/luce/apps/loki-logging/.claude/prompts/loki-logging-setup-optimized.md
+  $PLAYBOOK_MAIN
 
 Reference guide at:
-  /home/luce/apps/loki-logging/.claude/prompts/loki-logging-setup-reference.md
+  $PLAYBOOK_REFERENCE
 
 Follow all 8 phases:
 1. Discovery — Find logs, check format, volume, sensitivity
@@ -177,7 +179,7 @@ When complete, verify with:
 EOF
 
 echo ""
-echo "Playbook location: $PLAYBOOK_OPTIMIZED"
+echo "Playbook location: $PLAYBOOK_MAIN"
 echo "Reference guide: $PLAYBOOK_REFERENCE"
 echo ""
 echo -e "${GREEN}Done!${NC}"
