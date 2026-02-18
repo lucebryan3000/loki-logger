@@ -72,3 +72,23 @@ Plugin or non-editable dashboards are adopted into infra/logging/grafana/dashboa
 
 ## Label contract and expected-empty semantics
 Canonical label contract is log_source. Audit failure is only unexpected empty panels; expected-empty panels are tracked but not blocking.
+
+
+## Disk-full behavior
+If host or container storage approaches full, prioritize preserving Grafana/Loki availability:
+- Run `docker system df` and check `_build/logging/dashboard_audit_latest.json` for signal loss.
+- Reduce retention only via config files and restart controlled services once.
+- Avoid destructive cleanup of `loki-data`/`prometheus-data` volumes unless restoring from backup.
+
+
+## WAL and retry expectations
+Prometheus WAL and Loki retry paths can absorb brief downstream interruptions, but not sustained disk exhaustion.
+- During Loki unavailability, expect delayed or dropped writes depending on backpressure.
+- Treat `loki_write_dropped_entries_total` and `loki_write_failures_discarded_total` as canonical loss indicators.
+
+
+## Graceful shutdown procedure
+For controlled maintenance:
+1. Run hard gates (`dashboard_query_audit.sh`, `verify_grafana_authority.sh`) and capture baseline artifacts.
+2. Stop services with non-destructive down flow first (`logging_stack_down.sh` without purge).
+3. Restart stack and re-run hard gates before declaring healthy.

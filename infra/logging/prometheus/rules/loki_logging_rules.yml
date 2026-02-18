@@ -35,15 +35,6 @@ groups:
       - record: sprint3:container_memory_workingset_bytes
         expr: container_memory_working_set_bytes{container!="",container!="POD"}
 
-      - alert: TargetDown
-        expr: sprint3:targets_down:count > 0
-        for: 2m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Prometheus target down"
-          description: "One or more scrape targets are down."
-
       - alert: NodeDiskSpaceLow
         expr: sprint3:host_disk_usage_percent > 90
         for: 5m
@@ -70,3 +61,21 @@ groups:
         annotations:
           summary: "CPU usage high (>90%)"
           description: "Host {{ $labels.instance }} CPU usage above 90%."
+
+      - alert: AlloyPipelineDrops
+        expr: sum(increase(loki_write_dropped_entries_total[10m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alloy/Loki dropped log entries detected"
+          description: "Dropped entries observed over 10m window."
+
+      - alert: LokiVolumeUsageHigh
+        expr: sum(container_fs_usage_bytes{container_label_com_docker_compose_service="loki"}) > (20 * 1024 * 1024 * 1024)
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Loki container storage usage high"
+          description: "Loki container fs usage exceeded 20GiB."

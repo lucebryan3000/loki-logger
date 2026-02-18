@@ -217,6 +217,11 @@ for d in idx:
                     rec["status"] = "expected_empty"
                     expected_empty.append(rec)
                     per_dashboard[dkey]["expected_empty"] += 1
+                # Rsyslog forward-error panel is intentionally quiet in healthy state.
+                elif "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"(omfwd|suspend|refused|error)\" [30m]))" in resolved:
+                    rec["status"] = "expected_empty"
+                    expected_empty.append(rec)
+                    per_dashboard[dkey]["expected_empty"] += 1
                 # Some low-volume sources can be legitimately idle in the sampled window.
                 elif "{log_source=\"codeswarm_mcp\"}" in resolved:
                     rec["status"] = "expected_empty"
