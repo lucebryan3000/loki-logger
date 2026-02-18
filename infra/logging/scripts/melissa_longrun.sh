@@ -31,6 +31,7 @@ checkpoint_every=5
 heartbeat_minutes=20
 continue_on_fail="true"
 max_grafana_restarts=1
+USING_CURATED_QUEUE=0
 
 if [[ -f "$MANIFEST" ]]; then
   mode=$(jq -r '.mode // "real"' "$MANIFEST")
@@ -75,6 +76,7 @@ use_curated_queue(){
 
   cp "$QUEUE_CURATED_JSON" "$QUEUE_JSON"
   queue_write_markdown "$QUEUE_JSON" "$QUEUE_MD"
+  USING_CURATED_QUEUE=1
 
   if [[ -f "$QUEUE_CURATED_MD" ]]; then
     cp "$QUEUE_CURATED_MD" "$QUEUE_MD"
@@ -86,6 +88,13 @@ use_curated_queue(){
   na_count=$(jq -r '[.items[] | select((.bucket // "")=="N_A")] | length' "$QUEUE_CURATED_JSON")
   pipe "🧲 INTAKE_DONE | new=0 | moved=0 | curated=$pending_now | defer=$defer_count | na=$na_count"
   return 0
+}
+
+sync_curated_queue(){
+  if [[ "$USING_CURATED_QUEUE" -eq 1 ]]; then
+    cp "$QUEUE_JSON" "$QUEUE_CURATED_JSON"
+    queue_write_markdown "$QUEUE_CURATED_JSON" "$QUEUE_CURATED_MD"
+  fi
 }
 
 build_queue(){
@@ -738,6 +747,7 @@ run_loop(){
     started=$(now_utc)
     queue_update_item "$QUEUE_JSON" "$idx" "running" "$attempt" "" "$started" ""
     queue_write_markdown "$QUEUE_JSON" "$QUEUE_MD"
+    sync_curated_queue
 
     pipe "🚧 ITEM_START $item_id | idx=$idx/$total | attempt=$attempt | bucket=$item_bucket" || true
 
@@ -752,6 +762,7 @@ run_loop(){
       done_count=$((done_count+1))
       queue_update_item "$QUEUE_JSON" "$idx" "skipped" "$attempt" "$item_note" "$started" "$ended"
       queue_write_markdown "$QUEUE_JSON" "$QUEUE_MD"
+      sync_curated_queue
       pipe "✅ ITEM_DONE $item_id | dur=$dur | end=$ended | attempt=$attempt | status=ok | notes=$item_note" || true
       update_memory_runner_state "$MEM" "$idx" "$(now_utc)" "$mode" "$total" "$run_name" "$last_checkpoint_hash"
       continue
@@ -775,11 +786,13 @@ run_loop(){
       done_count=$((done_count+1))
       queue_update_item "$QUEUE_JSON" "$idx" "done" "$attempt" "$item_note" "$started" "$ended"
       queue_write_markdown "$QUEUE_JSON" "$QUEUE_MD"
+      sync_curated_queue
       pipe "✅ ITEM_DONE $item_id | dur=$dur | end=$ended | attempt=$attempt | status=ok | notes=$item_note" || true
     else
       fail_count=$((fail_count+1))
       queue_update_item "$QUEUE_JSON" "$idx" "fail" "$attempt" "$item_note" "$started" "$ended"
       queue_write_markdown "$QUEUE_JSON" "$QUEUE_MD"
+      sync_curated_queue
       pipe "❌ ITEM_DONE $item_id | dur=$dur | end=$ended | attempt=$attempt | status=fail | notes=$item_note" || true
 
       if [[ "$continue_on_fail" != "true" ]]; then
