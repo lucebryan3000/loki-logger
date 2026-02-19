@@ -82,9 +82,60 @@ If host or container storage approaches full, prioritize preserving Grafana/Loki
 
 
 ## WAL and retry expectations
+
 Prometheus WAL and Loki retry paths can absorb brief downstream interruptions, but not sustained disk exhaustion.
-- During Loki unavailability, expect delayed or dropped writes depending on backpressure.
-- Treat `loki_write_dropped_entries_total` and `loki_write_failures_discarded_total` as canonical loss indicators.
+
+### When Loki is unavailable
+
+Alloy buffers writes internally. Depending on backpressure settings, writes may be delayed or dropped.
+
+**Canonical loss indicators (query in Prometheus):**
+```promql
+loki_write_dropped_entries_total
+loki_write_failures_discarded_total
+```
+
+**Recovery steps:**
+1. Check Loki readiness: `curl -fsS http://127.0.0.1:3200/ready`
+2. Check Alloy logs for backpressure errors:
+   ```bash
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml logs alloy --tail 50 | grep -i "drop\|discard\|backpressure\|fail"
+   ```
+3. If Loki is down, restart it:
+   ```bash
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml restart loki
+   ```
+4. Wait 30 seconds, re-check readiness. If still down, check disk: `docker system df`
+5. After Loki recovers, Alloy will resume writes automatically. No manual replay needed.
+6. Verify ingestion resumed: query `{log_source=~".+"}` in Grafana Explore for recent entries.
+
+### When Prometheus WAL is degraded
+
+Prometheus WAL lives in the `prometheus-data` volume. It buffers 2 hours of samples by default.
+
+**Symptoms:** Gaps in metrics dashboards, scrape targets showing stale data.
+
+**Recovery steps:**
+1. Check Prometheus health: `curl -fsS http://127.0.0.1:9004/-/healthy`
+2. Check for WAL corruption in logs:
+   ```bash
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml logs prometheus --tail 50 | grep -i "wal\|corrupt\|error"
+   ```
+3. If WAL is corrupted, stop Prometheus, clear WAL directory, and restart:
+   ```bash
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml stop prometheus
+   docker volume inspect logging_prometheus-data  # confirm volume name
+   # Only if corruption confirmed — this loses in-flight data:
+   docker run --rm -v logging_prometheus-data:/data alpine rm -rf /data/wal
+   docker compose -p logging -f infra/logging/docker-compose.observability.yml start prometheus
+   ```
+4. Prometheus will rebuild WAL from new scrapes. Expect 1-2 scrape cycles before data is visible.
+
+### Disk exhaustion prevention
+
+- Monitor: `df -h /var/lib/docker`
+- Alert threshold: 85% full → act before reaching 95%
+- Emergency: stop stack, remove old containers/images with `docker system prune`, restart
 
 
 ## Graceful shutdown procedure

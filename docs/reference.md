@@ -77,7 +77,7 @@ Stable reference data for the Loki logging stack.
 
 ### Log Source Paths
 
-**Total: 8 active log sources**
+**Total: 8 configured log sources (5 delivering, 3 not delivering)**
 
 | Source | Type | Host Path | Container/Method | Labels |
 |--------|------|-----------|------------------|--------|
@@ -122,7 +122,7 @@ Stable reference data for the Loki logging stack.
 | `grafana-data` | grafana | `/var/lib/grafana` | Dashboards, users, settings |
 | `loki-data` | loki | `/loki` | Chunks, index, compactor state |
 | `prometheus-data` | prometheus | `/prometheus` | Time-series database (TSDB) |
-| `alloy-positions` | alloy | `/tmp` | File tail positions, syslog cursor tracking |
+| `alloy-positions` | alloy | `/var/lib/alloy` | File tail positions, syslog cursor tracking |
 
 ### Resource Limits (Default: None)
 
@@ -159,9 +159,6 @@ services:
 | `stack` | Docker relabel | `vllm`, `hex` | Yes |
 | `service` | Docker relabel | `codeswarm-mcp` | Yes |
 | `source_type` | Docker relabel | `docker` | Yes |
-| `container_name` | Docker metadata | `logging-grafana-1` | Preferred |
-| `image` | Docker metadata | `grafana/grafana:11.1.0` | No |
-| `compose_project` | Docker metadata | `vllm`, `hex` | No |
 
 ### File-Based Log Labels
 
@@ -274,10 +271,10 @@ services:
 {env="sandbox"}
 
 # Docker container logs only
-{env="sandbox", container_name=~".+"}
+{env="sandbox", log_source="docker"}
 
-# Specific container
-{env="sandbox", container_name="logging-grafana-1"}
+# Specific compose service
+{env="sandbox", service="codeswarm-mcp"}
 
 # Search for errors
 {env="sandbox"} |= "error"

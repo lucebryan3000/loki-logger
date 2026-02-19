@@ -33,12 +33,9 @@ This checklist ensures documentation correctness, operational validity, and styl
 - [ ] Compaction interval is 10m for Loki
 
 ### Image Versions
-- [ ] Grafana: 11.1.0
-- [ ] Loki: 3.0.0
-- [ ] Prometheus: v2.52.0
-- [ ] Alloy: v1.2.1
-- [ ] Node Exporter: v1.8.1
-- [ ] cAdvisor: v0.49.1
+- [ ] All image versions match the pinned values in `.env.example` (authoritative source)
+- [ ] No service is running a different version than what `.env` specifies
+- [ ] `docker compose -p logging -f infra/logging/docker-compose.observability.yml images` output matches `.env` pins
 
 ## Operational Checks
 
@@ -82,7 +79,7 @@ This checklist ensures documentation correctness, operational validity, and styl
 
 ### Authentication
 - [ ] Grafana requires username/password
-- [ ] Prometheus exposure is either loopback-only or protected with explicit auth controls
+- [x] Prometheus exposure is either loopback-only or protected with explicit auth controls
 - [ ] Admin password reset instructions are correct
 
 ## Style Checks

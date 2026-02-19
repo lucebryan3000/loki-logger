@@ -14,7 +14,7 @@ Single-node deployment. Not a library or application — it's infrastructure con
 # Deploy stack (validates .env, then docker compose up -d)
 ./scripts/prod/mcp/logging_stack_up.sh
 
-# Stop stack (removes volumes)
+# Stop stack (volumes preserved; use --purge to destroy data)
 ./scripts/prod/mcp/logging_stack_down.sh
 
 # Health check (curls Grafana + Prometheus endpoints)
@@ -28,6 +28,12 @@ Single-node deployment. Not a library or application — it's infrastructure con
 
 # Validate .env has required variables
 ./scripts/prod/mcp/validate_env.sh .env
+
+# Backup Grafana, Loki, Prometheus volumes to tar archives
+./scripts/prod/mcp/backup_volumes.sh
+
+# Restore volumes from tar archives (stack must be stopped)
+./scripts/prod/mcp/restore_volumes.sh
 ```
 
 All compose commands require the file flag: `docker compose -p logging -f infra/logging/docker compose.observability.yml ...`
@@ -70,12 +76,14 @@ Metrics Sources → Prometheus (scrape/store) → Grafana (query/visualize)
 |---------|-------------|---------------|---------------|
 | Grafana | grafana | 9001 (configurable) | 3000 |
 | Prometheus | prometheus | 9004 (configurable) | 9090 |
-| Loki | loki | None (internal only) | 3100 |
+| Loki | loki | 127.0.0.1:3200 | 3100 |
 | Alloy | alloy | None | 12345 |
 | Node Exporter | host-monitor | None | 9100 |
 | cAdvisor | docker-metrics | None | 8080 |
 
 **Volumes:** `grafana-data`, `prometheus-data`, `loki-data`
+
+**Additional scrape target:** Prometheus also scrapes a `wireguard` exporter at `172.20.0.1:9586` (Docker bridge gateway — host-side exporter, not a stack service).
 
 **Retention:** Loki 720h (30 days) in `loki-config.yml`. Prometheus 15d via CLI flag `--storage.tsdb.retention.time` in compose file (cannot be set in `prometheus.yml`).
 
@@ -101,14 +109,14 @@ Required: `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD` (min 8 chars), `GRAFANA
 
 Port bindings are set to `0.0.0.0` (all interfaces) for LAN access on headless host. Set `GRAFANA_HOST=127.0.0.1` and `PROM_HOST=127.0.0.1` for loopback-only access. UFW provides access control.
 
-Image versions are pinned via env vars (e.g., `GRAFANA_IMAGE=grafana/grafana:11.1.0`).
+Image versions are pinned via env vars (e.g., `GRAFANA_IMAGE=grafana/grafana:11.5.2`).
 
 ## Common Gotchas
 
 1. **Alloy config is HCL, not YAML** — uses `//` for comments, `#` causes parse errors
 2. **Loki requires non-empty label selectors** — `{env=~".+"}` works, `{}` is rejected
 3. **Prometheus retention is CLI-only** — set via `--storage.tsdb.retention.time` flag in compose, NOT in `prometheus.yml`
-4. **Loki is internal-only** — no `http://127.0.0.1:3100` access; query through Grafana or from inside the `obs` network
+4. **Loki port exposure** — Loki is not exposed externally; access from the host loopback is at 127.0.0.1:3200 (mapped from internal port 3100).
 5. **Log ingestion delay is normal** — 10-15 seconds between file write and Loki availability
 6. **Config changes require restart** — `docker compose -p logging -f infra/logging/docker compose.observability.yml restart <service>`
 
@@ -118,7 +126,7 @@ Alloy ingests from these host paths (mounted under `/host/`):
 - `/home/luce/_logs/*.log` — general application logs
 - `/home/luce/_telemetry/*.jsonl` — structured telemetry
 - `/home/luce/apps/vLLM/_data/mcp-logs/*.log` — CodeSwarm MCP logs (labeled `log_source=codeswarm_mcp`)
-- Docker socket — container logs (labeled with `container_name`)
+- Docker socket — container logs
 - Systemd journal
 
 All logs get `env=sandbox` through Alloy process stages. Source-specific
@@ -126,9 +134,7 @@ pipelines add `log_source`/`source_type` labels where applicable.
 
 ## Label Schema
 
-Common labels: `env`. Docker logs add `stack`, `service`, `source_type`,
-and container metadata. File/syslog pipelines add `log_source` plus
-`filename`/`source_type` depending on source.
+Every log entry has: `env`. Docker logs add `stack`, `service`, `source_type`, and `log_source`. File/syslog pipelines add `log_source` plus `filename`/`source_type` depending on source. MCP logs also carry `mcp_level` and `service_name`.
 
 ## Directory Layout
 
@@ -136,7 +142,6 @@ and container metadata. File/syslog pipelines add `log_source` plus
 - `scripts/prod/mcp/` — Stack lifecycle scripts (up, down, health, audit, validate)
 - `scripts/prod/prism/` — Evidence/proof generation
 - `docs/` — Comprehensive documentation (overview, architecture, operations, troubleshooting, etc.)
-- `docs/snippets/` — Canonical config excerpts synced from `infra/logging/`
 - `_build/` — Sprint specs and bootstrap system (gitignored except READMEs, excluded from Claude context via `.claudeignore`)
 - `temp/` — Runtime artifacts, evidence archives (gitignored)
 
@@ -157,8 +162,8 @@ curl -sf http://127.0.0.1:9001/api/health
 # Prometheus
 curl -sf http://127.0.0.1:9004/-/ready
 
-# Loki (from inside obs network only)
-docker run --rm --network obs curlimages/curl:8.6.0 -sf http://loki:3100/ready
+# Loki (host loopback at 3200, or from inside obs network)
+curl -sf http://127.0.0.1:3200/ready
 ```
 
 ## Documentation

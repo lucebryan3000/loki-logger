@@ -491,8 +491,8 @@ docker exec -it logging-grafana-1 \
 **Reality:** Allow 10-15 seconds for logs to appear after creation
 
 ### 6. Loki Internal-Only
-**Issue:** Trying to access Loki at http://127.0.0.1:3100
-**Reality:** Loki is **internal-only** (http://loki:3100 from `obs` network)
+**Issue:** Trying to access Loki directly from a browser or external host
+**Reality:** Loki exposes port 3200 on the host loopback (`curl http://127.0.0.1:3200/ready`). Within the `obs` Docker network use `http://loki:3100`. There is no public port — access through Grafana for queries.
 
 ### 7. Config Changes Not Applied
 **Issue:** Editing config but not restarting service

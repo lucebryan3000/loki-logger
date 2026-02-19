@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -o noclobber                               # BB098: prevent accidental file overwrites with >
+shopt -s inherit_errexit 2>/dev/null || true  # BB100: propagate errexit into command substitutions (bash 4.4+)
 
 cd "$(dirname "$0")/../../.."
 
@@ -58,7 +60,14 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 CHECKS_NDJSON="$(mktemp)"
-trap 'rm -f "$CHECKS_NDJSON"' EXIT
+targets_json=""
+up_json=""
+targets_down_json=""
+targets_up_json=""
+flags_json=""
+rules_json=""
+proof_json=""
+trap 'rm -f "$CHECKS_NDJSON" "$targets_json" "$up_json" "$targets_down_json" "$targets_up_json" "$flags_json" "$rules_json" "$proof_json"' EXIT
 
 add_result() {
   local name="$1" status="$2" severity="$3" detail="$4"
@@ -111,7 +120,7 @@ fi
 
 # 3) Prometheus targets and native query contract checks
 targets_json="$(mktemp)"
-if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/targets" > "$targets_json"; then
+if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/targets" >| "$targets_json"; then
   bad_targets="$(jq -r '.data.activeTargets[] | select(.health!="up") | .labels.job' "$targets_json" | sort -u)"
   if [[ -z "$bad_targets" ]]; then
     pass prometheus_targets critical "all active targets are up"
@@ -123,7 +132,7 @@ else
 fi
 
 up_json="$(mktemp)"
-if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=up' > "$up_json"; then
+if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=up' >| "$up_json"; then
   down_jobs="$(jq -r '.data.result[] | select(.value[1] != "1") | .metric.job' "$up_json" | sort -u)"
   if [[ -z "$down_jobs" ]]; then
     pass prometheus_up_query critical "all up metrics are 1"
@@ -135,7 +144,7 @@ else
 fi
 
 targets_down_json="$(mktemp)"
-if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sprint3:targets_down:count' > "$targets_down_json"; then
+if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sprint3:targets_down:count' >| "$targets_down_json"; then
   td_val="$(jq -r '.data.result[0].value[1] // ""' "$targets_down_json")"
   if [[ -z "$td_val" ]]; then
     td_val="$(curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sum(1-up)' | jq -r '.data.result[0].value[1] // ""' || true)"
@@ -150,7 +159,7 @@ else
 fi
 
 targets_up_json="$(mktemp)"
-if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sprint3:targets_up:count' > "$targets_up_json"; then
+if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sprint3:targets_up:count' >| "$targets_up_json"; then
   tu_val="$(jq -r '.data.result[0].value[1] // ""' "$targets_up_json")"
   if [[ -z "$tu_val" ]]; then
     tu_val="$(curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sum(up)' | jq -r '.data.result[0].value[1] // ""' || true)"
@@ -166,7 +175,7 @@ fi
 
 # 4) Retention + rules
 flags_json="$(mktemp)"
-if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/status/flags" > "$flags_json"; then
+if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/status/flags" >| "$flags_json"; then
   retention="$(jq -r '.data["storage.tsdb.retention.time"] // ""' "$flags_json")"
   if [[ "$retention" == "15d" ]]; then
     pass prometheus_retention critical "retention flag is 15d"
@@ -178,7 +187,7 @@ else
 fi
 
 rules_json="$(mktemp)"
-if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/rules" > "$rules_json"; then
+if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/rules" >| "$rules_json"; then
   has_core_groups="$(jq -r '[(.data.groups[]?.name // empty)] | (index("loki_logging_v1") != null and index("sprint3_minimum_v1") != null)' "$rules_json")"
   has_recording_rules="$(jq -r '[.data.groups[]?.rules[]? | select(.type=="recording") | .name] | (index("sprint3:targets_up:count") != null and index("sprint3:targets_down:count") != null and index("sprint3:host_cpu_usage_percent") != null and index("sprint3:host_memory_usage_percent") != null and index("sprint3:host_disk_usage_percent") != null)' "$rules_json")"
   has_min_alerts="$(jq -r '[.data.groups[]?.rules[]? | select(.type=="alerting") | .name] | (index("PrometheusScrapeFailure") != null and index("PrometheusTargetDown") != null and index("LokiIngestionErrors") != null)' "$rules_json")"
@@ -221,7 +230,7 @@ if [[ -w "$proof_file" ]]; then
       --data-urlencode "end=${now_ns}" \
       --data-urlencode 'limit=20' \
       --data-urlencode 'direction=BACKWARD' \
-      'http://loki:3100/loki/api/v1/query_range' > "$proof_json"; then
+      'http://loki:3100/loki/api/v1/query_range' >| "$proof_json"; then
     matches="$(jq -r '.data.result | length' "$proof_json")"
     if [[ "$matches" =~ ^[0-9]+$ ]] && (( matches > 0 )); then
       pass loki_ingest_proof critical "ingest proof found matches=$matches"

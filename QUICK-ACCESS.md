@@ -1,6 +1,6 @@
 # Quick Access URLs
 
-**Headless Ubuntu Host:** 192.168.1.150
+**Headless Ubuntu Host:** `<HOST_IP>` (set in `.env`; LAN IP of the machine running the stack)
 
 ## Authoritative Sources
 
@@ -18,20 +18,20 @@ Use these files as the contract for current behavior and runtime checks:
 ## Web Interfaces (LAN Access)
 
 ### Grafana
-- **URL:** http://192.168.1.150:9001
+- **URL:** http://`<HOST_IP>`:9001
 - **Login:** See `infra/logging/.env` for credentials
 - **Default:** admin / (password from .env)
 - **Use for:** Log queries, dashboards, visualization
 
 ### Prometheus
-- **URL:** http://192.168.1.150:9004
+- **URL:** http://`<HOST_IP>`:9004
 - **Login:** None (no authentication)
 - **Use for:** Metrics queries, target monitoring, PromQL
 
 ## Network Configuration
 
 **Binding:** 0.0.0.0 (all interfaces)
-**Access:** LAN only (192.168.1.0/24)
+**Access:** LAN only (your subnet, e.g. 192.168.1.0/24)
 **Firewall:** UFW rules allow ports 9001, 9004 from LAN
 
 ## Firewall Rules (UFW)
@@ -40,9 +40,9 @@ Use these files as the contract for current behavior and runtime checks:
 # View current rules
 sudo ufw status numbered
 
-# Expected:
-# [X] 9001    ALLOW IN    192.168.1.0/24    # Grafana LAN
-# [Y] 9004    ALLOW IN    192.168.1.0/24    # Prometheus LAN
+# Expected (subnet matches your LAN):
+# [X] 9001    ALLOW IN    <LAN_SUBNET>    # Grafana LAN
+# [Y] 9004    ALLOW IN    <LAN_SUBNET>    # Prometheus LAN
 ```
 
 ## Health Checks
@@ -121,18 +121,18 @@ docker compose -p logging -f infra/logging/docker-compose.observability.yml rest
 
 ### From Laptop/Desktop (Same LAN)
 - Open browser
-- Navigate to http://192.168.1.150:9001
+- Navigate to http://`<HOST_IP>`:9001
 - Login with credentials
 
 ### From Mobile (Same LAN)
 - Open browser
-- Navigate to http://192.168.1.150:9001
+- Navigate to http://`<HOST_IP>`:9001
 - Login with credentials
 - Use Grafana mobile view
 
 ### From Remote (VPN/WireGuard)
-- Ensure VPN connected to 192.168.1.0/24 network
-- Same URLs as above
+- Ensure VPN connected to your LAN subnet
+- Navigate to http://`<HOST_IP>`:9001
 
 ### NOT Accessible
 - ❌ From internet (no port forwarding)
@@ -149,6 +149,6 @@ docker compose -p logging -f infra/logging/docker-compose.observability.yml rest
 
 ---
 
-**Last updated:** 2026-02-14
-**Host IP:** 192.168.1.150
-**Network:** 192.168.1.0/24
+**Last updated:** 2026-02-19
+**Host IP:** Set in `.env` — replace `<HOST_IP>` with your machine's LAN address
+**Network:** Your LAN subnet (e.g. 192.168.1.0/24)

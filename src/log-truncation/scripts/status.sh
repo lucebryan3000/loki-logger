@@ -37,7 +37,7 @@ if [[ "$ENABLE_HEALTH_CHECKS" == "true" ]]; then
     if [[ -f "$HEALTH_STATE_FILE" ]]; then
         step "Recent health status"
         tail -5 "$HEALTH_STATE_FILE" 2>/dev/null | while IFS='|' read -r timestamp status details; do
-            local date_str=$(date -d "@$timestamp" '+%Y-%m-%d %H:%M' 2>/dev/null || echo "unknown")
+            date_str=$(date -d "@$timestamp" '+%Y-%m-%d %H:%M' 2>/dev/null || echo "unknown")
             info "$date_str - $status - $details"
         done
     fi
