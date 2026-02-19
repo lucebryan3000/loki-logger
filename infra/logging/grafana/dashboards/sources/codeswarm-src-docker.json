@@ -106,7 +106,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"docker\"}[$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"docker\"}[$__interval]))"
         }
       ],
       "gridPos": {
@@ -135,7 +135,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval])) or vector(0)"
+          "expr": "sum(rate({log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval])) or vector(0)"
         }
       ],
       "gridPos": {
@@ -164,7 +164,7 @@
       "targets": [
         {
           "refId": "G",
-          "expr": "sum by (service_name) (rate({log_source=\"docker\",service_name=~\".+\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))"
+          "expr": "sum by (service_name) (rate({log_source=\"docker\",service_name=~\".+\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval]))"
         }
       ],
       "description": "Service-level error rate trend for docker logs.",

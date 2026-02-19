@@ -77,23 +77,28 @@ Stable reference data for the Loki logging stack.
 
 ### Log Source Paths
 
-**Total: 8 configured log sources (5 delivering, 3 not delivering)**
+**Total: 13 active log sources**
 
 | Source | Type | Host Path | Container/Method | Labels |
 |--------|------|-----------|------------------|--------|
-| Journald direct | Journal API | `/var/log/journal` | `loki.source.journal` | `log_source=journald` |
-| rsyslog syslog relay | TCP syslog | `/etc/rsyslog.d/50-loki-alloy.conf` → 1514 | rsyslog → TCP:1514 → `loki.source.syslog` | `log_source=rsyslog_syslog`, `source_type=syslog` |
+| rsyslog syslog relay | TCP syslog | `/etc/rsyslog.d/50-loki-alloy.conf` → 1514 | rsyslog → TCP:1514 → `loki.source.syslog` | `log_source=rsyslog_syslog`, `source_type=syslog`, `syslog_channel`, `security_domain` |
 | Docker containers | Docker socket | `/var/run/docker.sock` | `/var/run/docker.sock` | `log_source=docker`, `stack`, `service`, `source_type` |
-| VS Code Server | File tail | `/home/luce/.vscode-server/**/*.log` | `/host/home/luce/.vscode-server/**/*.log` | `log_source=vscode_server`, `filename` |
-| CodeSwarm MCP | File tail | `/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `/host/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `log_source=codeswarm_mcp`, `filename` |
-| NVIDIA telemetry | File tail | `/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl` | `/host/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl` | `log_source=nvidia_telem`, `filename`, `telemetry_tier` |
-| Telemetry | File tail | `/home/luce/_telemetry/*.jsonl` | `/host/home/luce/_telemetry/*.jsonl` | `log_source=telemetry`, `filename` |
+| Journald | Journal API | (systemd journal) | `loki.source.journal` | `log_source=journald` |
 | Tool logs | File tail | `/home/luce/_logs/*.log` | `/host/home/luce/_logs/*.log` | `log_source=tool_sink`, `filename` |
+| Telemetry | File tail | `/home/luce/_telemetry/*.jsonl` | `/host/home/luce/_telemetry/*.jsonl` | `log_source=telemetry`, `filename` |
+| GPU telemetry | File tail | `/home/luce/_telemetry/gpu/gpu-live.csv`, `gpu-proc.csv` | `/host/home/luce/_telemetry/gpu/` | `log_source=gpu_telemetry`, `source_type=gpu_csv` |
+| NVIDIA telemetry | File tail | `/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl` | `/host/home/luce/apps/vLLM/logs/telemetry/nvidia/` | `log_source=nvidia_telem`, `source_type=file`, `telemetry_tier=raw30` |
+| CodeSwarm MCP | File tail | `/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `/host/home/luce/apps/vLLM/_data/mcp-logs/*.log` | `log_source=codeswarm_mcp`, `mcp_level`, `service_name` |
+| VS Code Server | File tail | `/home/luce/.vscode-server/**/*.log` | `/host/home/luce/.vscode-server/**/*.log` | `log_source=vscode_server`, `filename` |
+| Codex TUI | File tail | `/home/luce/.codex/log/codex-tui.log` | `/host/home/luce/.codex/log/codex-tui.log` | `log_source=codex_tui`, `source_type=file` |
+| Host WireGuard | File tail | `/var/log/wireguard-client-manager.log` | `/host/var/log/wireguard-client-manager.log` | `log_source=host_wireguard`, `source_type=file` |
+| Host Codeswarm | File tail | `/var/log/codeswarm.log` | `/host/var/log/codeswarm.log` | `log_source=host_codeswarm`, `source_type=file` |
+| Host APT | File tail | `/var/log/apt/history.log` | `/host/var/log/apt/history.log` | `log_source=host_apt`, `source_type=file` |
 
 **Architecture notes:**
 - **Two systemd paths are active:** direct `loki.source.journal` and rsyslog relay (`imjournal` → TCP:1514).
 - **Docker:** Filtered to vllm and hex compose projects only
-- **File sources:** Tailed via loki.source.file with position tracking
+- **File sources:** Tailed via loki.source.file with position tracking; host `/var/log` mounted at `/host/var/log`
 - **rsyslog config:** `/etc/rsyslog.d/50-loki-alloy.conf` (RFC5424 format, TCP forwarding)
 
 ## Docker Resources
@@ -124,25 +129,18 @@ Stable reference data for the Loki logging stack.
 | `prometheus-data` | prometheus | `/prometheus` | Time-series database (TSDB) |
 | `alloy-positions` | alloy | `/var/lib/alloy` | File tail positions, syslog cursor tracking |
 
-### Resource Limits (Default: None)
+### Resource Limits (Current Compose)
 
-No resource limits are set by default. To add limits:
+Resource limits are currently set in compose using `mem_limit` + `cpus` (not `deploy.resources`):
 
-```yaml
-services:
-  loki:
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: '1.0'
-```
-
-**Recommended limits for production:**
-- Grafana: 1G memory, 0.5 CPU
-- Loki: 2G memory, 1.0 CPU
-- Prometheus: 2G memory, 1.0 CPU
-- Alloy: 512M memory, 0.5 CPU
+| Service | `mem_limit` | `cpus` |
+|---------|-------------|--------|
+| grafana | `1g` | `0.50` |
+| loki | `2g` | `1.00` |
+| prometheus | `2g` | `1.00` |
+| alloy | `1g` | `0.75` |
+| host-monitor | `1g` | `1.00` |
+| docker-metrics | `2g` | `2.00` |
 
 ## Label Schema
 
@@ -165,7 +163,18 @@ services:
 | Label | Source | Example | Required for File Logs |
 |-------|--------|---------|------------------------|
 | `filename` | Alloy file match | `/host/home/luce/_logs/test.log` | Yes |
-| `log_source` | Alloy/static listener labels | `docker`, `journald`, `rsyslog_syslog`, `codeswarm_mcp`, `vscode_server`, `tool_sink`, `telemetry`, `nvidia_telem` | Yes (source-specific value) |
+| `log_source` | Alloy/static listener labels | `docker`, `journald`, `rsyslog_syslog`, `codeswarm_mcp`, `vscode_server`, `tool_sink`, `telemetry`, `gpu_telemetry`, `nvidia_telem`, `codex_tui`, `host_wireguard`, `host_codeswarm`, `host_apt` | Yes (source-specific value) |
+
+### Source-Specific Labels
+
+| Label | Source | Values | Notes |
+|-------|--------|--------|-------|
+| `syslog_channel` | rsyslog_syslog | `general`, `ufw`, `auth`, `kernel`, `cron`, `other` | Set by syslog content matching in `loki.process.main` |
+| `security_domain` | rsyslog_syslog (matching lines) | `firewall`, `auth` | Set on UFW and auth syslog lines |
+| `mcp_level` | codeswarm_mcp | (JSON `level` field) | Extracted from structured MCP JSON logs |
+| `service_name` | codeswarm_mcp, rsyslog_syslog | (value varies) | Extracted from JSON or syslog unit name |
+| `telemetry_tier` | nvidia_telem | `raw30` | Static label on all NVIDIA telemetry files |
+| `source_type` | multiple | `docker`, `syslog`, `file`, `gpu_csv` | `gpu_csv` on GPU telemetry streams |
 
 **Critical:** Loki queries **require non-empty selectors**. Always include at least one label (e.g., `{env=~".+"}`).
 
@@ -236,6 +245,18 @@ services:
 
 **Critical:** Retention **must** be set via CLI flag (not in `prometheus.yml`)
 
+### Prometheus Scrape Targets
+
+| Job | Target | Notes |
+|-----|--------|-------|
+| prometheus | `prometheus:9090` | Self-monitoring |
+| host-monitor | `host-monitor:9100` | Node Exporter (host metrics) |
+| docker-metrics | `docker-metrics:8080` | cAdvisor (container metrics) |
+| loki | `loki:3100` | Loki metrics |
+| alloy | `alloy:12345` | Alloy metrics |
+| wireguard | `172.20.0.1:9586` | WireGuard exporter on host (via Docker bridge gateway) |
+| grafana | `grafana:3000` | Grafana metrics |
+
 ### Alloy (alloy-config.alloy)
 
 **Key parameters:**
@@ -253,7 +274,7 @@ services:
 
 | Service | Image | Version | Registry |
 |---------|-------|---------|----------|
-| Grafana | `grafana/grafana` | 11.1.0 | Docker Hub |
+| Grafana | `grafana/grafana` | 11.5.2 | Docker Hub |
 | Loki | `grafana/loki` | 3.0.0 | Docker Hub |
 | Prometheus | `prom/prometheus` | v2.52.0 | Docker Hub |
 | Alloy | `grafana/alloy` | v1.2.1 | Docker Hub |

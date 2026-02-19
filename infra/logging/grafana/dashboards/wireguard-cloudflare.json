@@ -127,7 +127,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" [$__rate_interval]))"
+          "expr": "sum(rate({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" [$__interval]))"
         }
       ],
       "gridPos": {
@@ -158,7 +158,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" |~ \"(?i)(error|err|fatal|panic|fail|failed|denied|refused|timeout|handshake failed|unable to|unreachable|operation not permitted|exit-code)\" [$__rate_interval]))"
+          "expr": "sum(rate({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" |~ \"(?i)(error|err|fatal|panic|fail|failed|denied|refused|timeout|handshake failed|unable to|unreachable|operation not permitted|exit-code)\" [$__interval]))"
         }
       ],
       "gridPos": {

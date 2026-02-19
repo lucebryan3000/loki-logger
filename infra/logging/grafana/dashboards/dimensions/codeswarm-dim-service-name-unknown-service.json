@@ -65,7 +65,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"unknown_service\"}[$__rate_interval]))"
+          "expr": "sum(rate({service_name=\"unknown_service\"}[$__interval]))"
         }
       ],
       "gridPos": {
@@ -97,7 +97,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"unknown_service\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval])) or vector(0)"
+          "expr": "sum(rate({service_name=\"unknown_service\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval])) or vector(0)"
         }
       ],
       "gridPos": {

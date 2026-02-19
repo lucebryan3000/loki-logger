@@ -1,0 +1,27 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: logging-ops
+    receivers:
+      - uid: logging-ops-email
+        type: email
+        disableResolveMessage: false
+        settings:
+          addresses: admin@localhost
+          singleEmail: false
+
+policies:
+  - orgId: 1
+    receiver: logging-ops
+    group_by: [grafana_folder, alertname, severity]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      - receiver: logging-ops
+        object_matchers:
+          - [severity, =, critical]
+        group_wait: 10s
+        group_interval: 2m
+        repeat_interval: 30m

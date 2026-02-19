@@ -4,15 +4,21 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Log Sources (7 total)                   │
+│                     Log Sources (13 total)                  │
 ├─────────────────────────────────────────────────────────────┤
-│ • Systemd journal → rsyslog (imjournal) → TCP:1514          │
+│ • rsyslog syslog relay → TCP:1514 (syslog_channel labels)   │
 │ • Docker containers (vllm, hex projects)                    │
-│ • VS Code Server logs (.vscode-server/**/*.log)             │
-│ • CodeSwarm MCP logs (_data/mcp-logs/*.log)                 │
-│ • NVIDIA telemetry (vLLM/logs/telemetry/nvidia/*.jsonl)     │
-│ • Telemetry (_telemetry/*.jsonl)                            │
+│ • Systemd journal (loki.source.journal)                     │
 │ • Tool logs (_logs/*.log)                                   │
+│ • Telemetry (_telemetry/*.jsonl)                            │
+│ • GPU telemetry (_telemetry/gpu/gpu-live.csv, gpu-proc.csv) │
+│ • NVIDIA telemetry (vLLM/logs/telemetry/nvidia/*.jsonl)     │
+│ • CodeSwarm MCP logs (_data/mcp-logs/*.log)                 │
+│ • VS Code Server logs (.vscode-server/**/*.log)             │
+│ • Codex TUI (.codex/log/codex-tui.log)                      │
+│ • Host WireGuard (/var/log/wireguard-client-manager.log)    │
+│ • Host Codeswarm (/var/log/codeswarm.log)                   │
+│ • Host APT (/var/log/apt/history.log)                       │
 └─────────────────────────────────────────────────────────────┘
                  ↓ (file tail)         ↓ (rsyslog TCP)
                          ┌────────┐
@@ -47,7 +53,7 @@
 
 ## Component Details
 
-### Grafana (grafana/grafana:11.1.0)
+### Grafana (grafana/grafana:11.5.2)
 **Purpose:** Unified query interface for logs and metrics
 
 - **Exposed port:** 0.0.0.0:9001 → 3000 (container)
@@ -89,7 +95,9 @@ curl 'http://loki:3100/loki/api/v1/query_range?query={env=~".+"}&start=...'
 - **Storage:** `prometheus-data` volume at `/prometheus`
 - **Config:** `infra/logging/prometheus/prometheus.yml` (mounted read-only)
 - **Retention:** 15d (**CLI flag only:** `--storage.tsdb.retention.time=15d`)
-- **Scrape targets:** host-monitor, docker-metrics, prometheus (self)
+- **Scrape targets (7):** prometheus, host-monitor, docker-metrics, loki, alloy, wireguard (172.20.0.1:9586), grafana
+- **alertmanagers:** `[]` (no Alertmanager deployed; alerts delivered via Grafana contact points)
+- **scrape_timeout:** 10s
 
 **Health checks:**
 ```bash
@@ -110,20 +118,27 @@ curl -sf http://127.0.0.1:9004/-/healthy
 - **Mounts:**
   - `/var/run/docker.sock` (Docker logs)
   - `/host/home` (file-based logs under /home/luce)
-  - `alloy-positions:/tmp` (persistent file positions & syslog cursor)
+  - `/host/var/log` (host-wide /var/log — wireguard, codeswarm, apt)
+  - `alloy-positions:/var/lib/alloy` (persistent file positions & syslog cursor)
 
-**Log pipelines (7 sources):**
-1. **Journald (via rsyslog):** Host rsyslog → TCP:1514 → `loki.source.syslog` → `loki.process.journald` → Loki
+**Log pipelines (13 sources):**
+1. **rsyslog syslog:** rsyslog → TCP:1514 → `loki.source.syslog` → `loki.process.main` → Loki (syslog_channel, security_domain labels)
 2. **Docker containers:** `loki.source.docker` → `loki.process.docker` → Loki (filtered: vllm, hex projects)
-3. **VS Code Server:** `loki.source.file` → `loki.process.vscode` → Loki
-4. **CodeSwarm MCP:** `loki.source.file` → `loki.process.codeswarm` → Loki
-5. **NVIDIA telemetry:** `loki.source.file` → `loki.process.nvidia_telem` → Loki
-6. **Telemetry (.jsonl):** `loki.source.file` → `loki.process.main` → Loki
-7. **Tool logs:** `loki.source.file` → `loki.process.main` → Loki
+3. **Journald:** `loki.source.journal` → `loki.process.journald` → Loki
+4. **Tool logs:** `loki.source.file` → `loki.process.tool_sink` → Loki
+5. **Telemetry (.jsonl):** `loki.source.file` → `loki.process.telemetry` → Loki
+6. **GPU telemetry:** `loki.source.file` → `loki.process.gpu_telemetry_gpu/proc` → Loki (source_type=gpu_csv)
+7. **NVIDIA telemetry:** `loki.source.file` → `loki.process.nvidia_telem` → Loki (telemetry_tier=raw30)
+8. **CodeSwarm MCP:** `loki.source.file` → `loki.process.codeswarm` → Loki (mcp_level, service_name)
+9. **VS Code Server:** `loki.source.file` → `loki.process.vscode` → Loki
+10. **Codex TUI:** `loki.source.file` → `loki.process.codex_tui` → Loki
+11. **Host WireGuard:** `loki.source.file` → `loki.process.host_wireguard_log` → Loki
+12. **Host Codeswarm:** `loki.source.file` → `loki.process.host_codeswarm_log` → Loki
+13. **Host APT:** `loki.source.file` → `loki.process.host_apt_history` → Loki
 
 **Label injection (all processors):**
 - All logs: `env=sandbox`
-- Dedicated processors add: `log_source=journald|docker|vscode_server|codeswarm_mcp|nvidia_telem`
+- Dedicated processors add: `log_source`, `source_type`, and source-specific labels (see label schema)
 
 **Redaction:** All processors have 3 canonical stages (bearer tokens, cookies, API keys)
 
@@ -233,16 +248,24 @@ docker kill -s HUP logging-alloy-1
 | `stack` | Docker relabel | `vllm`, `hex` |
 | `service` | Docker relabel | `codeswarm-mcp` |
 | `source_type` | Docker relabel | `docker` |
-| `container_name` | Docker metadata | `logging-grafana-1` |
-| `image` | Docker metadata | `grafana/grafana:11.1.0` |
-| `compose_project` | Docker metadata | `vllm`, `hex` |
 
 ### File-Based Log Labels
 
 | Label | Source | Example |
 |-------|--------|---------|
 | `filename` | Alloy file match | `/host/home/luce/_logs/example.log` |
-| `log_source` | Alloy process pipeline | `codeswarm_mcp` |
+| `log_source` | Alloy process pipeline | `tool_sink`, `telemetry`, `gpu_telemetry`, `nvidia_telem`, `codeswarm_mcp`, `vscode_server`, `codex_tui`, `host_wireguard`, `host_codeswarm`, `host_apt` |
+
+### Source-Specific Labels
+
+| Label | Applied to | Values | Notes |
+|-------|-----------|--------|-------|
+| `syslog_channel` | rsyslog_syslog | `general`, `ufw`, `auth`, `kernel`, `cron`, `other` | Content-matched in `loki.process.main` |
+| `security_domain` | rsyslog_syslog (matching) | `firewall`, `auth` | Set on UFW and auth syslog lines |
+| `mcp_level` | codeswarm_mcp | (JSON `level` field) | Extracted from MCP JSON logs |
+| `service_name` | codeswarm_mcp, rsyslog_syslog | (varies) | Extracted from JSON or syslog unit name |
+| `telemetry_tier` | nvidia_telem | `raw30` | Static label on NVIDIA telemetry files |
+| `source_type` | multiple | `docker`, `syslog`, `file`, `gpu_csv` | `gpu_csv` on GPU telemetry streams |
 
 ### Query Examples
 

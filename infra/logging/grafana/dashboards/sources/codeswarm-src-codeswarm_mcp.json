@@ -111,7 +111,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"codeswarm_mcp\"}[$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"}[$__interval]))"
         }
       ],
       "gridPos": {
@@ -143,7 +143,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval]))"
         }
       ],
       "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",
@@ -176,7 +176,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"codeswarm_mcp\"}[$__rate_interval]))",
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"}[$__interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -215,7 +215,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval])) or (sum(rate({log_source=\"codeswarm_mcp\"}[$__rate_interval])) * 0)",
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval])) or (sum(rate({log_source=\"codeswarm_mcp\"}[$__interval])) * 0)",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -253,7 +253,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(tool|request|response|latency|timeout)\" [$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(tool|request|response|latency|timeout)\" [$__interval]))"
         }
       ],
       "gridPos": {
@@ -285,7 +285,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval]))"
         }
       ],
       "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",

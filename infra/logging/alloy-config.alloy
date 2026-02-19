@@ -3,7 +3,8 @@ logging {
 }
 
 discovery.docker "all" {
-  host = "unix:///var/run/docker.sock"
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "30s"
 }
 
 discovery.relabel "docker_filtered" {
@@ -252,6 +253,38 @@ loki.source.file "host_apt_history" {
     }
   }
 
+  stage.metrics {
+    metric.counter {
+      name              = "codeswarm_syslog_lines_total"
+      description       = "Total syslog lines processed by main pipeline"
+      action            = "inc"
+      match_all         = true
+      max_idle_duration = "24h"
+    }
+  }
+
+  stage.decolorize {}
+
+  // High ceiling safety valve for noisy syslog bursts in sandbox.
+  stage.limit {
+    rate  = 5000
+    burst = 10000
+    drop  = true
+  }
+
+  // Drop known historical atlas-mcp flap noise after root-cause remediation.
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(Error: Cannot find module '/home/luce/apps/hex/dist/mcp/server/index[.]js'|atlas-mcp[.]service: Main process exited|atlas-mcp[.]service: Failed with result 'exit-code'|throw err[;]?)\""
+    stage.static_labels {
+      values = {
+        noise_class = "atlas_mcp_flap",
+      }
+    }
+    stage.drop {
+      expression = ".*"
+    }
+  }
+
   // syslog channel tagging for better security triage in Grafana/Loki.
   stage.match {
     selector = "{source_type=\"syslog\"} |~ \"(?i)ufw\""
@@ -278,15 +311,26 @@ loki.source.file "host_apt_history" {
     stage.static_labels {
       values = {
         syslog_level = "warn",
+        level        = "warning",
       }
     }
   }
 
   stage.match {
     selector = "{source_type=\"syslog\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|denied|refused|operation not permitted|segfault|oom|timeout)\""
+    stage.metrics {
+      metric.counter {
+        name              = "codeswarm_syslog_error_lines_total"
+        description       = "Error-like syslog lines matched by inference patterns"
+        action            = "inc"
+        match_all         = true
+        max_idle_duration = "24h"
+      }
+    }
     stage.static_labels {
       values = {
         syslog_level = "error",
+        level        = "error",
       }
     }
   }
@@ -297,15 +341,26 @@ loki.source.file "host_apt_history" {
     stage.static_labels {
       values = {
         syslog_level = "warn",
+        level        = "warning",
       }
     }
   }
 
   stage.match {
     selector = "{source_type=\"syslog\",level=~\"(?i)(err|error|crit|critical|alert|emerg|fatal|panic)\"}"
+    stage.metrics {
+      metric.counter {
+        name              = "codeswarm_syslog_structured_error_lines_total"
+        description       = "Structured syslog lines with error severity labels"
+        action            = "inc"
+        match_all         = true
+        max_idle_duration = "24h"
+      }
+    }
     stage.static_labels {
       values = {
         syslog_level = "error",
+        level        = "error",
       }
     }
   }
@@ -351,8 +406,27 @@ loki.process "codeswarm" {
     }
   }
 
+  // Join multiline stack traces before JSON parsing / label extraction.
+  stage.multiline {
+    firstline     = "^(\\{|[0-9]{4}-[0-9]{2}-[0-9]{2}[ T][0-9]{2}:[0-9]{2}:[0-9]{2})"
+    max_wait_time = "3s"
+    max_lines     = 256
+  }
+
   // --- safe JSON parsing (Sprint-3 Phase 3) ---
   // Parse JSON lines; do not drop malformed lines.
+  stage.decolorize {}
+
+  stage.metrics {
+    metric.counter {
+      name              = "codeswarm_mcp_lines_total"
+      description       = "Total codeswarm_mcp lines processed"
+      action            = "inc"
+      match_all         = true
+      max_idle_duration = "24h"
+    }
+  }
+
   stage.json {
     expressions = {
       mcp_kind  = "kind",
@@ -399,6 +473,24 @@ loki.process "vscode" {
     }
   }
 
+  stage.decolorize {}
+
+  stage.metrics {
+    metric.counter {
+      name              = "codeswarm_vscode_lines_total"
+      description       = "Total vscode_server lines processed"
+      action            = "inc"
+      match_all         = true
+      max_idle_duration = "24h"
+    }
+  }
+
+  stage.multiline {
+    firstline     = "^([0-9]{4}-[0-9]{2}-[0-9]{2}|\\[[0-9]{2}:[0-9]{2}:[0-9]{2}\\]|\\{)"
+    max_wait_time = "3s"
+    max_lines     = 256
+  }
+
   // Redaction — same patterns as main/codeswarm processors
   stage.replace {
     expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
@@ -441,6 +533,8 @@ loki.process "docker" {
   }
   // --- end redaction ---
 
+  stage.decolorize {}
+
   forward_to = [loki.write.default.receiver]
 }
 
@@ -467,6 +561,8 @@ loki.process "journald" {
     replace    = "[REDACTED]"
   }
   // --- end redaction ---
+
+  stage.decolorize {}
 
   forward_to = [loki.write.default.receiver]
 }
@@ -535,6 +631,18 @@ loki.process "codex_tui" {
     }
   }
 
+  stage.decolorize {}
+
+  stage.metrics {
+    metric.counter {
+      name              = "codeswarm_codex_lines_total"
+      description       = "Total codex_tui lines processed"
+      action            = "inc"
+      match_all         = true
+      max_idle_duration = "24h"
+    }
+  }
+
   // --- redaction ---
   stage.replace {
     expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
@@ -549,6 +657,12 @@ loki.process "codex_tui" {
     replace    = "[REDACTED]"
   }
   // --- end redaction ---
+
+  stage.multiline {
+    firstline     = "^([0-9]{4}-[0-9]{2}-[0-9]{2}|\\{)"
+    max_wait_time = "3s"
+    max_lines     = 256
+  }
 
   forward_to = [loki.write.default.receiver]
 }
@@ -686,6 +800,16 @@ loki.process "gpu_telemetry_proc" {
 
 loki.write "default" {
   endpoint {
-    url = "http://loki:3100/loki/api/v1/push"
+    url                 = "http://loki:3100/loki/api/v1/push"
+    batch_wait          = "1s"
+    batch_size          = "2MiB"
+    min_backoff_period  = "500ms"
+    max_backoff_period  = "5m"
+    max_backoff_retries = 20
+  }
+
+  external_labels = {
+    cluster  = "codeswarm-sandbox",
+    pipeline = "alloy",
   }
 }

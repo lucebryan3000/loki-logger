@@ -111,7 +111,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"}[$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"}[$__interval]))"
         }
       ],
       "gridPos": {
@@ -143,7 +143,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(error|fail|exception|panic)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(error|fail|exception|panic)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__interval]))"
         }
       ],
       "gridPos": {
@@ -176,7 +176,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"}[$__rate_interval]))",
+          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"}[$__interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -215,7 +215,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(error|fail|exception|panic)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__rate_interval]))",
+          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(error|fail|exception|panic)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -254,7 +254,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (service_name) (rate({log_source=\"rsyslog_syslog\", service_name=~\".+\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"}[$__rate_interval])))",
+          "expr": "topk(15, sum by (service_name) (rate({log_source=\"rsyslog_syslog\", service_name=~\".+\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"}[$__interval])))",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -291,7 +291,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(containerd|shim|cgroup|created|started|stopped|killed|shutting down)\" [$__rate_interval]))",
+          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(containerd|shim|cgroup|created|started|stopped|killed|shutting down)\" [$__interval]))",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -327,7 +327,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(error|fail|exception|panic)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(error|fail|exception|panic)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__interval]))"
         }
       ],
       "gridPos": {

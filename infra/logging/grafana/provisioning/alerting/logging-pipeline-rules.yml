@@ -28,6 +28,7 @@ groups:
             datasourceUid: __expr__
             model:
               type: threshold
+              expression: "B"
               conditions:
                 - evaluator:
                     type: lt
@@ -39,11 +40,15 @@ groups:
                   reducer:
                     type: last
                   type: query
-        noDataState: OK
+        noDataState: Alerting
         execErrState: Alerting
         for: 2m
         labels:
           severity: warning
+        annotations:
+          summary: "No rsyslog marker observed for 15m"
+          description: "The marker probe stream is missing, indicating potential ingest interruption."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#alert-posture-authoritative"
 
       - uid: logging-total-ingest-down
         title: Logging ingest appears down (5m)
@@ -67,6 +72,7 @@ groups:
             datasourceUid: __expr__
             model:
               type: threshold
+              expression: "B"
               conditions:
                 - evaluator:
                     type: lt
@@ -78,11 +84,15 @@ groups:
                   reducer:
                     type: last
                   type: query
-        noDataState: OK
+        noDataState: NoData
         execErrState: Alerting
         for: 2m
         labels:
           severity: critical
+        annotations:
+          summary: "Total ingest is below expected floor"
+          description: "Total log volume dropped below threshold for 5m."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#authoritative-checks-run-in-order"
 
       - uid: logging-gpu-fault-signals
         title: GPU fault signals detected (5m)
@@ -106,6 +116,7 @@ groups:
             datasourceUid: __expr__
             model:
               type: threshold
+              expression: "B"
               conditions:
                 - evaluator:
                     type: gt
@@ -117,11 +128,15 @@ groups:
                   reducer:
                     type: last
                   type: query
-        noDataState: OK
+        noDataState: NoData
         execErrState: Alerting
         for: 1m
         labels:
           severity: critical
+        annotations:
+          summary: "GPU fault signature detected"
+          description: "Fault keywords detected in rsyslog_syslog or gpu_telemetry streams."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#when-loki-is-unavailable"
 
       - uid: logging-gpu-temp-high
         title: GPU temperature high (avg 5m > 82C)
@@ -145,6 +160,7 @@ groups:
             datasourceUid: __expr__
             model:
               type: threshold
+              expression: "B"
               conditions:
                 - evaluator:
                     type: gt
@@ -156,8 +172,12 @@ groups:
                   reducer:
                     type: last
                   type: query
-        noDataState: OK
+        noDataState: NoData
         execErrState: Alerting
         for: 2m
         labels:
           severity: warning
+        annotations:
+          summary: "GPU temperature sustained above threshold"
+          description: "Average parsed GPU temperature exceeds 82C for 5m."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#when-loki-is-unavailable"

@@ -214,7 +214,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (log_source) (rate({log_source=~\".+\"}[$__rate_interval]))",
+          "expr": "sum by (log_source) (rate({log_source=~\".+\"}[$__interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {

@@ -189,7 +189,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=~\"$log_source\"}[$__rate_interval]))"
+          "expr": "sum(rate({log_source=~\"$log_source\"}[$__interval]))"
         }
       ],
       "gridPos": {
@@ -221,7 +221,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"}[$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"}[$__interval]))"
         }
       ],
       "gridPos": {

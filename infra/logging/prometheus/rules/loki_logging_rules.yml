@@ -15,10 +15,14 @@ groups:
         expr: rate(prometheus_target_scrapes_exceeded_sample_limit_total[5m])
 
       - record: sprint3:loki_ingestion_errors:rate5m
-        expr: sum(rate(loki_write_dropped_entries_total[5m])) + sum(rate(loki_write_failures_discarded_total[5m]))
+        expr: >
+          (sum(rate(loki_write_dropped_entries_total[5m])) or vector(0))
+          + (sum(rate(loki_write_failures_discarded_total[5m])) or vector(0))
 
       - record: sprint3:loki_ingestion_errors:increase10m
-        expr: sum(increase(loki_write_dropped_entries_total[10m])) + sum(increase(loki_write_failures_discarded_total[10m]))
+        expr: >
+          (sum(increase(loki_write_dropped_entries_total[10m])) or vector(0))
+          + (sum(increase(loki_write_failures_discarded_total[10m])) or vector(0))
 
       - record: sprint3:host_cpu_usage_percent
         expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
@@ -41,6 +45,7 @@ groups:
         labels:
           severity: warning
         annotations:
+          runbook_url: "docs/maintenance.md#disk-management"
           summary: "Disk space low (<10%)"
           description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is above 90% used."
 
@@ -50,6 +55,7 @@ groups:
         labels:
           severity: warning
         annotations:
+          runbook_url: "docs/operations.md#runbooks"
           summary: "Memory usage high (>90%)"
           description: "Host {{ $labels.instance }} memory usage above 90%."
 
@@ -59,6 +65,7 @@ groups:
         labels:
           severity: warning
         annotations:
+          runbook_url: "docs/operations.md#runbooks"
           summary: "CPU usage high (>90%)"
           description: "Host {{ $labels.instance }} CPU usage above 90%."
 
@@ -68,6 +75,7 @@ groups:
         labels:
           severity: warning
         annotations:
+          runbook_url: "docs/troubleshooting.md#log-ingestion-issues"
           summary: "Alloy/Loki dropped log entries detected"
           description: "Dropped entries observed over 10m window."
 
@@ -77,5 +85,6 @@ groups:
         labels:
           severity: warning
         annotations:
+          runbook_url: "docs/maintenance.md#disk-management"
           summary: "Loki container storage usage high"
           description: "Loki container fs usage exceeded 20GiB."

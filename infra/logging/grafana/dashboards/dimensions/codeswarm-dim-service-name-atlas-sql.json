@@ -71,7 +71,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"atlas-sql\"}[$__rate_interval]))",
+          "expr": "sum(rate({service_name=\"atlas-sql\"}[$__interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -110,7 +110,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"atlas-sql\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))",
+          "expr": "sum(rate({service_name=\"atlas-sql\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {

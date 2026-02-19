@@ -81,6 +81,17 @@ Metrics Sources → Prometheus (scrape/store) → Grafana (query/visualize)
 | Node Exporter | host-monitor | None | 9100 |
 | cAdvisor | docker-metrics | None | 8080 |
 
+### Resource limits (compose)
+
+| Service | `mem_limit` | `cpus` |
+|---------|-------------|--------|
+| grafana | `1g` | `0.50` |
+| loki | `2g` | `1.00` |
+| prometheus | `2g` | `1.00` |
+| alloy | `1g` | `0.75` |
+| host-monitor | `1g` | `1.00` |
+| docker-metrics | `2g` | `2.00` |
+
 **Volumes:** `grafana-data`, `prometheus-data`, `loki-data`
 
 **Additional scrape target:** Prometheus also scrapes a `wireguard` exporter at `172.20.0.1:9586` (Docker bridge gateway — host-side exporter, not a stack service).
@@ -122,19 +133,27 @@ Image versions are pinned via env vars (e.g., `GRAFANA_IMAGE=grafana/grafana:11.
 
 ## Log Sources (Alloy Pipelines)
 
-Alloy ingests from these host paths (mounted under `/host/`):
-- `/home/luce/_logs/*.log` — general application logs
-- `/home/luce/_telemetry/*.jsonl` — structured telemetry
-- `/home/luce/apps/vLLM/_data/mcp-logs/*.log` — CodeSwarm MCP logs (labeled `log_source=codeswarm_mcp`)
-- Docker socket — container logs
-- Systemd journal
+13 active log sources. Alloy mounts `/home/luce` at `/host/home` and `/var/log` at `/host/var/log`.
 
-All logs get `env=sandbox` through Alloy process stages. Source-specific
-pipelines add `log_source`/`source_type` labels where applicable.
+- `rsyslog_syslog` — TCP syslog relay from rsyslog on port 1514; adds `syslog_channel` and `security_domain` labels
+- `docker` — Docker socket container logs; filtered to vllm and hex compose projects
+- `journald` — systemd journal via `loki.source.journal`
+- `tool_sink` — `/home/luce/_logs/*.log`
+- `telemetry` — `/home/luce/_telemetry/*.jsonl`
+- `gpu_telemetry` — `/home/luce/_telemetry/gpu/gpu-live.csv` and `gpu-proc.csv`; `source_type=gpu_csv`
+- `nvidia_telem` — `/home/luce/apps/vLLM/logs/telemetry/nvidia/*.jsonl`; `source_type=file`, `telemetry_tier=raw30`
+- `codeswarm_mcp` — `/home/luce/apps/vLLM/_data/mcp-logs/*.log`; adds `mcp_level`, `service_name`
+- `vscode_server` — `/home/luce/.vscode-server/**/*.log`
+- `codex_tui` — `/home/luce/.codex/log/codex-tui.log`
+- `host_wireguard` — `/var/log/wireguard-client-manager.log`; `source_type=file`
+- `host_codeswarm` — `/var/log/codeswarm.log`; `source_type=file`
+- `host_apt` — `/var/log/apt/history.log`; `source_type=file`
+
+All logs get `env=sandbox`. Source-specific pipelines add `log_source`/`source_type` and further labels where applicable.
 
 ## Label Schema
 
-Every log entry has: `env`. Docker logs add `stack`, `service`, `source_type`, and `log_source`. File/syslog pipelines add `log_source` plus `filename`/`source_type` depending on source. MCP logs also carry `mcp_level` and `service_name`.
+Every log entry has: `env`. Docker logs add `stack`, `service`, `source_type`, and `log_source`. File/syslog pipelines add `log_source` plus `filename`/`source_type` depending on source. MCP logs also carry `mcp_level` and `service_name`. rsyslog_syslog logs add `syslog_channel` (general|ufw|auth|kernel|cron|other) and `security_domain` (firewall|auth) on matching lines. NVIDIA telemetry adds `telemetry_tier=raw30`. GPU telemetry uses `source_type=gpu_csv`.
 
 ## Directory Layout
 

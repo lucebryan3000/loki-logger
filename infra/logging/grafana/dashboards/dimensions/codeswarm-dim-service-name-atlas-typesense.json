@@ -71,7 +71,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"atlas-typesense\"}[$__rate_interval]))",
+          "expr": "sum(rate({service_name=\"atlas-typesense\"}[$__interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -110,7 +110,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"atlas-typesense\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))",
+          "expr": "sum(rate({service_name=\"atlas-typesense\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {

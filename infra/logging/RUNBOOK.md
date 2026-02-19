@@ -31,12 +31,14 @@ journald -> rsyslog -> Alloy (syslog TCP 1514 localhost) -> Loki -> Grafana
 
 ## Alert posture (authoritative)
 - Rules file: `infra/logging/grafana/provisioning/alerting/logging-pipeline-rules.yml`
+- Notification routing file: `infra/logging/grafana/provisioning/alerting/logging-notification-routing.yml`
 - Rule UIDs:
   - `logging-e2e-marker-missing`
   - `logging-total-ingest-down`
-- Delivery posture: **rules-only fallback**.
-  - Reason: current Grafana provisioning contact point is placeholder (`email receiver` with `<example@email.com>`) and policy points to default receiver; no deterministic real receiver endpoint is evidenced.
-  - Action: keep rules provisioned from file; do not provision notifications until a concrete receiver is provided.
+- Delivery posture: **Grafana-only canonical routing**.
+  - Contact point: `logging-ops` (file-provisioned).
+  - Prometheus `alertmanagers: []` is intentional in sandbox; alert delivery ownership is Grafana.
+  - Rule policy: use explicit `noDataState`/`execErrState` and `A -> B(reduce) -> C(threshold)` structure for all provisioned rules.
 
 ## Reduction Pass (R/C/V)
 - Reduction objective: keep one canonical operator source and remove doc duplication.
@@ -72,6 +74,18 @@ Plugin or non-editable dashboards are adopted into infra/logging/grafana/dashboa
 
 ## Label contract and expected-empty semantics
 Canonical label contract is log_source. Audit failure is only unexpected empty panels; expected-empty panels are tracked but not blocking.
+
+## Noise suppression governance
+Noise suppression is allowed only for known-resolved historical flaps that drown active incidents.
+
+- Current suppression class: `atlas_mcp_flap`
+- Pipeline location: `infra/logging/alloy-config.alloy` (`loki.process "main"` match+drop block)
+- Scope: only the historical module-missing + systemd exit-code spam pattern
+- Guardrails:
+  - suppress by exact/targeted regex, never broad source-level drops
+  - keep a named `noise_class` label on suppression blocks for auditability
+  - review every 30 days or when service ownership changes
+  - if suppression hides a reintroduced regression, remove suppression first and re-evaluate root cause
 
 
 ## Disk-full behavior

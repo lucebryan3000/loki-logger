@@ -29,7 +29,7 @@ Canonical query semantics are defined in [query-contract.md](query-contract.md).
 ```bash
 # Grafana
 curl -sf http://127.0.0.1:9001/api/health
-# Expected: {"commit":"...","database":"ok","version":"11.1.0"}
+# Expected: {"commit":"...","database":"ok","version":"11.5.2"}
 
 # Prometheus
 curl -sf http://127.0.0.1:9004/-/ready
@@ -513,16 +513,17 @@ rate(loki_distributor_lines_received_total[5m])
 up == 1
 ```
 
-### Alerting (Optional)
+### Alerting
 
-Prometheus alerting is configured but not enabled by default.
+Alert rules are defined in `infra/logging/grafana/provisioning/alerting/logging-pipeline-rules.yml` and evaluated by Grafana.
 
-**To enable alerts:**
-1. Add `alertmanager` service to compose file
-2. Configure `infra/logging/prometheus/alertmanager.yml`
-3. Update `prometheus.yml` with Alertmanager endpoint
+**Active alert rules:**
+- `logging-e2e-marker-missing` — No rsyslog MARKER= pattern for 15m (noDataState: Alerting)
+- `logging-total-ingest-down` — Total ingest count is 0 over 5m (noDataState: Alerting)
+- `logging-gpu-fault-signals` — GPU fault patterns (NVRM/Xid/OOM) detected in logs
+- `logging-gpu-temp-high` — GPU average temperature > 82C over 5m
 
-See [Prometheus Alerting Docs](https://prometheus.io/docs/alerting/latest/overview/) for setup.
+No Alertmanager is deployed. Alert delivery uses Grafana contact points. `prometheus.yml` has `alertmanagers: []`.
 
 ## Runbook: Ingestion Failure
 

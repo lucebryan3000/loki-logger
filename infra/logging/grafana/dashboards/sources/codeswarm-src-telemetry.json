@@ -111,7 +111,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"telemetry\"}[$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"telemetry\"}[$__interval]))"
         }
       ],
       "gridPos": {
@@ -143,7 +143,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"telemetry\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"telemetry\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval]))"
         }
       ],
       "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",
@@ -176,7 +176,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"telemetry\"}[$__rate_interval]))",
+          "expr": "sum(rate({log_source=\"telemetry\"}[$__interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -215,7 +215,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, (sum by (service_name) (rate({log_source=\"telemetry\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval])) or (sum by (service_name) (rate({log_source=\"telemetry\"}[$__rate_interval])) * 0)))",
+          "expr": "topk(10, (sum by (service_name) (rate({log_source=\"telemetry\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval])) or (sum by (service_name) (rate({log_source=\"telemetry\"}[$__interval])) * 0)))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -265,7 +265,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"telemetry\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))"
+          "expr": "sum(rate({log_source=\"telemetry\"} |~ \"(?i)(error|fail|exception|panic)\" [$__interval]))"
         }
       ],
       "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",

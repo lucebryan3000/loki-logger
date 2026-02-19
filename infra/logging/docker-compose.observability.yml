@@ -12,11 +12,22 @@ services:
   grafana:
     mem_limit: 1g
     cpus: "0.50"
+    security_opt:
+    - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "25m"
+        max-file: "5"
     image: ${GRAFANA_IMAGE:-grafana/grafana:11.1.0}
     env_file:
     - ../../.env
     environment:
     - GF_SERVER_HTTP_PORT=3000
+    - GF_AUTH_ANONYMOUS_ENABLED=false
+    - GF_USERS_ALLOW_SIGN_UP=false
+    - GF_SECURITY_COOKIE_SAMESITE=strict
+    - GF_SECURITY_COOKIE_SECURE=false
     ports:
     - ${GRAFANA_HOST:-0.0.0.0}:${GRAFANA_PORT:-9001}:3000
     volumes:
@@ -42,6 +53,17 @@ services:
   loki:
     mem_limit: 2g
     cpus: "1.00"
+    security_opt:
+    - no-new-privileges:true
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 131072
+    logging:
+      driver: json-file
+      options:
+        max-size: "25m"
+        max-file: "5"
     image: ${LOKI_IMAGE:-grafana/loki:3.0.0}
     command:
     - -config.file=/etc/loki/loki-config.yml
@@ -68,6 +90,13 @@ services:
   prometheus:
     mem_limit: 2g
     cpus: "1.00"
+    security_opt:
+    - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "25m"
+        max-file: "5"
     image: ${PROMETHEUS_IMAGE:-prom/prometheus:v2.52.0}
     command:
     - --config.file=/etc/prometheus/prometheus.yml
@@ -95,6 +124,15 @@ services:
       start_period: 20s
     restart: unless-stopped
   host-monitor:
+    mem_limit: 1g
+    cpus: "1.00"
+    security_opt:
+    - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "25m"
+        max-file: "5"
     image: ${NODE_EXPORTER_IMAGE:-prom/node-exporter:v1.8.1}
     command:
     - --path.rootfs=/host
@@ -105,6 +143,13 @@ services:
     - obs
     restart: unless-stopped
   docker-metrics:
+    mem_limit: 2g
+    cpus: "2.00"
+    logging:
+      driver: json-file
+      options:
+        max-size: "25m"
+        max-file: "5"
     image: ${CADVISOR_IMAGE:-gcr.io/cadvisor/cadvisor:v0.49.1}
     privileged: true
     devices:
@@ -120,6 +165,13 @@ services:
   alloy:
     mem_limit: 1g
     cpus: "0.75"
+    security_opt:
+    - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "25m"
+        max-file: "5"
     image: ${ALLOY_IMAGE:-grafana/alloy:v1.2.1}
     command:
     - run
