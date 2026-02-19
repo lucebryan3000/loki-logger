@@ -3,6 +3,8 @@ providers:
   - name: 'default'
     type: file
     disableDeletion: false
+    allowUiUpdates: true
     editable: true
+    folder: CodeSwarm
     options:
       path: /var/lib/grafana/dashboards

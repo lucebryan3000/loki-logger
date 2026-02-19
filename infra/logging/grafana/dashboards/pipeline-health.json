@@ -1,435 +1,168 @@
 {
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
+  "uid": "pipeline-health",
+  "title": "Pipeline Health",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
   },
-  "description": "Fast health view for rsyslog -> Alloy -> Loki pipeline.",
   "editable": true,
-  "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
-  "id": null,
-  "links": [],
+  "tags": [
+    "canonical",
+    "codeswarm",
+    "health",
+    "logging",
+    "pipeline"
+  ],
   "panels": [
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "direction": "backward",
-          "expr": "sum(count_over_time({log_source=~\"$log_source\"}[5m]))",
-          "queryType": "range",
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
-        }
-      ],
+      "type": "stat",
       "title": "Loki queryable (streams in 5m)",
-      "type": "stat"
-    },
-    {
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 4,
-            "showPoints": "never"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 6,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
       "targets": [
         {
-          "direction": "backward",
-          "expr": "sum by (log_source) (rate({log_source=\"rsyslog_syslog\"}[5m]))",
-          "queryType": "range",
           "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(count_over_time({log_source=~\"$log_source\"}[5m]))"
         }
-      ],
-      "title": "Syslog ingest volume (rsyslog_syslog)",
-      "type": "timeseries"
+      ]
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 4,
-            "showPoints": "never"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 18,
-        "y": 0
-      },
-      "id": 3,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "direction": "backward",
-          "expr": "sum(rate({log_source=~\"$log_source\"}[5m]))",
-          "queryType": "range",
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
-        }
-      ],
+      "type": "timeseries",
       "title": "Total log ingest rate",
-      "type": "timeseries"
-    },
-    {
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1
-              },
-              {
-                "color": "red",
-                "value": 5
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=~\"$log_source\"}[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Syslog ingest volume (rsyslog_syslog)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
-          "direction": "backward",
-          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"(omfwd|suspend|refused|error)\" [30m]))",
-          "queryType": "range",
           "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(rate({log_source=\"rsyslog_syslog\"}[5m]))"
         }
-      ],
-      "title": "Rsyslog forward errors (30m)",
-      "type": "stat"
+      ]
     },
     {
+      "type": "stat",
+      "title": "Rsyslog transport errors (30m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"(omfwd|suspend|refused)\" [30m])) or vector(0)"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Rsyslog generic errors (30m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"(?i)error\" [30m])) or vector(0)"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Error-like volume by source (5m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (log_source) (count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])))"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Alloy restarts (6h)",
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 5,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "changes(process_start_time_seconds{job=\"alloy\"}[6h])",
-          "legendFormat": "alloy",
-          "range": true,
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "changes(process_start_time_seconds{job=\"alloy\"}[6h])"
         }
-      ],
-      "title": "Alloy restarts (6h)",
-      "type": "stat"
+      ]
     },
     {
-      "id": 6,
       "type": "stat",
       "title": "E2E marker seen (15m)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 16
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"MARKER=\" [15m])) or vector(0)"
+        }
+      ]
+    },
+    {
+      "type": "logs",
+      "title": "Rsyslog error drill (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"MARKER=\" [15m]))",
           "refId": "A",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "{log_source=\"rsyslog_syslog\"} |~ \"(?i)(omfwd|suspend|refused|error)\""
         }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "auto"
-      }
+      ]
     }
-  ],
-  "refresh": "30s",
-  "schemaVersion": 39,
-  "tags": [
-    "logging",
-    "loki",
-    "alloy",
-    "rsyslog"
   ],
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
+        "name": "log_source",
+        "type": "query",
         "datasource": {
           "type": "loki",
           "uid": "P8E80F9AEF21F6940"
         },
-        "hide": 0,
-        "includeAll": true,
-        "label": "log_source",
-        "multi": true,
-        "name": "log_source",
-        "options": [],
         "query": "label_values(log_source)",
-        "refresh": 2,
-        "type": "query",
-        "allValue": ".+"
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
       }
     ]
-  },
-  "time": {
-    "from": "now-6h",
-    "to": "now"
-  },
-  "timepicker": {},
-  "timezone": "browser",
-  "title": "Pipeline Health",
-  "uid": "pipeline-health",
-  "version": 2,
-  "weekStart": ""
+  }
 }

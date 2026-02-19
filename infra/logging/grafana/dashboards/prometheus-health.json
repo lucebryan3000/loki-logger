@@ -1,12 +1,21 @@
 {
   "uid": "prom_health_v1",
-  "title": "Prometheus Health",
+  "title": "Prometheus 2.0 Stats",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "editable": true,
   "tags": [
-    "baseline"
+    "canonical",
+    "codeswarm",
+    "health",
+    "prometheus",
+    "stats"
   ],
   "panels": [
     {
@@ -14,81 +23,168 @@
       "title": "Targets Up (count)",
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093",
-        "name": "Prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "targets": [
         {
-          "expr": "sprint3:targets_up:count",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "sprint3:targets_up:count"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      }
+      ]
     },
     {
       "type": "timeseries",
       "title": "Scrape failures (rate)",
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093",
-        "name": "Prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "targets": [
         {
-          "expr": "sprint3:prometheus_scrape_failures:rate5m",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "sprint3:prometheus_scrape_failures:rate5m"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      }
+      ]
     },
     {
       "type": "timeseries",
-      "title": "Loki ingestion bytes/s (rate)",
+      "title": "Samples ingested (rate 5m)",
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093",
-        "name": "Prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "targets": [
         {
-          "expr": "rate(loki_distributor_bytes_received_total[5m])",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "sum(rate(prometheus_tsdb_head_samples_appended_total[5m]))"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 16
-      }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "TSDB head series",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "prometheus_tsdb_head_series"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "TSDB head chunks",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "prometheus_tsdb_head_chunks"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Query duration p99",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "prometheus_engine_query_duration_seconds{job=\"prometheus\",quantile=\"0.99\"}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Rule eval misses (rate 5m)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(prometheus_rule_group_iterations_missed_total{job=\"prometheus\"}[5m])"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Prometheus memory (bytes)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(process_resident_memory_bytes{job=\"prometheus\"})"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Prometheus uptime (seconds)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "time() - process_start_time_seconds{job=\"prometheus\"}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Loki ingestion bytes/s",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(loki_distributor_bytes_received_total[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Prometheus Targets Up by Job",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count by (job) (up{job=~\".+\"})"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Prometheus HTTP Requests (5m rate)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(prometheus_http_requests_total[5m])"
+        }
+      ]
     }
-  ],
-  "templating": {
-    "list": []
-  },
-  "annotations": {
-    "list": []
-  }
+  ]
 }

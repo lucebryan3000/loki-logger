@@ -1,6 +1,6 @@
 {
   "uid": "codeswarm-dim-service-name-codeswarm-mcp",
-  "title": "CodeSwarm - service_name=codeswarm-mcp",
+  "title": "CodeSwarm - log_source=codeswarm_mcp",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
@@ -9,16 +9,17 @@
     "from": "now-6h",
     "to": "now"
   },
+  "editable": true,
   "tags": [
+    "canonical",
     "codeswarm",
-    "logging",
+    "codeswarm_mcp",
     "dimension",
-    "service_name",
-    "codeswarm-mcp"
+    "log_source",
+    "logging"
   ],
   "panels": [
     {
-      "id": 1,
       "type": "stat",
       "title": "Logs seen (5m)",
       "datasource": {
@@ -28,24 +29,11 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"codeswarm-mcp\"}[5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(count_over_time({log_source=\"codeswarm_mcp\"}[5m]))"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 0
-      }
+      ]
     },
     {
-      "id": 2,
       "type": "timeseries",
       "title": "Log rate (5m)",
       "datasource": {
@@ -55,24 +43,11 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"codeswarm-mcp\"}[5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"}[5m]))"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 18,
-        "x": 6,
-        "y": 0
-      }
+      ]
     },
     {
-      "id": 3,
       "type": "timeseries",
       "title": "Error-like rate (5m)",
       "datasource": {
@@ -82,24 +57,39 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"codeswarm-mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])) or vector(0)"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      }
+      ]
     },
     {
-      "id": 4,
+      "type": "table",
+      "title": "Top mcp_level (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (mcp_level) (count_over_time({log_source=\"codeswarm_mcp\",mcp_level=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top filenames (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (filename) (count_over_time({log_source=\"codeswarm_mcp\",filename=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
       "type": "logs",
       "title": "Live logs",
       "datasource": {
@@ -109,22 +99,9 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=\"codeswarm-mcp\"}",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "{log_source=\"codeswarm_mcp\"}"
         }
-      ],
-      "gridPos": {
-        "h": 12,
-        "w": 24,
-        "x": 0,
-        "y": 16
-      }
+      ]
     }
-  ],
-  "annotations": {
-    "list": []
-  }
+  ]
 }

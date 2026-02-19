@@ -5,40 +5,101 @@
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "editable": true,
   "tags": [
-    "baseline"
+    "canonical",
+    "codeswarm",
+    "health",
+    "loki"
   ],
   "panels": [
     {
       "type": "timeseries",
-      "title": "Log volume (count_over_time)",
+      "title": "Ingest lines/s",
       "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940",
-        "name": "Loki"
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({env=~\".+\"}[5m]))",
           "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(rate(loki_distributor_lines_received_total[5m]))"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Ingest bytes/s",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(loki_distributor_bytes_received_total[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Loki request rate/s",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(loki_request_duration_seconds_count[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Rsyslog forward/error events (30m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"(omfwd|suspend|refused|error)\" [30m])) or vector(0)"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Total log volume (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\".+\"}[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top sources by volume (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (log_source) (count_over_time({log_source=~\".+\"}[5m])))"
+        }
+      ]
     }
-  ],
-  "templating": {
-    "list": []
-  },
-  "annotations": {
-    "list": []
-  }
+  ]
 }

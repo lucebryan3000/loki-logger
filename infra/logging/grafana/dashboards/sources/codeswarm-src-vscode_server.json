@@ -1,6 +1,6 @@
 {
   "uid": "codeswarm-src-vscode-server",
-  "title": "CodeSwarm - vscode_server",
+  "title": "vscode_server",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
@@ -10,6 +10,7 @@
     "to": "now"
   },
   "tags": [
+    "canonical",
     "codeswarm",
     "logging",
     "source",

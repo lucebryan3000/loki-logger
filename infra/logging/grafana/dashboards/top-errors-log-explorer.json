@@ -1,20 +1,108 @@
 {
   "uid": "top-errors-log-explorer",
-  "title": "Top Errors / Log Explorer",
+  "title": "Errors by Service",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
-  "tags": [
-    "logging",
-    "loki",
-    "ops",
-    "errors"
-  ],
   "time": {
     "from": "now-6h",
     "to": "now"
   },
+  "editable": true,
+  "tags": [
+    "canonical",
+    "codeswarm",
+    "errors",
+    "logging",
+    "triage"
+  ],
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Logs seen (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\"}[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Error-like logs (5m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top services with errors (5m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".+\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top sources with errors (5m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (log_source) (count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error trend by source (5m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (log_source) (rate({log_source=~\"$log_source\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))"
+        }
+      ]
+    },
+    {
+      "type": "logs",
+      "title": "Error explorer (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=~\"$log_source\"} |~ \"(?i)(error|fail|exception|panic)\""
+        }
+      ]
+    }
+  ],
   "templating": {
     "list": [
       {
@@ -26,107 +114,13 @@
         },
         "query": "label_values(log_source)",
         "includeAll": true,
+        "multi": true,
         "allValue": ".+",
-        "refresh": 2,
-        "multi": false,
         "current": {
           "text": "All",
           "value": "$__all"
         }
       }
     ]
-  },
-  "panels": [
-    {
-      "id": 1,
-      "type": "stat",
-      "title": "Logs seen (5m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 0
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(count_over_time({log_source=~\"$log_source\"}[5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
-      }
-    },
-    {
-      "id": 2,
-      "type": "timeseries",
-      "title": "Top log sources (5m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 18,
-        "x": 6,
-        "y": 0
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "topk(10, sum by (log_source) (count_over_time({log_source=~\"$log_source\"}[5m])))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "type": "logs",
-      "title": "Log Explorer",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "gridPos": {
-        "h": 12,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "{log_source=~\"$log_source\"}",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
-        }
-      ]
-    }
-  ],
-  "annotations": {
-    "list": []
   }
 }

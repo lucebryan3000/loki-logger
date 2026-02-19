@@ -1,6 +1,6 @@
 {
   "uid": "codeswarm-source-index",
-  "title": "CodeSwarm - Source Index",
+  "title": "Source Index",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
@@ -10,9 +10,10 @@
     "to": "now"
   },
   "tags": [
+    "audit",
+    "canonical",
     "codeswarm",
     "logging",
-    "audit",
     "loki"
   ],
   "templating": {

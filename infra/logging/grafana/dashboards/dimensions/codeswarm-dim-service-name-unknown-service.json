@@ -1,6 +1,6 @@
 {
   "uid": "codeswarm-dim-service-name-unknown-servi",
-  "title": "CodeSwarm - service_name=unknown_service",
+  "title": "unknown_service triage",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
@@ -9,16 +9,18 @@
     "from": "now-6h",
     "to": "now"
   },
+  "editable": true,
   "tags": [
+    "canonical",
     "codeswarm",
-    "logging",
     "dimension",
+    "logging",
     "service_name",
+    "triage",
     "unknown_service"
   ],
   "panels": [
     {
-      "id": 1,
       "type": "stat",
       "title": "Logs seen (5m)",
       "datasource": {
@@ -28,24 +30,11 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"unknown_service\"}[5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(count_over_time({service_name=\"unknown_service\"}[5m]))"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 0
-      }
+      ]
     },
     {
-      "id": 2,
       "type": "timeseries",
       "title": "Log rate (5m)",
       "datasource": {
@@ -55,24 +44,11 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"unknown_service\"}[5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(rate({service_name=\"unknown_service\"}[5m]))"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 18,
-        "x": 6,
-        "y": 0
-      }
+      ]
     },
     {
-      "id": 3,
       "type": "timeseries",
       "title": "Error-like rate (5m)",
       "datasource": {
@@ -82,24 +58,53 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"unknown_service\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(rate({service_name=\"unknown_service\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])) or vector(0)"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      }
+      ]
     },
     {
-      "id": 4,
+      "type": "table",
+      "title": "Top log_source in unknown_service (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (log_source) (count_over_time({service_name=\"unknown_service\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top filename in unknown_service (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (filename) (count_over_time({service_name=\"unknown_service\",filename=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top source_type in unknown_service (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (source_type) (count_over_time({service_name=\"unknown_service\",source_type=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
       "type": "logs",
       "title": "Live logs",
       "datasource": {
@@ -109,22 +114,9 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=\"unknown_service\"}",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "{service_name=\"unknown_service\"}"
         }
-      ],
-      "gridPos": {
-        "h": 12,
-        "w": 24,
-        "x": 0,
-        "y": 16
-      }
+      ]
     }
-  ],
-  "annotations": {
-    "list": []
-  }
+  ]
 }

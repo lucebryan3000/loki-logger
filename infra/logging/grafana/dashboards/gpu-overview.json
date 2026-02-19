@@ -1,70 +1,91 @@
 {
   "uid": "gpu_overview_v1",
-  "title": "GPU Overview (NVIDIA Telemetry-as-Logs)",
+  "title": "CodeSwarm - GPU Telemetry",
+  "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "editable": true,
   "tags": [
+    "canonical",
+    "codeswarm",
     "gpu",
-    "nvidia"
+    "telemetry"
   ],
-  "timezone": "browser",
   "panels": [
     {
-      "type": "logs",
-      "title": "GPU Alerts (transitions)",
+      "type": "stat",
+      "title": "Telemetry samples (5m)",
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940",
-        "name": "Loki"
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
-          "expr": "{log_source=\"telemetry\"}",
           "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "sum(count_over_time({log_source=\"telemetry\"}[5m]))"
         }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Telemetry value avg (1m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg_over_time(({log_source=\"telemetry\"} | json | unwrap value)[1m])"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Telemetry value max (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max_over_time(({log_source=\"telemetry\"} | json | unwrap value)[5m])"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top telemetry sources (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (source) (count_over_time({log_source=\"telemetry\"} | json | source=~\".+\" [5m])))"
+        }
+      ]
     },
     {
       "type": "logs",
-      "title": "GPU Raw (last 5m)",
+      "title": "Telemetry drill",
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940",
-        "name": "Loki"
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
-          "expr": "{log_source=\"telemetry\"}",
           "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "{log_source=\"telemetry\"} | json"
         }
-      ],
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      }
+      ]
     }
-  ],
-  "templating": {
-    "list": []
-  },
-  "annotations": {
-    "list": []
-  }
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "uid": "codeswarm-dim-index-service-name",
-  "title": "CodeSwarm - Dimension Index: service_name",
+  "title": "Dimension Index: service_name",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
@@ -10,9 +10,10 @@
     "to": "now"
   },
   "tags": [
+    "canonical",
     "codeswarm",
-    "logging",
     "dimension",
+    "logging",
     "service_name"
   ],
   "templating": {

@@ -1,6 +1,6 @@
 {
   "uid": "codeswarm-src-rsyslog-syslog",
-  "title": "CodeSwarm - rsyslog_syslog",
+  "title": "rsyslog_syslog",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
@@ -10,6 +10,7 @@
     "to": "now"
   },
   "tags": [
+    "canonical",
     "codeswarm",
     "logging",
     "rsyslog_syslog",

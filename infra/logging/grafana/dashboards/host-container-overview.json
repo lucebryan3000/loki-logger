@@ -1,169 +1,160 @@
 {
   "uid": "host-container-overview",
-  "title": "Host + Container Overview",
+  "title": "Host and Containers",
   "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
   "refresh": "30s",
   "time": {
     "from": "now-6h",
     "to": "now"
   },
+  "editable": true,
   "tags": [
-    "logging",
-    "observability",
-    "prometheus",
-    "cadvisor",
-    "node-exporter"
+    "canonical",
+    "codeswarm",
+    "containers",
+    "host",
+    "prometheus"
   ],
-  "schemaVersion": 39,
-  "version": 3,
   "panels": [
     {
-      "id": 1,
       "type": "timeseries",
       "title": "Host CPU %",
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 0
-      },
       "targets": [
         {
-          "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))"
         }
       ]
     },
     {
-      "id": 2,
       "type": "timeseries",
       "title": "Host Mem Used %",
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
       "targets": [
         {
-          "expr": "100 * (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "100 * (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes"
         }
       ]
     },
     {
-      "id": 3,
       "type": "timeseries",
       "title": "Disk Used %",
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
       "targets": [
         {
-          "expr": "100 * (1 - node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"})",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "100 * (1 - node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"})"
         }
       ]
     },
     {
-      "id": 4,
+      "type": "timeseries",
+      "title": "Host network RX bytes/s",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(node_network_receive_bytes_total{device!~\"lo|veth.*\"}[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Host network TX bytes/s",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(node_network_transmit_bytes_total{device!~\"lo|veth.*\"}[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Host load (5m)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "node_load5"
+        }
+      ]
+    },
+    {
       "type": "table",
       "title": "Top containers by CPU",
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
       "targets": [
         {
-          "expr": "topk(10, rate(container_cpu_usage_seconds_total{id=~\"/system.slice/docker-.*\\\\.scope\"}[5m]))",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "topk(10, rate(container_cpu_usage_seconds_total{id=~\"/system.slice/docker-.*scope\"}[5m]))"
         }
       ]
     },
     {
-      "id": 5,
       "type": "table",
       "title": "Top containers by Mem",
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
       "targets": [
         {
-          "expr": "topk(10, container_memory_working_set_bytes{id=~\"/system.slice/docker-.*\\\\.scope\"})",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "topk(10, container_memory_working_set_bytes{id=~\"/system.slice/docker-.*scope\"})"
         }
       ]
     },
     {
-      "id": 6,
       "type": "stat",
       "title": "Key service restarts (6h)",
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "changes(process_start_time_seconds{job=~\"alloy|prometheus\"}[6h])"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Filesystem free inodes",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
       },
       "targets": [
         {
-          "expr": "changes(process_start_time_seconds{job=~\"alloy|prometheus\"}[6h])",
           "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          }
+          "expr": "sum(node_filesystem_files_free{fstype!~\"tmpfs|overlay\"})"
         }
       ]
     }

@@ -1,6 +1,6 @@
 {
   "uid": "codeswarm-src-telemetry",
-  "title": "CodeSwarm - telemetry",
+  "title": "telemetry",
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
@@ -10,6 +10,7 @@
     "to": "now"
   },
   "tags": [
+    "canonical",
     "codeswarm",
     "logging",
     "source",
@@ -46,7 +47,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Error rate (6h)",
+      "title": "Error rate (6h) (expected idle)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -143,7 +144,7 @@
     {
       "id": 3,
       "type": "timeseries",
-      "title": "Error-like by service (5m)",
+      "title": "Error-like by service (5m) (expected idle)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -236,7 +237,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Error rate (5m)",
+      "title": "Error rate (5m) (expected idle)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
