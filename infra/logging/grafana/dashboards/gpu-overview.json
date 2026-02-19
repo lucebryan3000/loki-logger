@@ -1,10 +1,10 @@
 {
   "uid": "gpu_overview_v1",
   "title": "CodeSwarm - GPU Telemetry",
-  "timezone": "browser",
+  "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
-  "refresh": "30s",
+  "refresh": "10s",
   "time": {
     "from": "now-6h",
     "to": "now"
@@ -14,12 +14,51 @@
     "canonical",
     "codeswarm",
     "gpu",
-    "telemetry"
+    "telemetry",
+    "nvidia-smi",
+    "loki"
   ],
+  "description": "Visualization-first GPU telemetry sourced from host nvidia-smi CSV via Alloy -> Loki (log_source=gpu_telemetry). Panels cover utilization, VRAM, temperature, power, and process usage.",
+  "templating": {
+    "list": [
+      {
+        "name": "host",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values({log_source=\"gpu_telemetry\"}, host)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "gpu_name",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values({log_source=\"gpu_telemetry\",stream=\"gpu\"}, gpu_name)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
   "panels": [
     {
       "type": "stat",
-      "title": "Telemetry samples (5m)",
+      "title": "GPU telemetry samples (5m)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -27,13 +66,13 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"telemetry\"}[5m]))"
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"}[5m]))"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "Telemetry value avg (1m)",
+      "title": "GPU utilization %",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -41,13 +80,13 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time(({log_source=\"telemetry\"} | json | unwrap value)[1m])"
+          "expr": "avg_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"} | regexp \"^[^,]+,(?P<gpu_name>[^,]+),(?P<gpu_util>[0-9.]+),(?P<memory_pct>[0-9.]+),(?P<memory_used_mib>[0-9.]+),(?P<memory_total_mib>[0-9.]+),(?P<temp_c>[0-9.]+),(?P<power_w>[0-9.]+)$\" | unwrap gpu_util [1m])"
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "Telemetry value max (5m)",
+      "title": "VRAM usage %",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -55,13 +94,41 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max_over_time(({log_source=\"telemetry\"} | json | unwrap value)[5m])"
+          "expr": "avg_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"} | regexp \"^[^,]+,(?P<gpu_name>[^,]+),(?P<gpu_util>[0-9.]+),(?P<memory_pct>[0-9.]+),(?P<memory_used_mib>[0-9.]+),(?P<memory_total_mib>[0-9.]+),(?P<temp_c>[0-9.]+),(?P<power_w>[0-9.]+)$\" | unwrap memory_pct [1m])"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "GPU temperature (C)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"} | regexp \"^[^,]+,(?P<gpu_name>[^,]+),(?P<gpu_util>[0-9.]+),(?P<memory_pct>[0-9.]+),(?P<memory_used_mib>[0-9.]+),(?P<memory_total_mib>[0-9.]+),(?P<temp_c>[0-9.]+),(?P<power_w>[0-9.]+)$\" | unwrap temp_c [1m])"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "GPU power draw (W)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"} | regexp \"^[^,]+,(?P<gpu_name>[^,]+),(?P<gpu_util>[0-9.]+),(?P<memory_pct>[0-9.]+),(?P<memory_used_mib>[0-9.]+),(?P<memory_total_mib>[0-9.]+),(?P<temp_c>[0-9.]+),(?P<power_w>[0-9.]+)$\" | unwrap power_w [1m])"
         }
       ]
     },
     {
       "type": "table",
-      "title": "Top telemetry sources (5m)",
+      "title": "Top GPU processes by memory (expected idle when no compute jobs)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -69,13 +136,13 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (source) (count_over_time({log_source=\"telemetry\"} | json | source=~\".+\" [5m])))"
+          "expr": "topk(10, max by (process_name) (max_over_time({log_source=\"gpu_telemetry\",stream=\"proc\",host=~\"$host\"} | regexp \"^[^,]+,[0-9]+,(?P<process_name>[^,]+),(?P<used_gpu_memory_mib>[0-9.]+)$\" | unwrap used_gpu_memory_mib [5m])))"
         }
       ]
     },
     {
       "type": "logs",
-      "title": "Telemetry drill",
+      "title": "GPU telemetry drill",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -83,9 +150,88 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"telemetry\"} | json"
+          "expr": "{log_source=\"gpu_telemetry\",host=~\"$host\"}"
         }
       ]
     }
-  ]
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 140, 0, 1)",
+        "name": "Deploy events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "deploy",
+            "release"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(31, 120, 193, 1)",
+        "name": "Restart events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "restart",
+            "started",
+            "stopped"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(245, 54, 54, 1)",
+        "name": "Incident markers",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "incident",
+            "error",
+            "panic"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "graphTooltip": 1
 }

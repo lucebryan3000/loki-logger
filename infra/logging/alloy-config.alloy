@@ -101,6 +101,27 @@ loki.source.file "telemetry" {
   forward_to    = [loki.process.telemetry.receiver]
 }
 
+// GPU telemetry (host nvidia-smi CSV mirror)
+local.file_match "gpu_telemetry_gpu" {
+  path_targets = [{ "__path__" = "/host/home/luce/_telemetry/gpu/gpu-live.csv" }]
+}
+
+loki.source.file "gpu_telemetry_gpu" {
+  targets       = local.file_match.gpu_telemetry_gpu.targets
+  tail_from_end = true
+  forward_to    = [loki.process.gpu_telemetry_gpu.receiver]
+}
+
+local.file_match "gpu_telemetry_proc" {
+  path_targets = [{ "__path__" = "/host/home/luce/_telemetry/gpu/gpu-proc.csv" }]
+}
+
+loki.source.file "gpu_telemetry_proc" {
+  targets       = local.file_match.gpu_telemetry_proc.targets
+  tail_from_end = true
+  forward_to    = [loki.process.gpu_telemetry_proc.receiver]
+}
+
 // --- NVIDIA telemetry-as-logs (Sprint-3 Phase 4a) ---
 local.file_match "nvidia_telem" {
   path_targets = [
@@ -383,6 +404,49 @@ loki.process "telemetry" {
     replace    = "[REDACTED]"
   }
   // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
+}
+
+// --- GPU telemetry processors ---
+loki.process "gpu_telemetry_gpu" {
+  stage.regex {
+    expression = "^[^,]+,(?P<gpu_name>[^,]+),(?P<gpu_util>[0-9.]+),(?P<memory_pct>[0-9.]+),(?P<memory_used_mib>[0-9.]+),(?P<memory_total_mib>[0-9.]+),(?P<temp_c>[0-9.]+),(?P<power_w>[0-9.]+)$"
+  }
+
+  stage.labels {
+    values = {
+      gpu_name = "gpu_name",
+    }
+  }
+
+  stage.static_labels {
+    values = {
+      env         = "sandbox",
+      log_source  = "gpu_telemetry",
+      source_type = "gpu_csv",
+      host        = "codeswarm",
+      stream      = "gpu",
+    }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.process "gpu_telemetry_proc" {
+  stage.regex {
+    expression = "^[^,]+,(?P<pid>[0-9]+),(?P<process_name>[^,]+),(?P<used_gpu_memory_mib>[0-9.]+)$"
+  }
+
+  stage.static_labels {
+    values = {
+      env         = "sandbox",
+      log_source  = "gpu_telemetry",
+      source_type = "gpu_csv",
+      host        = "codeswarm",
+      stream      = "proc",
+    }
+  }
 
   forward_to = [loki.write.default.receiver]
 }
