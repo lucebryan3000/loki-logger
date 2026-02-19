@@ -134,7 +134,7 @@ services:
     - ${HOST_VAR_LOG_JOURNAL:-/var/log/journal}:/var/log/journal:ro
     - ${HOST_RUN_LOG_JOURNAL:-/run/log/journal}:/run/log/journal:ro
     - ${HOST_HOME:-/home/luce}:/host/home:ro
-    - ${HOST_VAR_LOG_SAMBA:-/var/log/samba}:/host/var/log/samba:ro
+    - ${HOST_VAR_LOG:-/var/log}:/host/var/log:ro
     - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
     - alloy-positions:/var/lib/alloy
     networks:
@@ -144,11 +144,9 @@ services:
     healthcheck:
       test:
       - CMD
-      - wget
-      - -q
-      - -O
-      - '-'
-      - http://127.0.0.1:12345/-/ready
+      - bash
+      - -ec
+      - 'exec 3<>/dev/tcp/127.0.0.1/12345; printf "GET /-/ready HTTP/1.0\r\n\r\n" >&3; head -n 1 <&3 | grep -q "200"'
       interval: 60s
       timeout: 10s
       retries: 3

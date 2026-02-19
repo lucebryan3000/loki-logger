@@ -199,10 +199,127 @@ loki.source.file "vscode_server" {
 }
 // --- end VS Code Server logs ---
 
+// --- Codex TUI logs ---
+local.file_match "codex_tui" {
+  path_targets = [{ "__path__" = "/host/home/luce/.codex/log/codex-tui.log" }]
+}
+
+loki.source.file "codex_tui" {
+  targets       = local.file_match.codex_tui.targets
+  tail_from_end = true
+  forward_to    = [loki.process.codex_tui.receiver]
+}
+// --- end Codex TUI logs ---
+
+// --- Host file logs (selected) ---
+local.file_match "host_wireguard_log" {
+  path_targets = [{ "__path__" = "/host/var/log/wireguard-client-manager.log" }]
+}
+
+loki.source.file "host_wireguard_log" {
+  targets       = local.file_match.host_wireguard_log.targets
+  tail_from_end = true
+  forward_to    = [loki.process.host_wireguard_log.receiver]
+}
+
+local.file_match "host_codeswarm_log" {
+  path_targets = [{ "__path__" = "/host/var/log/codeswarm.log" }]
+}
+
+loki.source.file "host_codeswarm_log" {
+  targets       = local.file_match.host_codeswarm_log.targets
+  tail_from_end = true
+  forward_to    = [loki.process.host_codeswarm_log.receiver]
+}
+
+local.file_match "host_apt_history" {
+  path_targets = [{ "__path__" = "/host/var/log/apt/history.log" }]
+}
+
+loki.source.file "host_apt_history" {
+  targets       = local.file_match.host_apt_history.targets
+  tail_from_end = true
+  forward_to    = [loki.process.host_apt_history.receiver]
+}
+// --- end Host file logs (selected) ---
+
  loki.process "main" {
   stage.static_labels {
     values = {
-      env = "sandbox",
+      env            = "sandbox",
+      syslog_channel = "general",
+      syslog_level   = "info",
+    }
+  }
+
+  // syslog channel tagging for better security triage in Grafana/Loki.
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)ufw\""
+    stage.static_labels {
+      values = {
+        syslog_channel  = "ufw",
+        security_domain = "firewall",
+      }
+    }
+  }
+
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(pam_unix|sshd|sudo:|authentication failure|session opened for user|session closed for user)\""
+    stage.static_labels {
+      values = {
+        syslog_channel  = "auth",
+        security_domain = "auth",
+      }
+    }
+  }
+
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(warn|warning|degraded|retry|backoff|throttl)\""
+    stage.static_labels {
+      values = {
+        syslog_level = "warn",
+      }
+    }
+  }
+
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|denied|refused|operation not permitted|segfault|oom|timeout)\""
+    stage.static_labels {
+      values = {
+        syslog_level = "error",
+      }
+    }
+  }
+
+  // Prefer structured syslog severity label when available.
+  stage.match {
+    selector = "{source_type=\"syslog\",level=~\"(?i)(warn|warning)\"}"
+    stage.static_labels {
+      values = {
+        syslog_level = "warn",
+      }
+    }
+  }
+
+  stage.match {
+    selector = "{source_type=\"syslog\",level=~\"(?i)(err|error|crit|critical|alert|emerg|fatal|panic)\"}"
+    stage.static_labels {
+      values = {
+        syslog_level = "error",
+      }
+    }
+  }
+
+  // Improve service attribution for syslog lines that include systemd unit names.
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"[A-Za-z0-9_.@-]+[.]service\""
+    stage.regex {
+      expression = "(?P<syslog_service>[A-Za-z0-9_.@-]+[.]service)"
+    }
+    stage.labels {
+      values = {
+        service_name = "syslog_service",
+      }
     }
   }
 
@@ -407,6 +524,122 @@ loki.process "telemetry" {
 
   forward_to = [loki.write.default.receiver]
 }
+
+// --- Codex TUI processor ---
+loki.process "codex_tui" {
+  stage.static_labels {
+    values = {
+      env         = "sandbox",
+      log_source  = "codex_tui",
+      source_type = "file",
+    }
+  }
+
+  // --- redaction ---
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+  // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end Codex TUI processor ---
+
+// --- Host wireguard log processor ---
+loki.process "host_wireguard_log" {
+  stage.static_labels {
+    values = {
+      env         = "sandbox",
+      log_source  = "host_wireguard",
+      source_type = "file",
+    }
+  }
+
+  // --- redaction ---
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+  // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end Host wireguard log processor ---
+
+// --- Host codeswarm log processor ---
+loki.process "host_codeswarm_log" {
+  stage.static_labels {
+    values = {
+      env         = "sandbox",
+      log_source  = "host_codeswarm",
+      source_type = "file",
+    }
+  }
+
+  // --- redaction ---
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+  // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end Host codeswarm log processor ---
+
+// --- Host apt history processor ---
+loki.process "host_apt_history" {
+  stage.static_labels {
+    values = {
+      env         = "sandbox",
+      log_source  = "host_apt",
+      source_type = "file",
+    }
+  }
+
+  // --- redaction ---
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+  // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end Host apt history processor ---
 
 // --- GPU telemetry processors ---
 loki.process "gpu_telemetry_gpu" {

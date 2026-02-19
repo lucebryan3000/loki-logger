@@ -213,6 +213,9 @@ See [troubleshooting.md](troubleshooting.md) for full troubleshooting guide.
 - **[security.md](security.md)** — Exposure posture, secrets handling
 - **[maintenance.md](maintenance.md)** — Retention, backups, upgrades
 - **[reference.md](reference.md)** — Ports, labels, paths, env vars
+- **[api_usage/README.md](api_usage/README.md)** — API usage docs for app integrations
+- **[api_usage/authoritative-loki-grafana-api.md](api_usage/authoritative-loki-grafana-api.md)** — Comprehensive API contract from official docs
+- **[api_usage/server-specific-api-usage.md](api_usage/server-specific-api-usage.md)** — API usage aligned to this repo's runtime config
 
 ## Common Gotchas
 

@@ -1,12 +1,12 @@
 {
   "uid": "codeswarm-src-vscode-server",
   "title": "vscode_server",
-  "timezone": "browser",
+  "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "tags": [
@@ -18,8 +18,22 @@
   ],
   "panels": [
     {
+      "type": "text",
+      "title": "Source Context",
+      "options": {
+        "mode": "markdown",
+        "content": "### Source Context\n- Dashboard scope: multi-source / filter-driven\n- Selected log source filter: `${log_source:text}`\n- Selected service filter: `${service_name:text}`\n- Selected source type filter: `${source_type:text}`\n- Selected file path filter: `${filename:text}`\n- File path values in scope:<br/>`${filename:join:<br/>}`\n- Note: `All` means no extra filter. File paths above are listed one per line for the current filter scope.\n"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
       "type": "stat",
-      "title": "Logs (5m)",
+      "title": "Logs",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -27,13 +41,69 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"vscode_server\"}[5m]))"
+          "expr": "sum(count_over_time({log_source=\"vscode_server\"}[$__range]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Shows Logs (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly."
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Logs seen",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"vscode_server\"}[$__range]))",
+          "queryType": "range",
+          "direction": "backward",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Shows Logs seen (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly."
+    },
+    {
+      "type": "stat",
+      "title": "Error share % (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "ES",
+          "expr": "100 * (sum(count_over_time({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [$__range])) / (sum(count_over_time({log_source=\"vscode_server\"}[$__range])) + 1))"
+        }
+      ],
+      "description": "Share of source volume that is error-like. Healthy systems should stay near zero.",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      }
     },
     {
       "type": "timeseries",
-      "title": "Log rate (6h)",
+      "title": "Log rate",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -41,13 +111,31 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"vscode_server\"}[5m]))"
+          "expr": "sum(rate({log_source=\"vscode_server\"}[$__rate_interval]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Rate of incoming log events for the selected filters. Spikes indicate bursty behavior or changes in workload.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "type": "timeseries",
-      "title": "Error rate (6h)",
+      "title": "Error rate",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -55,13 +143,32 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))"
+          "expr": "sum(rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Rate of error-like log events for the selected filters. Sustained elevation indicates active issues.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
-      "type": "table",
-      "title": "Top offenders by service_name (5m)",
+      "id": 2,
+      "type": "timeseries",
+      "title": "Log rate",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -69,9 +176,314 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"vscode_server\", service_name=~\".+\"}[5m])))"
+          "expr": "sum(rate({log_source=\"vscode_server\"}[$__rate_interval]))",
+          "queryType": "range",
+          "direction": "backward",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Rate of incoming log events for the selected filters. Spikes indicate bursty behavior or changes in workload.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Error-like rate",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))",
+          "queryType": "range",
+          "direction": "backward",
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Error-like rate (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error rate",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Rate of error-like log events for the selected filters. Sustained elevation indicates active issues.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Top offenders by service_name",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"vscode_server\", service_name=~\".+\"}[$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Top contributors by count for the selected filters and time window. Higher values indicate the primary sources."
+    },
+    {
+      "type": "timeseries",
+      "title": "Top services",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (service_name) (count_over_time({log_source=\"vscode_server\", service_name=~\".+\"}[$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 33,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Top contributors by count for the selected filters and time window. Higher values indicate the primary sources."
+    },
+    {
+      "type": "timeseries",
+      "title": "Volume by env",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (env) (count_over_time({log_source=\"vscode_server\", env=~\".+\"}[$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{env}}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 43,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "description": "Shows Volume by env (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly."
+    },
+    {
+      "type": "timeseries",
+      "title": "Top files",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (filename) (count_over_time({log_source=\"vscode_server\", filename=~\".+\"}[$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{filename}}"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 43,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "description": "Top contributors by count for the selected filters and time window. Higher values indicate the primary sources."
+    },
+    {
+      "type": "timeseries",
+      "title": "Error-like by service",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, (sum by (service_name) (rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval])) or (sum by (service_name) (rate({log_source=\"vscode_server\"}[$__rate_interval])) * 0)))",
+          "queryType": "range",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 53,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Shows Error-like by service (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly."
     },
     {
       "type": "logs",
@@ -83,90 +495,16 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"vscode_server\"}"
-        }
-      ]
-    },
-    {
-      "id": 1,
-      "type": "stat",
-      "title": "Logs seen (5m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"vscode_server\"}[5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
+          "expr": "{log_source=\"vscode_server\"} ${log_type}"
         }
       ],
       "gridPos": {
-        "h": 8,
-        "w": 6,
         "x": 0,
-        "y": 0
-      }
-    },
-    {
-      "id": 2,
-      "type": "timeseries",
-      "title": "Log rate (5m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "y": 63,
+        "w": 24,
+        "h": 12
       },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(rate({log_source=\"vscode_server\"}[5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 18,
-        "x": 6,
-        "y": 0
-      }
-    },
-    {
-      "id": 3,
-      "type": "timeseries",
-      "title": "Error-like rate (5m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))",
-          "queryType": "range",
-          "direction": "backward",
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      }
+      "description": "Raw logs for the active filters. Use field filters and Explore to drill into incidents and root causes."
     },
     {
       "id": 4,
@@ -179,7 +517,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"vscode_server\"}",
+          "expr": "{log_source=\"vscode_server\"} ${log_type}",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -187,85 +525,374 @@
         }
       ],
       "gridPos": {
-        "h": 12,
-        "w": 24,
         "x": 0,
-        "y": 16
+        "y": 75,
+        "w": 24,
+        "h": 12
+      },
+      "description": "Raw logs for the active filters. Use field filters and Explore to drill into incidents and root causes."
+    },
+    {
+      "type": "logs",
+      "title": "Deploy/Restart markers (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "MK",
+          "expr": "{log_source=\"vscode_server\"} |~ \"(?i)(deploy|release|restart|started|stopped|rolling update|shutting down)\" ${log_type}"
+        }
+      ],
+      "description": "Operational lifecycle markers; expected sparse except during maintenance/release windows.",
+      "gridPos": {
+        "x": 0,
+        "y": 87,
+        "w": 24,
+        "h": 12
       }
     },
     {
-      "type": "table",
-      "title": "Top services (5m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "topk(10, sum by (service_name) (count_over_time({log_source=\"vscode_server\", service_name=~\".+\"}[5m])))"
-        }
-      ]
-    },
-    {
-      "type": "table",
-      "title": "Volume by env (5m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "topk(10, sum by (env) (count_over_time({log_source=\"vscode_server\", env=~\".+\"}[5m])))"
-        }
-      ]
-    },
-    {
-      "type": "table",
-      "title": "Top files (5m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "topk(10, sum by (filename) (count_over_time({log_source=\"vscode_server\", filename=~\".+\"}[5m])))"
-        }
-      ]
-    },
-    {
-      "type": "table",
-      "title": "Error-like by service (5m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "topk(10, (sum by (service_name) (rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])) or (sum by (service_name) (rate({log_source=\"vscode_server\"}[5m])) * 0)))"
-        }
-      ]
-    },
-    {
       "type": "timeseries",
-      "title": "Error rate (5m)",
+      "title": "Logs by volume",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 79
+      },
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"vscode_server\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))"
+          "expr": "sum(count_over_time({log_source=\"vscode_server\"} |~ \"(?i)\\bdebug\\b\" [$__range]))",
+          "legendFormat": "debug"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(count_over_time({log_source=\"vscode_server\"} |~ \"(?i)\\binfo\\b\" [$__range]))",
+          "legendFormat": "info"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(count_over_time({log_source=\"vscode_server\"} |~ \"(?i)\\bwarn(ing)?\\b\" [$__range]))",
+          "legendFormat": "warn"
+        },
+        {
+          "refId": "D",
+          "expr": "sum(count_over_time({log_source=\"vscode_server\"} |~ \"(?i)\\b(err(or)?|fatal|panic|fail(ed)?)\\b\" [$__range]))",
+          "legendFormat": "error"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 75,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 5,
+      "description": "Breakdown of log volume by severity (debug/info/warn/error) for the current filters over a 5 minute window."
     }
   ],
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 140, 0, 1)",
+        "name": "Deploy events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "deploy",
+            "release"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(31, 120, 193, 1)",
+        "name": "Restart events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "restart",
+            "started",
+            "stopped"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(245, 54, 54, 1)",
+        "name": "Incident markers",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "incident",
+            "error",
+            "panic"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      }
+    ]
   },
-  "editable": true
+  "editable": true,
+  "links": [
+    {
+      "title": "Source Index",
+      "url": "/d/codeswarm-source-index",
+      "type": "link",
+      "keepTime": true,
+      "includeVars": true
+    },
+    {
+      "title": "Errors by Service",
+      "url": "/d/top-errors-log-explorer?var-log_source=vscode_server",
+      "type": "link",
+      "keepTime": true,
+      "includeVars": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "log_source",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(log_source)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service_name",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service_name)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "source_type",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(source_type)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(env)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "filename",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(filename)",
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "stack",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(stack)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "mcp_level",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(mcp_level)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "log_type",
+        "label": "Log Type",
+        "type": "custom",
+        "hide": 0,
+        "query": "all,debug,info,warn,error/fail",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": ""
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "debug",
+            "value": "|~ \"(?i)\\bdebug\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "info",
+            "value": "|~ \"(?i)\\binfo\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "warn",
+            "value": "|~ \"(?i)(warn|warning)\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          },
+          {
+            "selected": false,
+            "text": "error/fail",
+            "value": "|~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Per-source operations dashboard for vscode_server. Includes health, error share, offenders, and drill logs for incident response. Last settings update: 2026-02-19 03:41 UTC (metadata, variables, annotations, navigation hardening).",
+  "graphTooltip": 1
 }

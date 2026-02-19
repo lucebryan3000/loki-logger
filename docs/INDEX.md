@@ -30,6 +30,12 @@ Complete navigation for the Loki logging stack documentation.
 - **[query-contract.md](query-contract.md)** — Canonical query IDs shared by rules, dashboards, alerts, and machine checks
 - **[troubleshooting.md](troubleshooting.md)** — Symptoms → causes → fixes
 
+### API Usage
+
+- **[api_usage/README.md](api_usage/README.md)** — API usage index for app integrations
+- **[api_usage/authoritative-loki-grafana-api.md](api_usage/authoritative-loki-grafana-api.md)** — Comprehensive API contract from official docs
+- **[api_usage/server-specific-api-usage.md](api_usage/server-specific-api-usage.md)** — API usage aligned to this repo's runtime config
+
 ### Security and Maintenance
 
 - **[security.md](security.md)** — Exposure posture, secrets, authentication
@@ -65,6 +71,11 @@ Complete navigation for the Loki logging stack documentation.
 - [Query contract](query-contract.md)
 - [Evidence generation](operations.md#evidence-generation)
 - [Grafana administration](operations.md#grafana-administration)
+
+### API Usage
+- [API usage index](api_usage/README.md)
+- [Authoritative Loki and Grafana API guide](api_usage/authoritative-loki-grafana-api.md)
+- [Server-specific API guide](api_usage/server-specific-api-usage.md)
 
 ### Validation
 - [Service health (L1)](validation.md#l1-service-health)

@@ -1,0 +1,14 @@
+apiVersion: 1
+datasources:
+  - name: simpod-json-datasource
+    uid: bfdo9eqgzbb40b
+    type: simpod-json-datasource
+    access: proxy
+    url: ""
+    editable: true
+  - name: codeswarm-csv-enrichment
+    uid: codeswarm-csv-enrichment
+    type: marcusolsson-csv-datasource
+    access: proxy
+    url: ""
+    editable: true

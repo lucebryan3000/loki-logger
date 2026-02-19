@@ -1,12 +1,12 @@
 {
   "uid": "codeswarm-dim-service-name-unknown-servi",
   "title": "unknown_service triage",
-  "timezone": "browser",
+  "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "editable": true,
@@ -21,8 +21,22 @@
   ],
   "panels": [
     {
+      "type": "text",
+      "title": "Source Context",
+      "options": {
+        "mode": "markdown",
+        "content": "### Source Context\n- Dashboard scope: multi-source / filter-driven\n- Selected log source filter: `${log_source:text}`\n- Selected service filter: `${service_name:text}`\n- Selected source type filter: `${source_type:text}`\n- Selected file path filter: `${filename:text}`\n- File path values in scope:<br/>`${filename:join:<br/>}`\n- Note: `All` means no extra filter. File paths above are listed one per line for the current filter scope.\n"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
       "type": "stat",
-      "title": "Logs seen (5m)",
+      "title": "Logs seen",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -30,13 +44,20 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"unknown_service\"}[5m]))"
+          "expr": "sum(count_over_time({service_name=\"unknown_service\"}[$__range]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Shows Logs seen (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly."
     },
     {
       "type": "timeseries",
-      "title": "Log rate (5m)",
+      "title": "Log rate",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -44,13 +65,31 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"unknown_service\"}[5m]))"
+          "expr": "sum(rate({service_name=\"unknown_service\"}[$__rate_interval]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Rate of incoming log events for the selected filters. Spikes indicate bursty behavior or changes in workload.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "type": "timeseries",
-      "title": "Error-like rate (5m)",
+      "title": "Error-like rate",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -58,13 +97,31 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"unknown_service\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])) or vector(0)"
+          "expr": "sum(rate({service_name=\"unknown_service\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval])) or vector(0)"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Error-like rate (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
-      "type": "table",
-      "title": "Top log_source in unknown_service (5m)",
+      "type": "timeseries",
+      "title": "Top log_source in unknown_service",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -72,13 +129,41 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (log_source) (count_over_time({service_name=\"unknown_service\"}[5m])))"
+          "expr": "topk(15, sum by (log_source) (count_over_time({service_name=\"unknown_service\"}[$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{log_source}}"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Top contributors by count for the selected filters and time window. Higher values indicate the primary sources."
     },
     {
-      "type": "table",
-      "title": "Top filename in unknown_service (5m)",
+      "type": "timeseries",
+      "title": "Top filename in unknown_service",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -86,13 +171,41 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (filename) (count_over_time({service_name=\"unknown_service\",filename=~\".+\"}[5m])))"
+          "expr": "topk(15, sum by (filename) (count_over_time({service_name=\"unknown_service\",filename=~\".+\"}[$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{filename}}"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "description": "Top contributors by count for the selected filters and time window. Higher values indicate the primary sources."
     },
     {
-      "type": "table",
-      "title": "Top source_type in unknown_service (5m)",
+      "type": "timeseries",
+      "title": "Top source_type in unknown_service",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -100,9 +213,163 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (source_type) (count_over_time({service_name=\"unknown_service\",source_type=~\".+\"}[5m])))"
+          "expr": "topk(10, sum by (source_type) (count_over_time({service_name=\"unknown_service\",source_type=~\".+\"}[$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{source_type}}"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "description": "Top contributors by count for the selected filters and time window. Higher values indicate the primary sources."
+    },
+    {
+      "type": "timeseries",
+      "title": "Top recurring error signatures (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "E",
+          "expr": "topk(20, sum by (sig) (count_over_time({service_name=\"unknown_service\"} |~ \"(?i)(error|fail|exception|panic)\" | regexp \"(?P<sig>.{1,120})\" [$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{sig}}"
+        }
+      ],
+      "description": "Breakdown of repeated error-like lines within unknown_service for labeling and routing cleanup.",
+      "gridPos": {
+        "x": 12,
+        "y": 27,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Top program tokens (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "PG",
+          "expr": "topk(20, sum by (program) (count_over_time({service_name=\"unknown_service\"} | regexp \"(?P<program>[A-Za-z0-9_.-]+)(\\[[0-9]+\\])?:\" [$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{program}}"
+        }
+      ],
+      "description": "Program token extraction for unknown_service lines when syslog-style prefixes are present.",
+      "gridPos": {
+        "x": 0,
+        "y": 37,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Top module tokens (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "MD",
+          "expr": "topk(20, sum by (module) (count_over_time({service_name=\"unknown_service\"} | regexp \"(?P<module>[A-Za-z0-9_.-]{3,40})\" [$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{module}}"
+        }
+      ],
+      "description": "Module-like token extraction to help classify unknown_service noise into actionable buckets.",
+      "gridPos": {
+        "x": 12,
+        "y": 37,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
     },
     {
       "type": "logs",
@@ -114,9 +381,340 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=\"unknown_service\"}"
+          "expr": "{service_name=\"unknown_service\"} ${log_type}"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 47,
+        "w": 24,
+        "h": 12
+      },
+      "description": "Raw logs for the active filters. Use field filters and Explore to drill into incidents and root causes."
+    },
+    {
+      "type": "timeseries",
+      "title": "Logs by volume",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"unknown_service\"} |~ \"(?i)\\bdebug\\b\" [$__range]))",
+          "legendFormat": "debug"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(count_over_time({service_name=\"unknown_service\"} |~ \"(?i)\\binfo\\b\" [$__range]))",
+          "legendFormat": "info"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(count_over_time({service_name=\"unknown_service\"} |~ \"(?i)\\bwarn(ing)?\\b\" [$__range]))",
+          "legendFormat": "warn"
+        },
+        {
+          "refId": "D",
+          "expr": "sum(count_over_time({service_name=\"unknown_service\"} |~ \"(?i)\\b(err(or)?|fatal|panic|fail(ed)?)\\b\" [$__range]))",
+          "legendFormat": "error"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 75,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 1,
+      "description": "Breakdown of log volume by severity (debug/info/warn/error) for the current filters over a 5 minute window."
     }
-  ]
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "log_source",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(log_source)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service_name",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service_name)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "source_type",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(source_type)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(env)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "filename",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(filename)",
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "stack",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(stack)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "mcp_level",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(mcp_level)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "log_type",
+        "label": "Log Type",
+        "type": "custom",
+        "hide": 0,
+        "query": "all,debug,info,warn,error/fail",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": ""
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "debug",
+            "value": "|~ \"(?i)\\bdebug\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "info",
+            "value": "|~ \"(?i)\\binfo\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "warn",
+            "value": "|~ \"(?i)(warn|warning)\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          },
+          {
+            "selected": false,
+            "text": "error/fail",
+            "value": "|~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Dimension-focused triage dashboard to break down log behavior by service and related labels. Last settings update: 2026-02-19 03:41 UTC (metadata, variables, annotations, navigation hardening).",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 140, 0, 1)",
+        "name": "Deploy events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "deploy",
+            "release"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(31, 120, 193, 1)",
+        "name": "Restart events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "restart",
+            "started",
+            "stopped"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(245, 54, 54, 1)",
+        "name": "Incident markers",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "incident",
+            "error",
+            "panic"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "graphTooltip": 1
 }

@@ -1,23 +1,58 @@
 {
   "uid": "host-container-overview",
-  "title": "Host and Containers",
-  "timezone": "browser",
+  "title": "Host: Ubuntu",
+  "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "editable": true,
   "tags": [
     "canonical",
     "codeswarm",
-    "containers",
     "host",
-    "prometheus"
+    "prometheus",
+    "ubuntu"
   ],
   "panels": [
+    {
+      "type": "text",
+      "title": "Source Context",
+      "options": {
+        "mode": "markdown",
+        "content": "### Source Context\n- Dashboard scope: multi-source / filter-driven\n- Selected log source filter: `${log_source:text}`\n- Selected service filter: `${service_name:text}`\n- Selected source type filter: `${source_type:text}`\n- Selected file path filter: `${filename:text}`\n- File path values in scope:<br/>`${filename:join:<br/>}`\n- Note: `All` means no extra filter. File paths above are listed one per line for the current filter scope.\n"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Key service restarts",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "changes(process_start_time_seconds{job=~\"alloy|prometheus\"}[$__range])"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Shows Key service restarts (6h) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly."
+    },
     {
       "type": "timeseries",
       "title": "Host CPU %",
@@ -28,9 +63,27 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))"
+          "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval])))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Utilization trend for the selected scope. Correlate spikes with workload changes and errors.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "type": "timeseries",
@@ -44,7 +97,25 @@
           "refId": "A",
           "expr": "100 * (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Host Mem Used % for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "type": "timeseries",
@@ -58,7 +129,25 @@
           "refId": "A",
           "expr": "100 * (1 - node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"})"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Disk Used % for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "type": "timeseries",
@@ -70,9 +159,27 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(node_network_receive_bytes_total{device!~\"lo|veth.*\"}[5m]))"
+          "expr": "sum(rate(node_network_receive_bytes_total{device!~\"lo|veth.*\"}[$__rate_interval]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Host network RX bytes/s for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "type": "timeseries",
@@ -84,13 +191,31 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(node_network_transmit_bytes_total{device!~\"lo|veth.*\"}[5m]))"
+          "expr": "sum(rate(node_network_transmit_bytes_total{device!~\"lo|veth.*\"}[$__rate_interval]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Host network TX bytes/s for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "type": "timeseries",
-      "title": "Host load (5m)",
+      "title": "Host load",
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
@@ -100,49 +225,25 @@
           "refId": "A",
           "expr": "node_load5"
         }
-      ]
-    },
-    {
-      "type": "table",
-      "title": "Top containers by CPU",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 25,
+        "w": 12,
+        "h": 8
       },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "topk(10, rate(container_cpu_usage_seconds_total{id=~\"/system.slice/docker-.*scope\"}[5m]))"
+      "description": "Shows Host load (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
         }
-      ]
-    },
-    {
-      "type": "table",
-      "title": "Top containers by Mem",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "topk(10, container_memory_working_set_bytes{id=~\"/system.slice/docker-.*scope\"})"
-        }
-      ]
-    },
-    {
-      "type": "stat",
-      "title": "Key service restarts (6h)",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "changes(process_start_time_seconds{job=~\"alloy|prometheus\"}[6h])"
-        }
-      ]
+      }
     },
     {
       "type": "timeseries",
@@ -156,7 +257,331 @@
           "refId": "A",
           "expr": "sum(node_filesystem_files_free{fstype!~\"tmpfs|overlay\"})"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Filesystem free inodes for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "id": 1,
+      "type": "bargauge",
+      "title": "Noisiest host services (ranked)",
+      "description": "Host/service emitters by current volume.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\",service_name=~\".+\"}[$__range])))"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
     }
-  ]
+  ],
+  "links": [
+    {
+      "title": "Docker and Containers",
+      "url": "/d/codeswarm-src-docker?var-log_source=docker",
+      "type": "link",
+      "keepTime": true,
+      "includeVars": true
+    },
+    {
+      "title": "Errors by Service",
+      "url": "/d/top-errors-log-explorer?var-log_source=docker",
+      "type": "link",
+      "keepTime": true,
+      "includeVars": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "log_source",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(log_source)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service_name",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service_name)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "source_type",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(source_type)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(env)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "filename",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(filename)",
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "stack",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(stack)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "mcp_level",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(mcp_level)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "log_type",
+        "label": "Log Type",
+        "type": "custom",
+        "hide": 0,
+        "query": "all,debug,info,warn,error/fail",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": ""
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "debug",
+            "value": "|~ \"(?i)\\bdebug\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "info",
+            "value": "|~ \"(?i)\\binfo\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "warn",
+            "value": "|~ \"(?i)(warn|warning)\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          },
+          {
+            "selected": false,
+            "text": "error/fail",
+            "value": "|~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Canonical Ubuntu host dashboard for system health and capacity (CPU, memory, disk, network, load, restarts, inodes). Container metrics are consolidated into Docker and Containers.",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 140, 0, 1)",
+        "name": "Deploy events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "deploy",
+            "release"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(31, 120, 193, 1)",
+        "name": "Restart events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "restart",
+            "started",
+            "stopped"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(245, 54, 54, 1)",
+        "name": "Incident markers",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "incident",
+            "error",
+            "panic"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "graphTooltip": 1
 }

@@ -1,12 +1,12 @@
 {
   "uid": "loki_health_v1",
   "title": "Loki Health",
-  "timezone": "browser",
+  "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "editable": true,
@@ -18,6 +18,41 @@
   ],
   "panels": [
     {
+      "type": "text",
+      "title": "Source Context",
+      "options": {
+        "mode": "markdown",
+        "content": "### Source Context\n- Dashboard scope: multi-source / filter-driven\n- Selected log source filter: `${log_source:text}`\n- Selected service filter: `${service_name:text}`\n- Selected source type filter: `${source_type:text}`\n- Selected syslog channel filter: `${syslog_channel:text}`\n- Selected syslog level filter: `${syslog_level:text}`\n- Selected file path filter: `${filename:text}`\n- File path values in scope:<br/>`${filename:join:<br/>}`\n- Note: `All` means no extra filter. File paths above are listed one per line for the current filter scope.\n"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Rsyslog forward/error events",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(omfwd|suspend|refused|error)\" [$__range])) or vector(0)"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Shows Rsyslog forward/error events (30m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly."
+    },
+    {
       "type": "timeseries",
       "title": "Ingest lines/s",
       "datasource": {
@@ -27,9 +62,27 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(loki_distributor_lines_received_total[5m]))"
+          "expr": "sum(rate(loki_distributor_lines_received_total[$__rate_interval]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Ingest lines/s for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "type": "timeseries",
@@ -41,9 +94,27 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(loki_distributor_bytes_received_total[5m]))"
+          "expr": "sum(rate(loki_distributor_bytes_received_total[$__rate_interval]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Ingest bytes/s for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
     },
     {
       "type": "timeseries",
@@ -55,27 +126,31 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(loki_request_duration_seconds_count[5m]))"
+          "expr": "sum(rate(loki_request_duration_seconds_count[$__rate_interval]))"
         }
-      ]
-    },
-    {
-      "type": "stat",
-      "title": "Rsyslog forward/error events (30m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 8
       },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"} |~ \"(omfwd|suspend|refused|error)\" [30m])) or vector(0)"
+      "description": "Shows Loki request rate/s for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
         }
-      ]
+      }
     },
     {
       "type": "timeseries",
-      "title": "Total log volume (5m)",
+      "title": "Total log volume",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -83,23 +158,435 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=~\".+\"}[5m]))"
+          "expr": "sum(count_over_time({log_source=~\".+\"}[$__range]))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Total log volume (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Top sources by volume",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (log_source) (count_over_time({log_source=~\".+\"}[$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{log_source}}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "description": "Top contributors by count for the selected filters and time window. Higher values indicate the primary sources.",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^rsyslog_syslog$",
+            "renamePattern": "Syslog (rsyslog)"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^codeswarm_mcp$",
+            "renamePattern": "CodeSwarm MCP"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^codex_tui$",
+            "renamePattern": "Codex TUI"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^tmux_pane$",
+            "renamePattern": "tmux pane"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^vscode_server$",
+            "renamePattern": "VS Code Server"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^gpu_telemetry$",
+            "renamePattern": "GPU Telemetry"
+          }
         }
       ]
     },
     {
-      "type": "table",
-      "title": "Top sources by volume (5m)",
+      "id": 1,
+      "type": "bargauge",
+      "title": "Loki 5xx by route (ranked)",
+      "description": "Top Loki API routes returning server errors.",
       "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (log_source) (count_over_time({log_source=~\".+\"}[5m])))"
+          "expr": "topk(10, sum by (route) (rate(loki_request_duration_seconds_count{status_code=~\"5..\"}[$__rate_interval])))"
         }
-      ]
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
     }
-  ]
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "log_source",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(log_source)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service_name",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service_name)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "source_type",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(source_type)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "syslog_level",
+        "query": "label_values(syslog_level)",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "syslog_channel",
+        "query": "label_values(syslog_channel)",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(env)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "filename",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(filename)",
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "stack",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(stack)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "mcp_level",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(mcp_level)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "log_type",
+        "label": "Log Type",
+        "type": "custom",
+        "hide": 0,
+        "query": "all,debug,info,warn,error/fail",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": ""
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "debug",
+            "value": "|~ \"(?i)\\bdebug\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "info",
+            "value": "|~ \"(?i)\\binfo\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "warn",
+            "value": "|~ \"(?i)(warn|warning)\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          },
+          {
+            "selected": false,
+            "text": "error/fail",
+            "value": "|~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Loki health dashboard for ingest throughput, request behavior, and source-level activity. Last settings update: 2026-02-19 03:41 UTC (metadata, variables, annotations, navigation hardening).",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 140, 0, 1)",
+        "name": "Deploy events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "deploy",
+            "release"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(31, 120, 193, 1)",
+        "name": "Restart events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "restart",
+            "started",
+            "stopped"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(245, 54, 54, 1)",
+        "name": "Incident markers",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "incident",
+            "error",
+            "panic"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "graphTooltip": 1
 }

@@ -1,12 +1,12 @@
 {
   "uid": "codeswarm-dim-service-name-atlas-sql",
   "title": "CodeSwarm - service_name=atlas-sql",
-  "timezone": "browser",
+  "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "tags": [
@@ -19,6 +19,20 @@
   ],
   "panels": [
     {
+      "type": "text",
+      "title": "Source Context",
+      "options": {
+        "mode": "markdown",
+        "content": "### Source Context\n- Dashboard scope: multi-source / filter-driven\n- Selected log source filter: `${log_source:text}`\n- Selected service filter: `${service_name:text}`\n- Selected source type filter: `${source_type:text}`\n- Selected file path filter: `${filename:text}`\n- File path values in scope:<br/>`${filename:join:<br/>}`\n- Note: `All` means no extra filter. File paths above are listed one per line for the current filter scope.\n"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
       "id": 1,
       "type": "stat",
       "title": "Logs seen (5m) (expected idle)",
@@ -29,7 +43,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"atlas-sql\"}[5m]))",
+          "expr": "sum(count_over_time({service_name=\"atlas-sql\"}[$__range]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -39,11 +53,12 @@
         }
       ],
       "gridPos": {
-        "h": 8,
-        "w": 6,
         "x": 0,
-        "y": 0
-      }
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies."
     },
     {
       "id": 2,
@@ -56,7 +71,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"atlas-sql\"}[5m]))",
+          "expr": "sum(rate({service_name=\"atlas-sql\"}[$__rate_interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -66,10 +81,22 @@
         }
       ],
       "gridPos": {
-        "h": 8,
-        "w": 18,
-        "x": 6,
-        "y": 0
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
       }
     },
     {
@@ -83,7 +110,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({service_name=\"atlas-sql\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))",
+          "expr": "sum(rate({service_name=\"atlas-sql\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))",
           "queryType": "range",
           "direction": "backward",
           "datasource": {
@@ -93,10 +120,22 @@
         }
       ],
       "gridPos": {
-        "h": 8,
+        "x": 12,
+        "y": 9,
         "w": 12,
-        "x": 0,
-        "y": 8
+        "h": 8
+      },
+      "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
       }
     },
     {
@@ -110,7 +149,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=\"atlas-sql\"}",
+          "expr": "{service_name=\"atlas-sql\"} ${log_type}",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -118,14 +157,336 @@
         }
       ],
       "gridPos": {
-        "h": 12,
+        "x": 0,
+        "y": 17,
+        "w": 24,
+        "h": 12
+      },
+      "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies."
+    },
+    {
+      "type": "timeseries",
+      "title": "Logs by volume",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 8,
         "w": 24,
         "x": 0,
-        "y": 16
-      }
+        "y": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"atlas-sql\"} |~ \"(?i)\\bdebug\\b\" [$__range]))",
+          "legendFormat": "debug"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(count_over_time({service_name=\"atlas-sql\"} |~ \"(?i)\\binfo\\b\" [$__range]))",
+          "legendFormat": "info"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(count_over_time({service_name=\"atlas-sql\"} |~ \"(?i)\\bwarn(ing)?\\b\" [$__range]))",
+          "legendFormat": "warn"
+        },
+        {
+          "refId": "D",
+          "expr": "sum(count_over_time({service_name=\"atlas-sql\"} |~ \"(?i)\\b(err(or)?|fatal|panic|fail(ed)?)\\b\" [$__range]))",
+          "legendFormat": "error"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 75,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 5,
+      "description": "Breakdown of log volume by severity (debug/info/warn/error) for the current filters over a 5 minute window."
     }
   ],
   "annotations": {
-    "list": []
-  }
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 140, 0, 1)",
+        "name": "Deploy events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "deploy",
+            "release"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(31, 120, 193, 1)",
+        "name": "Restart events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "restart",
+            "started",
+            "stopped"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(245, 54, 54, 1)",
+        "name": "Incident markers",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "incident",
+            "error",
+            "panic"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "log_source",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(log_source)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service_name",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service_name)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "source_type",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(source_type)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(env)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "filename",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(filename)",
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "stack",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(stack)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "mcp_level",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(mcp_level)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "log_type",
+        "label": "Log Type",
+        "type": "custom",
+        "hide": 0,
+        "query": "all,debug,info,warn,error/fail",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": ""
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "debug",
+            "value": "|~ \"(?i)\\bdebug\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "info",
+            "value": "|~ \"(?i)\\binfo\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "warn",
+            "value": "|~ \"(?i)(warn|warning)\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          },
+          {
+            "selected": false,
+            "text": "error/fail",
+            "value": "|~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Dimension-focused triage dashboard to break down log behavior by service and related labels. Last settings update: 2026-02-19 03:41 UTC (metadata, variables, annotations, navigation hardening).",
+  "graphTooltip": 1
 }

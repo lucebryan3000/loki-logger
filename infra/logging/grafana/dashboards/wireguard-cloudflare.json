@@ -1,0 +1,564 @@
+{
+  "uid": "wireguard-cloudflare",
+  "title": "WireGuard + Cloudflare + UFW",
+  "timezone": "America/Chicago",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-12h",
+    "to": "now"
+  },
+  "editable": true,
+  "tags": [
+    "canonical",
+    "codeswarm",
+    "network",
+    "wireguard",
+    "cloudflare"
+  ],
+  "description": "Combined network operations dashboard for WireGuard, Cloudflare, and Ubuntu UFW signals (health, error pressure, offenders, and drill logs).",
+  "panels": [
+    {
+      "type": "text",
+      "title": "Source Context",
+      "options": {
+        "mode": "markdown",
+        "content": "### Source Context\n- Selected signal filter: `${signal:text}`\n- Selected log source filter: `${log_source:text}`\n- Selected service filter: `${service_name:text}`\n- Selected source type filter: `${source_type:text}`\n- Selected syslog channel filter: `${syslog_channel:text}`\n- Selected syslog level filter: `${syslog_level:text}`\n- Selected file path filter: `${filename:text}`\n- Note: `All` includes WireGuard + Cloudflare + UFW signals."
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Network signal events",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" [$__range]))"
+        }
+      ],
+      "description": "Total WireGuard/Cloudflare matching events for the selected filters and dashboard time.",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Error-like network events",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" |~ \"(?i)(error|err|fatal|panic|fail|failed|denied|refused|timeout|handshake failed|unable to|unreachable|operation not permitted|exit-code)\" [$__range]))"
+        }
+      ],
+      "description": "Error/failure subset of WireGuard/Cloudflare signals.",
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "WireGuard signal events",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"(?i)(wireguard|wg0|wg-quick)\" [$__range]))"
+        }
+      ],
+      "description": "WireGuard-specific signal volume.",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Cloudflare signal events",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"(?i)(cloudflare|cloudflared|warp|argo tunnel|cf-ray)\" [$__range]))"
+        }
+      ],
+      "description": "Cloudflare-specific signal volume.",
+      "gridPos": {
+        "x": 18,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network signal trend",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" [$__rate_interval]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error-like network trend",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" |~ \"(?i)(error|err|fatal|panic|fail|failed|denied|refused|timeout|handshake failed|unable to|unreachable|operation not permitted|exit-code)\" [$__rate_interval]))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Top sources by network signal",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(12, sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" [$__range])))",
+          "legendFormat": "{{log_source}}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 9
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Top services by network signal",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(12, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".+\",source_type=~\"$source_type\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\",filename=~\"$filename\"} |~ \"$signal\" [$__range])))",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 9
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Logs by volume",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" |~ \"(?i)\\bdebug\\b\" [$__range]))",
+          "legendFormat": "debug"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" |~ \"(?i)\\binfo\\b\" [$__range]))",
+          "legendFormat": "info"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" |~ \"(?i)\\bwarn(ing)?\\b\" [$__range]))",
+          "legendFormat": "warn"
+        },
+        {
+          "refId": "D",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|denied|refused|timeout|operation not permitted)\" [$__range]))",
+          "legendFormat": "error"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 24,
+        "h": 8
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Network signal drill",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" ${log_type}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 34,
+        "w": 24,
+        "h": 12
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "signal",
+        "label": "Signal",
+        "type": "custom",
+        "hide": 0,
+        "query": "all,wireguard,cloudflare,ufw",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": "(?i)(wireguard|wg0|wg-quick|cloudflare|cloudflared|warp|argo tunnel|cf-ray|\\bufw\\b|UFW\\s+(ALLOW|BLOCK|DENY)|kernel: \\[UFW)"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": "(?i)(wireguard|wg0|wg-quick|cloudflare|cloudflared|warp|argo tunnel|cf-ray|\\bufw\\b|UFW\\s+(ALLOW|BLOCK|DENY)|kernel: \\[UFW)"
+          },
+          {
+            "selected": false,
+            "text": "wireguard",
+            "value": "(?i)(wireguard|wg0|wg-quick)"
+          },
+          {
+            "selected": false,
+            "text": "cloudflare",
+            "value": "(?i)(cloudflare|cloudflared|warp|argo tunnel|cf-ray)"
+          },
+          {
+            "selected": false,
+            "text": "ufw",
+            "value": "(?i)(\\bufw\\b|UFW\\s+(ALLOW|BLOCK|DENY)|kernel: \\[UFW)"
+          }
+        ]
+      },
+      {
+        "name": "log_source",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(log_source)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service_name",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service_name)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "source_type",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(source_type)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "syslog_channel",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(syslog_channel)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "syslog_level",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(syslog_level)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "filename",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(filename)",
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "log_type",
+        "label": "Log Type",
+        "type": "custom",
+        "hide": 0,
+        "query": "all,debug,info,warn,error/fail",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": ""
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "debug",
+            "value": "|~ \"(?i)\\bdebug\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "info",
+            "value": "|~ \"(?i)\\binfo\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "warn",
+            "value": "|~ \"(?i)(warn|warning)\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          },
+          {
+            "selected": false,
+            "text": "error/fail",
+            "value": "|~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          }
+        ]
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 140, 0, 1)",
+        "name": "Deploy events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "deploy",
+            "release"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(31, 120, 193, 1)",
+        "name": "Restart events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "restart",
+            "systemd"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "Pipeline Health",
+      "url": "/d/pipeline-health",
+      "type": "link",
+      "keepTime": true,
+      "includeVars": true
+    },
+    {
+      "title": "Errors by Service",
+      "url": "/d/top-errors-log-explorer",
+      "type": "link",
+      "keepTime": true,
+      "includeVars": true
+    }
+  ]
+}

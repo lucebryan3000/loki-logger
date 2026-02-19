@@ -6,7 +6,7 @@
   "version": 1,
   "refresh": "10s",
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "editable": true,
@@ -23,6 +23,7 @@
     "list": [
       {
         "name": "host",
+        "label": "Host",
         "type": "query",
         "datasource": {
           "type": "loki",
@@ -38,111 +39,1383 @@
         }
       },
       {
-        "name": "gpu_name",
-        "type": "query",
-        "datasource": {
-          "type": "loki",
-          "uid": "P8E80F9AEF21F6940"
-        },
-        "query": "label_values({log_source=\"gpu_telemetry\",stream=\"gpu\"}, gpu_name)",
-        "includeAll": true,
-        "multi": true,
-        "allValue": ".+",
+        "name": "gpu_match",
+        "label": "GPU name regex",
+        "type": "textbox",
+        "query": ".*",
         "current": {
-          "text": "All",
-          "value": "$__all"
-        }
+          "text": ".*",
+          "value": ".*"
+        },
+        "hide": 0
+      },
+      {
+        "name": "run_id",
+        "label": "Benchmark run filter",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        },
+        "hide": 0
+      },
+      {
+        "name": "model_name",
+        "label": "Benchmark model filter",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        },
+        "hide": 0
+      },
+      {
+        "name": "log_type",
+        "label": "Log Type",
+        "type": "custom",
+        "hide": 0,
+        "query": "all,debug,info,warn,error/fail",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": ""
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "debug",
+            "value": "|~ \"(?i)\\bdebug\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "info",
+            "value": "|~ \"(?i)\\binfo\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "warn",
+            "value": "|~ \"(?i)(warn|warning)\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          },
+          {
+            "selected": false,
+            "text": "error/fail",
+            "value": "|~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          }
+        ]
       }
     ]
   },
   "panels": [
     {
+      "id": 10,
       "type": "stat",
-      "title": "GPU telemetry samples (5m)",
+      "title": "GPU utilization % (current)",
+      "description": "Current GPU utilization as a single KPI. Ideal for spotting burst/load saturation during model benchmarks.",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"}[5m]))"
+          "expr": "last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "legendFormat": "GPU utilization % (current)"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
     },
     {
+      "id": 11,
+      "type": "stat",
+      "title": "VRAM usage % (current)",
+      "description": "Current VRAM usage percent from live GPU telemetry.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<vram_pct>,<_>,<_>,<_>,<_>\" | unwrap vram_pct | __error__=\"\")[$__range])",
+          "legendFormat": "VRAM usage % (current)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "GPU temperature (F, current)",
+      "description": "Current GPU temperature in Fahrenheit.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "legendFormat": "GPU temperature (F, current)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "fahrenheit",
+          "decimals": 1,
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "min": 80,
+          "max": 190,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 170
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "GPU power draw (W, current)",
+      "description": "Current GPU power draw in watts.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "legendFormat": "GPU power draw (W, current)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "decimals": 1,
+          "min": 0,
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "max": 320,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 280
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "GPU utilization % (trend)",
+      "description": "Smoothed utilization trend over 1 minute windows.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "legendFormat": "util"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "VRAM usage % (trend)",
+      "description": "Smoothed VRAM usage trend over 1 minute windows.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<vram_pct>,<_>,<_>,<_>,<_>\" | unwrap vram_pct | __error__=\"\")[$__range])",
+          "legendFormat": "vram"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 16,
+      "type": "stat",
+      "title": "GPU temperature (F, trend)",
+      "description": "Smoothed GPU temperature trend in Fahrenheit.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "legendFormat": "tempF"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "fahrenheit",
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 170
+              }
+            ]
+          },
+          "min": 80,
+          "max": 190
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "GPU power draw (W, trend)",
+      "description": "Smoothed GPU power draw trend.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "legendFormat": "powerW"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "min": 0,
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 280
+              }
+            ]
+          },
+          "max": 320
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 18,
+      "type": "stat",
+      "title": "VRAM free (GB, current)",
+      "description": "Current free VRAM in GB (from MiB telemetry converted to GB).",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "((last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<mem_total>,<_>,<_>\" | unwrap mem_total | __error__=\"\")[$__range]) - last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<mem_used>,<_>,<_>,<_>\" | unwrap mem_used | __error__=\"\")[$__range])) / 1024)",
+          "legendFormat": "VRAM free (MiB, current)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "gbytes",
+          "decimals": 2,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "Thermal headroom (F)",
+      "description": "Remaining thermal headroom against 185F target; low values suggest thermal throttling risk.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 14
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "185 - ((last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32)",
+          "legendFormat": "Thermal headroom (F)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "fahrenheit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 20,
+      "type": "stat",
+      "title": "Perf proxy per watt",
+      "description": "Telemetry value per watt (proxy) for efficiency tracking across benchmark runs.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 14
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(avg_over_time(({log_source=\"telemetry\"} |~ \"$run_id\" |~ \"$model_name\" | json | unwrap value | __error__=\"\")[$__range])) / sum(avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range]))",
+          "legendFormat": "Perf proxy per watt"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 21,
+      "type": "stat",
+      "title": "Throttling risk events",
+      "description": "Counts high-temperature/high-power risk events in last 5 minutes.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 14
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(8[3-9]|9[0-9]),\" [$__range])) + sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(29[0-9]|3[0-9][0-9])\\.[0-9]+$\" [$__range]))",
+          "legendFormat": "Throttling risk events (5m)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 22,
       "type": "timeseries",
-      "title": "GPU utilization %",
+      "title": "GPU utilization percentile band (P50/P95)",
+      "description": "Percentile utilization band to distinguish sustained load (P50) from bursts (P95).",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"} | regexp \"^[^,]+,(?P<gpu_name>[^,]+),(?P<gpu_util>[0-9.]+),(?P<memory_pct>[0-9.]+),(?P<memory_used_mib>[0-9.]+),(?P<memory_total_mib>[0-9.]+),(?P<temp_c>[0-9.]+),(?P<power_w>[0-9.]+)$\" | unwrap gpu_util [1m])"
+          "expr": "quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "legendFormat": "P50 util%"
+        },
+        {
+          "refId": "B",
+          "expr": "quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "legendFormat": "P95 util%"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
     },
     {
+      "id": 23,
       "type": "timeseries",
-      "title": "VRAM usage %",
+      "title": "GPU temperature percentile band (F P50/P95)",
+      "description": "Percentile temperature band to identify thermal drift and spike behavior under load.",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"} | regexp \"^[^,]+,(?P<gpu_name>[^,]+),(?P<gpu_util>[0-9.]+),(?P<memory_pct>[0-9.]+),(?P<memory_used_mib>[0-9.]+),(?P<memory_total_mib>[0-9.]+),(?P<temp_c>[0-9.]+),(?P<power_w>[0-9.]+)$\" | unwrap memory_pct [1m])"
+          "expr": "(quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "legendFormat": "P50 temp F"
+        },
+        {
+          "refId": "B",
+          "expr": "(quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "legendFormat": "P95 temp F"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "fahrenheit",
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
     },
     {
+      "id": 24,
       "type": "timeseries",
-      "title": "GPU temperature (C)",
+      "title": "Host CPU non-idle %",
+      "description": "Host CPU non-idle percentage. Correlate high CPU contention with GPU underutilization.",
       "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 28
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"} | regexp \"^[^,]+,(?P<gpu_name>[^,]+),(?P<gpu_util>[0-9.]+),(?P<memory_pct>[0-9.]+),(?P<memory_used_mib>[0-9.]+),(?P<memory_total_mib>[0-9.]+),(?P<temp_c>[0-9.]+),(?P<power_w>[0-9.]+)$\" | unwrap temp_c [1m])"
+          "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval])) * 100)",
+          "legendFormat": "Host CPU non-idle %"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
     },
     {
+      "id": 25,
       "type": "timeseries",
-      "title": "GPU power draw (W)",
+      "title": "Host iowait %",
+      "description": "Host I/O wait percentage. Rising iowait can stall model pipelines even with available GPU headroom.",
       "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 28
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time({log_source=\"gpu_telemetry\",stream=\"gpu\",host=~\"$host\"} | regexp \"^[^,]+,(?P<gpu_name>[^,]+),(?P<gpu_util>[0-9.]+),(?P<memory_pct>[0-9.]+),(?P<memory_used_mib>[0-9.]+),(?P<memory_total_mib>[0-9.]+),(?P<temp_c>[0-9.]+),(?P<power_w>[0-9.]+)$\" | unwrap power_w [1m])"
+          "expr": "avg(rate(node_cpu_seconds_total{mode=\"iowait\"}[$__rate_interval])) * 100",
+          "legendFormat": "Host iowait %"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
     },
     {
-      "type": "table",
-      "title": "Top GPU processes by memory (expected idle when no compute jobs)",
+      "id": 26,
+      "type": "timeseries",
+      "title": "Host memory used %",
+      "description": "Host memory pressure percentage. Correlate RAM pressure with benchmark instability.",
       "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 28
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, max by (process_name) (max_over_time({log_source=\"gpu_telemetry\",stream=\"proc\",host=~\"$host\"} | regexp \"^[^,]+,[0-9]+,(?P<process_name>[^,]+),(?P<used_gpu_memory_mib>[0-9.]+)$\" | unwrap used_gpu_memory_mib [5m])))"
+          "expr": "(1 - (avg(node_memory_MemAvailable_bytes) / avg(node_memory_MemTotal_bytes))) * 100",
+          "legendFormat": "Host memory used %"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 27,
+      "type": "bargauge",
+      "title": "Top GPU processes by memory (MiB, current)",
+      "description": "Top GPU processes by memory footprint. Use to identify dominant benchmark workers.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, max_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-proc.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<pid>,<proc_name>,<mem_mib>\" | unwrap mem_mib | __error__=\"\")[$__range]))",
+          "legendFormat": "{{proc_name}} pid={{pid}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "mebibytes",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "basic",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "showUnfilled": false
+      }
+    },
+    {
+      "id": 28,
+      "type": "logs",
+      "title": "Benchmark markers/events",
+      "description": "Benchmark context events filtered by run/model text variables. Useful for mapping workload phases to GPU behavior.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=~\"telemetry|gpu_telemetry\"} |~ \"(?i)(benchmark|run|model|prefill|decode|throughput|latency|token|prompt)\" |~ \"$run_id\" |~ \"$model_name\""
+        }
+      ],
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true
+      },
+      "fieldConfig": {
+        "defaults": {}
+      }
+    },
+    {
+      "id": 29,
+      "type": "text",
+      "title": "Source Context",
+      "description": "Active scope and variable filters for this dashboard.",
+      "datasource": {
+        "type": "grafana",
+        "uid": "-- Grafana --"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 46
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### Source Context\n- Host filter: `${host:text}`\n- GPU name regex filter: `${gpu_match}`\n- Benchmark run filter: `${run_id}`\n- Benchmark model filter: `${model_name}`\n- Log type filter for drill panels: `${log_type:text}`\n- Note: benchmark filters are text/regex matchers over benchmark event logs.\n"
+      },
+      "fieldConfig": {
+        "defaults": {}
+      }
+    },
+    {
+      "id": 30,
+      "type": "stat",
+      "title": "GPU fault signals",
+      "description": "Count of GPU fault-like signals (Xid, CUDA errors, OOM, thermal/power warnings) in the last 5 minutes.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 16,
+        "y": 46
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\"rsyslog_syslog|gpu_telemetry\"} |~ \"(?i)(NVRM|Xid|CUDA error|out of memory|OOM|GPU has fallen off the bus|throttl|overheat|power limit)\" [$__range]))",
+          "legendFormat": "fault signals"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 31,
+      "type": "stat",
+      "title": "GPU telemetry samples",
+      "description": "Total GPU telemetry sample lines ingested in the last 5 minutes.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 20,
+        "y": 46
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\"}[$__range]))",
+          "legendFormat": "samples"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "Logs by volume",
+      "description": "GPU signal volume over time: live samples, process samples, benchmark events, and fault events.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\",filename=~\".*gpu-live.*csv\"} |~ \"$gpu_match\" [$__range]))",
+          "legendFormat": "gpu-live samples"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\",filename=~\".*gpu-proc.*csv\"} |~ \"$gpu_match\" [$__range]))",
+          "legendFormat": "gpu-proc samples"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(count_over_time({log_source=~\"telemetry|gpu_telemetry\"} |~ \"(?i)(benchmark|run|model|prefill|decode|throughput|latency|token|prompt)\" |~ \"$run_id\" |~ \"$model_name\" [$__range]))",
+          "legendFormat": "benchmark events"
+        },
+        {
+          "refId": "D",
+          "expr": "sum(count_over_time({log_source=~\"rsyslog_syslog|gpu_telemetry\"} |~ \"(?i)(NVRM|Xid|CUDA error|out of memory|OOM|GPU has fallen off the bus|throttl|overheat|power limit|failed|error|panic)\" [$__range]))",
+          "legendFormat": "fault events"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 75,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 33,
+      "type": "logs",
+      "title": "GPU telemetry drill",
+      "description": "Raw GPU telemetry logs for deep drill-down. Uses host and GPU regex filters.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 60
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=\"gpu_telemetry\",host=~\"$host\"} |~ \"$gpu_match\""
+        }
+      ],
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true
+      },
+      "fieldConfig": {
+        "defaults": {}
+      }
+    },
+    {
+      "id": 34,
+      "type": "logs",
+      "title": "GPU incident stream",
+      "description": "Focused incident stream for GPU and system fault conditions.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 72
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=~\"rsyslog_syslog|gpu_telemetry\"} |~ \"(?i)(NVRM|Xid|CUDA error|out of memory|OOM|GPU has fallen off the bus|throttl|overheat|power limit|failed|error|panic)\""
+        }
+      ],
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true
+      },
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "type": "logs",
-      "title": "GPU telemetry drill",
+      "title": "Loaded model (detected from vLLM logs)",
+      "description": "Detected served model name from startup logs. This panel searches last 7 days to keep model context visible on short dashboard ranges.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 46
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=~\"docker|rsyslog_syslog\"} |~ \"(?i)(Starting to load model|served_model_name=|model=|model_tag)\" | regexp \"(?P<model>[A-Za-z0-9._-]+/[A-Za-z0-9._-]+)\" | line_format \"{{.model}}\" |~ \"$model_name\""
+        }
+      ],
+      "options": {
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true,
+        "dedupStrategy": "none",
+        "enableLogDetails": true
+      },
+      "id": 35,
+      "timeFrom": "7d",
+      "fieldConfig": {
+        "defaults": {}
+      }
+    },
+    {
+      "id": 36,
+      "type": "logs",
+      "title": "Benchmark phase/event timeline",
+      "description": "Timeline of benchmark and model lifecycle events filtered by run/model text.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 84
+      },
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -150,9 +1423,442 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"gpu_telemetry\",host=~\"$host\"}"
+          "expr": "{log_source=~\"telemetry|gpu_telemetry|docker|rsyslog_syslog\"} |~ \"(?i)(benchmark|run|phase|prefill|decode|throughput|latency|model|loaded|starting)\" |~ \"$run_id\" |~ \"$model_name\""
         }
-      ]
+      ],
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true
+      }
+    },
+    {
+      "id": 37,
+      "type": "timeseries",
+      "title": "Utilization percentile band (P50/P95/P99)",
+      "description": "Percentile utilization band to compare baseline, sustained pressure, and burst peaks.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 84
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "legendFormat": "P50"
+        },
+        {
+          "refId": "B",
+          "expr": "quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "legendFormat": "P95"
+        },
+        {
+          "refId": "C",
+          "expr": "quantile_over_time(0.99, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "legendFormat": "P99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 38,
+      "type": "timeseries",
+      "title": "Temperature percentile band (F P50/P95/P99)",
+      "description": "Temperature percentile band in Fahrenheit for thermal envelope analysis.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 93
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "legendFormat": "P50 F"
+        },
+        {
+          "refId": "B",
+          "expr": "(quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "legendFormat": "P95 F"
+        },
+        {
+          "refId": "C",
+          "expr": "(quantile_over_time(0.99, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "legendFormat": "P99 F"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "fahrenheit",
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 39,
+      "type": "timeseries",
+      "title": "Power percentile band (W P50/P95/P99)",
+      "description": "Power draw percentile band in watts for burst and sustained draw comparison.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 93
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "legendFormat": "P50 W"
+        },
+        {
+          "refId": "B",
+          "expr": "quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "legendFormat": "P95 W"
+        },
+        {
+          "refId": "C",
+          "expr": "quantile_over_time(0.99, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "legendFormat": "P99 W"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "min": 0,
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 40,
+      "type": "bargauge",
+      "title": "Utilization by GPU name (current)",
+      "description": "Current utilization split by GPU name for multi-GPU readiness.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 102
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(8, last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<gpu_name>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range]))",
+          "legendFormat": "{{gpu_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "basic",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "showUnfilled": false
+      }
+    },
+    {
+      "id": 41,
+      "type": "bargauge",
+      "title": "Temperature by GPU name (current F)",
+      "description": "Current temperature by GPU name in Fahrenheit.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 102
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(topk(8, last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<gpu_name>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range])) * 9 / 5) + 32",
+          "legendFormat": "{{gpu_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "fahrenheit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "basic",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "showUnfilled": false
+      }
+    },
+    {
+      "id": 42,
+      "type": "bargauge",
+      "title": "Power by GPU name (current W)",
+      "description": "Current power draw by GPU name in watts.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 102
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(8, last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<gpu_name>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range]))",
+          "legendFormat": "{{gpu_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "min": 0,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "basic",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "showUnfilled": false
+      }
+    },
+    {
+      "id": 43,
+      "type": "timeseries",
+      "title": "Efficiency proxy trend (value per watt)",
+      "description": "Smoothed efficiency proxy trend: telemetry value divided by GPU power.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 110
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(avg_over_time(({log_source=\"telemetry\"} |~ \"$run_id\" |~ \"$model_name\" | json | unwrap value | __error__=\"\")[$__range])) / sum(avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range]))",
+          "legendFormat": "value/W"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 3,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 44,
+      "type": "stat",
+      "title": "Efficiency proxy current (value per watt)",
+      "description": "Current efficiency proxy snapshot.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 110
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(last_over_time(({log_source=\"telemetry\"} |~ \"$run_id\" |~ \"$model_name\" | json | unwrap value | __error__=\"\")[$__range])) / sum(last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range]))",
+          "legendFormat": "value/W current"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 3,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 45,
+      "type": "text",
+      "title": "Operator quick actions",
+      "description": "Operational shortcuts and interpretation notes.",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 118
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### Operator quick actions\n- Open panel menu -> **Explore** to drill into raw lines for any spike.\n- Use `run_id` and `model_name` filters to isolate one benchmark run.\n- Compare **Util P95/P99** and **Temp/Power P95/P99** to detect thermal or power-capped behavior.\n- Use **GPU incident stream** for Xid/OOM/fault triage.\n"
+      }
     }
   ],
   "annotations": {
@@ -170,66 +1876,46 @@
         "type": "dashboard"
       },
       {
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": false,
-        "iconColor": "rgba(255, 140, 0, 1)",
-        "name": "Deploy events",
-        "target": {
-          "limit": 100,
-          "matchAny": true,
-          "tags": [
-            "deploy",
-            "release"
-          ],
-          "type": "tags"
-        },
-        "type": "dashboard"
-      },
-      {
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": false,
-        "iconColor": "rgba(31, 120, 193, 1)",
-        "name": "Restart events",
-        "target": {
-          "limit": 100,
-          "matchAny": true,
-          "tags": [
-            "restart",
-            "started",
-            "stopped"
-          ],
-          "type": "tags"
-        },
-        "type": "dashboard"
-      },
-      {
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
+        "name": "GPU fault markers",
         "enable": true,
         "hide": false,
         "iconColor": "rgba(245, 54, 54, 1)",
-        "name": "Incident markers",
-        "target": {
-          "limit": 100,
-          "matchAny": true,
-          "tags": [
-            "incident",
-            "error",
-            "panic"
-          ],
-          "type": "tags"
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
         },
-        "type": "dashboard"
+        "target": {
+          "refId": "A",
+          "expr": "{log_source=~\"rsyslog_syslog|gpu_telemetry\"} |~ \"(?i)(NVRM|Xid|CUDA error|out of memory|OOM|GPU has fallen off the bus)\""
+        }
+      },
+      {
+        "name": "Benchmark phase markers",
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 152, 0, 1)",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "target": {
+          "refId": "A",
+          "expr": "{log_source=~\"telemetry|gpu_telemetry\"} |~ \"(?i)(benchmark|run|phase|prefill|decode|throughput|latency)\" |~ \"$run_id\" |~ \"$model_name\""
+        }
+      },
+      {
+        "name": "Thermal/power pressure markers",
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 64, 129, 1)",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "target": {
+          "refId": "A",
+          "expr": "{log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(8[3-9]|9[0-9]),\" |~ \",(29[0-9]|3[0-9][0-9])\\.[0-9]+$\""
+        }
       }
     ]
   },

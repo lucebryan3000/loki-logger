@@ -1,12 +1,12 @@
 {
   "uid": "top-errors-log-explorer",
   "title": "Errors by Service",
-  "timezone": "browser",
+  "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "editable": true,
@@ -19,8 +19,22 @@
   ],
   "panels": [
     {
+      "type": "text",
+      "title": "Source Context",
+      "options": {
+        "mode": "markdown",
+        "content": "### Source Context\n- Dashboard scope: multi-source / filter-driven\n- Selected log source filter: `${log_source:text}`\n- Selected service filter: `${service_name:text}`\n- Selected source type filter: `${source_type:text}`\n- Selected file path filter: `${filename:text}`\n- File path values in scope:<br/>`${filename:join:<br/>}`\n- Note: `All` means no extra filter. File paths above are listed one per line for the current filter scope.\n"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
       "type": "stat",
-      "title": "Logs seen (5m)",
+      "title": "Logs seen",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -28,9 +42,16 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=~\"$log_source\"}[5m]))"
+          "expr": "sum(count_over_time({log_source=~\"$log_source\"}[$__range]))"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 44,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Shows Logs seen (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly."
     },
     {
       "type": "stat",
@@ -42,37 +63,16 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))"
+          "expr": "sum(count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])) or vector(0)"
         }
-      ]
-    },
-    {
-      "type": "table",
-      "title": "Top services with errors (5m) (expected idle)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".+\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])))"
-        }
-      ]
-    },
-    {
-      "type": "table",
-      "title": "Top sources with errors (5m) (expected idle)",
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "topk(15, sum by (log_source) (count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])))"
-        }
-      ]
+      ],
+      "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",
+      "gridPos": {
+        "x": 6,
+        "y": 44,
+        "w": 6,
+        "h": 5
+      }
     },
     {
       "type": "timeseries",
@@ -84,9 +84,264 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (log_source) (rate({log_source=~\"$log_source\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))"
+          "expr": "sum by (log_source) (rate({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]))"
         }
-      ]
+      ],
+      "description": "Error-like rate split by log_source. If only one bar/line appears, only one source currently emits error-like logs.",
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Open in Explore (error drill)",
+              "url": "/explore?left={\"datasource\":\"Loki\",\"queries\":[{\"refId\":\"A\",\"expr\":\"{log_source=\\\"${__value.text}\\\"} |~ \\\"(?i)(error|fail|exception|panic)\\\"\"}],\"range\":{\"from\":\"now-6h\",\"to\":\"now\"}}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 44,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Top services with errors (15m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "description": "Top service with error/fail signals over last 15m. 'Log lines (15m)' is aggregated count per service.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^Value.*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Log lines (15m)"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 52,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Top sources with errors (15m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (log_source) (count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "queryType": "range",
+          "legendFormat": "{{log_source}}"
+        }
+      ],
+      "description": "Top log source with error/fail signals over last 15m. 'Log lines (15m)' is aggregated count per log source.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^Value.*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Log lines (15m)"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "log_source"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Log Source"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 52,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Top filenames with errors (15m) (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "F",
+          "queryType": "range",
+          "legendFormat": "{{filename}}",
+          "expr": "topk(15, sum by (filename) (count_over_time({log_source=~\"$log_source\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))"
+        }
+      ],
+      "description": "Concrete file-path attribution for error/fail signals in last 15 minutes. Use legend to identify exact source files.",
+      "gridPos": {
+        "x": 0,
+        "y": 62,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Recent error signatures",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "N",
+          "expr": "{log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\"",
+          "queryType": "range",
+          "legendFormat": "{{sig}}"
+        }
+      ],
+      "description": "Latest error-like signatures over 6h for current filters.",
+      "gridPos": {
+        "x": 0,
+        "y": 70,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "wrapLogMessage": false
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "timeFrom": "6h"
     },
     {
       "type": "logs",
@@ -98,9 +353,1028 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=~\"$log_source\"} |~ \"(?i)(error|fail|exception|panic)\""
+          "expr": "{log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" ${log_type}"
+        }
+      ],
+      "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",
+      "gridPos": {
+        "x": 0,
+        "y": 80,
+        "w": 24,
+        "h": 12
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Logs by volume",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 92,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (level) (count_over_time({log_source=~\"$log_source\"} | regexp \"(?i)(?P<level>debug|info|warn|warning|error|err|fatal|panic)\" [$__range])) !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"Stopped atlas-mcp[.]service\" !~ \"Started atlas-mcp[.]service\" !~ \"throw err;\" !~ \"atlas-mcp[.]service\"",
+          "legendFormat": "debug"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\"} |~ \"(?i)\\binfo\\b\" [$__range]))",
+          "legendFormat": "info"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\"} |~ \"(?i)\\bwarn(ing)?\\b\" [$__range]))",
+          "legendFormat": "warn"
+        },
+        {
+          "refId": "D",
+          "expr": "sum(count_over_time({log_source=~\"$log_source\"} |~ \"(?i)\\b(err(or)?|fatal|panic|fail(ed)?)\\b\" [$__range]))",
+          "legendFormat": "error"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 75,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 2,
+      "description": "Breakdown of log volume by severity (debug/info/warn/error) for the current filters over a 5 minute window."
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Errors by log_source",
+      "description": "Error-like event volume split by log_source over 5-minute windows.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 100,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]))",
+          "legendFormat": "{{log_source}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 75,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "bargauge",
+      "title": "Top error sources now",
+      "description": "Top log sources by error-like events over 5 minutes.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(12, sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "legendFormat": "{{log_source}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "basic",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "showUnfilled": false
+      }
+    },
+    {
+      "id": 5,
+      "type": "bargauge",
+      "title": "Errors by source + service",
+      "description": "Top source/service pairs by error-like events in the last 15 minutes.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 100,
+        "w": 12,
+        "h": 10
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, sum by (log_source,service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "legendFormat": "{{log_source}} / {{service_name}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "showUnfilled": false
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Error share % by source",
+      "description": "Error-like share percent by source (errors divided by total logs).",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 110,
+        "w": 12,
+        "h": 10
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])) / sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} [$__range]))",
+          "legendFormat": "{{log_source}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "bargauge",
+      "title": "Top tools with errors",
+      "description": "Friendly tool names parsed from filename for error-like events.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, sum by (tool) (label_replace(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\".+[.]log\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]), \"tool\", \"$1\", \"filename\", \".*/([^/]+)[.]log$\")))",
+          "legendFormat": "{{tool}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*tool=\"Claude VSCode\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Claude Code"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*tool=\"GitHub Pull Request\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "GitHub PR"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*tool=\"Codex\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Codex"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*tool=\"remoteexthost\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "VS Code Remote Host"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "bargauge",
+      "title": "Unknown-service errors by tool",
+      "description": "Friendly tool names for unknown_service error-like events (6h).",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, sum by (tool) (label_replace(count_over_time({log_source=~\"$log_source\",service_name=\"unknown_service\",source_type=~\"$source_type\",filename=~\".+[.]log\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]), \"tool\", \"$1\", \"filename\", \".*/([^/]+)[.]log$\")))",
+          "legendFormat": "{{log_source}} / {{filename}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*tool=\"Claude VSCode\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Claude Code"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*tool=\"GitHub Pull Request\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "GitHub PR"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*tool=\"Codex\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Codex"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*tool=\"remoteexthost\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "VS Code Remote Host"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Error burst ratio by source",
+      "description": "Burst ratio (5m errors vs normalized 30m baseline) by source; >1 means current spike.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 110,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])) / (sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" [$__range])) / 6)",
+          "legendFormat": "{{log_source}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "logs",
+      "title": "New error signatures (last 1h preview)",
+      "description": "Recent error-like signatures to quickly identify new failure themes.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 120,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\""
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Critical fault lane by source",
+      "description": "Critical fault patterns only (panic, OOM, segfault, Xid, CUDA errors) split by source.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 120,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(fatal|panic|oom|segfault|xid|cuda error|gpu has fallen off the bus)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]))",
+          "legendFormat": "{{log_source}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "bargauge",
+      "title": "Top source/service error pairs",
+      "description": "Top error-like source/service pairs over 5m.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, sum by (log_source,service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".+\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "legendFormat": "{{log_source}} / {{service_name}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Explore errors (current filters)",
+          "url": "/explore",
+          "targetBlank": false,
+          "includeVars": true,
+          "keepTime": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^codex_tui / ",
+            "renamePattern": "Codex TUI / "
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^rsyslog_syslog / ",
+            "renamePattern": "Rsyslog Syslog / "
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^tmux_pane / ",
+            "renamePattern": "tmux pane / "
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^vscode_server / ",
+            "renamePattern": "VS Code Server / "
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^codeswarm_mcp / ",
+            "renamePattern": "CodeSwarm MCP / "
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "unknown_service$",
+            "renamePattern": "Unknown service"
+          }
         }
       ]
+    },
+    {
+      "id": 13,
+      "type": "bargauge",
+      "title": "Services with highest error volume",
+      "description": "Ranked services by error-like volume for rapid triage.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".*\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "bargauge",
+      "title": "Errors by service",
+      "description": "Error-like volume by service_name in the last 15m.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".+\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": "bargauge",
+      "title": "Errors by inferred systemd service",
+      "description": "Parses service unit names from error logs (e.g., atlas-mcp.service) and ranks by error-like volume.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, sum by (svc) (count_over_time({log_source=~\".+\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout|not permitted)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" | regexp \"(?P<svc>[A-Za-z0-9_.@-]+[.]service)\" | svc=~\".+\" [$__range])))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "bargauge",
+      "title": "Errors by source",
+      "description": "Ranked error-like volume by log_source over 15m (post-suppression filters).",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(12, sum by (log_source) (count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "legendFormat": "{{log_source}}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "codex_tui"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Codex TUI"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rsyslog_syslog"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rsyslog Syslog"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tmux_pane"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "tmux pane"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vscode_server"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "VS Code Server"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "docker"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Docker"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "telemetry"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Telemetry"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu_telemetry"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "GPU Telemetry"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "codeswarm_mcp"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "CodeSwarm MCP"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
     }
   ],
   "templating": {
@@ -120,7 +1394,249 @@
           "text": "All",
           "value": "$__all"
         }
+      },
+      {
+        "name": "service_name",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service_name)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "source_type",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(source_type)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(env)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "filename",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(filename)",
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "allValue": ".*"
+      },
+      {
+        "name": "stack",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(stack)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "mcp_level",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(mcp_level)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "log_type",
+        "label": "Log Type",
+        "type": "custom",
+        "hide": 0,
+        "query": "all : , debug : |~ \"(?i)debug\", info : |~ \"(?i)info\", warn : |~ \"(?i)(warn|warning)\", error : |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\"",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": ""
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "debug",
+            "value": "|~ \"(?i)\\bdebug\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "info",
+            "value": "|~ \"(?i)\\binfo\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "warn",
+            "value": "|~ \"(?i)(warn|warning)\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          },
+          {
+            "selected": false,
+            "text": "error/fail",
+            "value": "|~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          }
+        ]
       }
     ]
-  }
+  },
+  "links": [
+    {
+      "title": "Source Index",
+      "url": "/d/codeswarm-source-index",
+      "type": "link",
+      "keepTime": true,
+      "includeVars": true
+    }
+  ],
+  "description": "Error triage dashboard for attribution by source/service with direct drilldown paths. Last settings update: 2026-02-19 03:41 UTC (metadata, variables, annotations, navigation hardening).",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 140, 0, 1)",
+        "name": "Deploy events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "deploy",
+            "release"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(31, 120, 193, 1)",
+        "name": "Restart events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "restart",
+            "started",
+            "stopped"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(245, 54, 54, 1)",
+        "name": "Incident markers",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "incident",
+            "error",
+            "panic"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "graphTooltip": 1
 }

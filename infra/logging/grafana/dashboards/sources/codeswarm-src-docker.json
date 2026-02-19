@@ -1,26 +1,41 @@
 {
   "uid": "codeswarm-src-docker",
-  "title": "docker",
-  "timezone": "browser",
+  "title": "Docker and Containers",
+  "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
   "time": {
-    "from": "now-6h",
+    "from": "now-12h",
     "to": "now"
   },
   "editable": true,
   "tags": [
     "canonical",
     "codeswarm",
+    "containers",
     "docker",
     "logging",
     "source"
   ],
   "panels": [
     {
+      "type": "text",
+      "title": "Source Context",
+      "options": {
+        "mode": "markdown",
+        "content": "### Source Context\n- Dashboard scope: multi-source / filter-driven\n- Selected log source filter: `${log_source:text}`\n- Selected service filter: `${service_name:text}`\n- Selected source type filter: `${source_type:text}`\n- Selected file path filter: `${filename:text}`\n- File path values in scope:<br/>`${filename:join:<br/>}`\n- Note: `All` means no extra filter. File paths above are listed one per line for the current filter scope.\n"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
       "type": "stat",
-      "title": "Logs (5m)",
+      "title": "Logs",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -28,27 +43,1001 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"docker\"}[5m]))"
+          "expr": "sum(count_over_time({log_source=\"docker\"}[$__range]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Shows Logs (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly."
+    },
+    {
+      "type": "stat",
+      "title": "Docker error count",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "E",
+          "expr": "sum(count_over_time({log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" [$__range])) or vector(0)"
+        }
+      ],
+      "description": "At-a-glance docker error signal for the last 5 minutes.",
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Error share % (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "ES",
+          "expr": "100 * (sum(count_over_time({log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" [$__range])) / (sum(count_over_time({log_source=\"docker\"}[$__range])) + 1))"
+        }
+      ],
+      "description": "Share of source volume that is error-like. Healthy systems should stay near zero.",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Log rate",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=\"docker\"}[$__rate_interval]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Rate of incoming log events for the selected filters. Spikes indicate bursty behavior or changes in workload.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error-like rate",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval])) or vector(0)"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Shows Error-like rate (5m) for the current dashboard filters and time range. Use this panel to detect anomalies and trends quickly.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error trend by service_name (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "G",
+          "expr": "sum by (service_name) (rate({log_source=\"docker\",service_name=~\".+\"} |~ \"(?i)(error|fail|exception|panic)\" [$__rate_interval]))"
+        }
+      ],
+      "description": "Service-level error rate trend for docker logs.",
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Top containers by CPU",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (container_id) (label_replace(rate(container_cpu_usage_seconds_total{id=~\"/system.slice/docker-(dd790d590f3a|0ca694051789|0e8068af10b8|7faee8532ce8|2f2ba48e6a23|41d09b63eb4a|6fcdb8b06ee3|588e96b1349c|1856de65cc08|b3e6d47c4757)[a-f0-9]*\\\\.scope\"}[$__rate_interval]), \"container_id\", \"$1\", \"id\", \".*/docker-([a-f0-9]{12}).*\")))",
+          "legendFormat": "{{container_id}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Open docker logs dashboard",
+          "url": "/d/codeswarm-src-docker?var-log_source=docker",
+          "targetBlank": false
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 10
+      },
+      "description": "Top running containers by CPU (mapped to container names).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "0ca694051789"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "codeswarm-mcp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"0ca694051789\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "codeswarm-mcp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "0e8068af10b8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"0e8068af10b8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "1856de65cc08"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-sql-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"1856de65cc08\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-sql-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2f2ba48e6a23"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"2f2ba48e6a23\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "41d09b63eb4a"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"41d09b63eb4a\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "588e96b1349c"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-app-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"588e96b1349c\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-app-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "6fcdb8b06ee3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"6fcdb8b06ee3\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "7faee8532ce8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"7faee8532ce8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "b3e6d47c4757"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-typesense-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"b3e6d47c4757\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-typesense-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dd790d590f3a"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-docker-metrics-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"dd790d590f3a\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-docker-metrics-1"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^0ca694051789$",
+            "renamePattern": "codeswarm-mcp"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"0ca694051789\".*",
+            "renamePattern": "codeswarm-mcp"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^0e8068af10b8$",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"0e8068af10b8\".*",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^1856de65cc08$",
+            "renamePattern": "hex-atlas-sql-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"1856de65cc08\".*",
+            "renamePattern": "hex-atlas-sql-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^2f2ba48e6a23$",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"2f2ba48e6a23\".*",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^41d09b63eb4a$",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"41d09b63eb4a\".*",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^588e96b1349c$",
+            "renamePattern": "hex-atlas-app-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"588e96b1349c\".*",
+            "renamePattern": "hex-atlas-app-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^6fcdb8b06ee3$",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"6fcdb8b06ee3\".*",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^7faee8532ce8$",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"7faee8532ce8\".*",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^b3e6d47c4757$",
+            "renamePattern": "hex-atlas-typesense-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"b3e6d47c4757\".*",
+            "renamePattern": "hex-atlas-typesense-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^dd790d590f3a$",
+            "renamePattern": "logging-docker-metrics-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"dd790d590f3a\".*",
+            "renamePattern": "logging-docker-metrics-1"
+          }
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "Log rate (5m)",
+      "title": "Top containers by Mem",
       "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"docker\"}[5m]))"
+          "expr": "topk(15, sum by (container_id) (label_replace(container_memory_working_set_bytes{id=~\"/system.slice/docker-(dd790d590f3a|0ca694051789|0e8068af10b8|7faee8532ce8|2f2ba48e6a23|41d09b63eb4a|6fcdb8b06ee3|588e96b1349c|1856de65cc08|b3e6d47c4757)[a-f0-9]*\\\\.scope\"}, \"container_id\", \"$1\", \"id\", \".*/docker-([a-f0-9]{12}).*\")))",
+          "legendFormat": "{{container_id}}"
+        }
+      ],
+      "links": [
+        {
+          "title": "Open docker logs dashboard",
+          "url": "/d/codeswarm-src-docker?var-log_source=docker",
+          "targetBlank": false
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 25,
+        "w": 12,
+        "h": 10
+      },
+      "description": "Top running containers by memory working set (mapped to container names).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "0ca694051789"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "codeswarm-mcp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"0ca694051789\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "codeswarm-mcp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "0e8068af10b8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"0e8068af10b8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "1856de65cc08"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-sql-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"1856de65cc08\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-sql-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2f2ba48e6a23"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"2f2ba48e6a23\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "41d09b63eb4a"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"41d09b63eb4a\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "588e96b1349c"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-app-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"588e96b1349c\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-app-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "6fcdb8b06ee3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"6fcdb8b06ee3\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "7faee8532ce8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"7faee8532ce8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "b3e6d47c4757"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-typesense-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"b3e6d47c4757\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-typesense-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dd790d590f3a"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-docker-metrics-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"dd790d590f3a\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-docker-metrics-1"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^0ca694051789$",
+            "renamePattern": "codeswarm-mcp"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"0ca694051789\".*",
+            "renamePattern": "codeswarm-mcp"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^0e8068af10b8$",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"0e8068af10b8\".*",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^1856de65cc08$",
+            "renamePattern": "hex-atlas-sql-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"1856de65cc08\".*",
+            "renamePattern": "hex-atlas-sql-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^2f2ba48e6a23$",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"2f2ba48e6a23\".*",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^41d09b63eb4a$",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"41d09b63eb4a\".*",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^588e96b1349c$",
+            "renamePattern": "hex-atlas-app-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"588e96b1349c\".*",
+            "renamePattern": "hex-atlas-app-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^6fcdb8b06ee3$",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"6fcdb8b06ee3\".*",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^7faee8532ce8$",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"7faee8532ce8\".*",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^b3e6d47c4757$",
+            "renamePattern": "hex-atlas-typesense-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"b3e6d47c4757\".*",
+            "renamePattern": "hex-atlas-typesense-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^dd790d590f3a$",
+            "renamePattern": "logging-docker-metrics-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"dd790d590f3a\".*",
+            "renamePattern": "logging-docker-metrics-1"
+          }
         }
       ]
     },
     {
       "type": "timeseries",
-      "title": "Error-like rate (5m)",
+      "title": "Top services",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -56,13 +1045,41 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate({log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" [5m])) or vector(0)"
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"docker\", service_name=~\".+\"}[$__range])))",
+          "legendFormat": "{{service_name}}"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Open in Explore (error drill)",
+              "url": "/explore?left={\"datasource\":\"Loki\",\"queries\":[{\"refId\":\"A\",\"expr\":\"{service_name=\\\"${__value.text}\\\"} |~ \\\"(?i)(error|fail|exception|panic)\\\"\"}],\"range\":{\"from\":\"now-6h\",\"to\":\"now\"}}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 12,
+        "h": 10
+      },
+      "description": "Top services by docker log volume over the last 5 minutes.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      }
     },
     {
-      "type": "table",
-      "title": "Top services (5m)",
+      "type": "timeseries",
+      "title": "Top service labels",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -70,13 +1087,29 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"docker\", service_name=~\".+\"}[5m])))"
+          "expr": "topk(15, sum by (service) (count_over_time({log_source=\"docker\", service=~\".+\"}[$__range])))",
+          "legendFormat": "{{service}}"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 35,
+        "w": 12,
+        "h": 10
+      },
+      "description": "Top compose services by docker log volume over the last 5 minutes.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      }
     },
     {
-      "type": "table",
-      "title": "Top service labels (5m)",
+      "type": "timeseries",
+      "title": "Volume by source_type",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -84,13 +1117,41 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (service) (count_over_time({log_source=\"docker\", service=~\".+\"}[5m])))"
+          "expr": "topk(10, sum by (source_type) (count_over_time({log_source=\"docker\", source_type=~\".+\"}[$__range])))",
+          "legendFormat": "{{source_type}}"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Open in Explore (error drill)",
+              "url": "/explore?left={\"datasource\":\"Loki\",\"queries\":[{\"refId\":\"A\",\"expr\":\"{log_source=\\\"${__value.text}\\\"} |~ \\\"(?i)(error|fail|exception|panic)\\\"\"}],\"range\":{\"from\":\"now-6h\",\"to\":\"now\"}}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 12,
+        "h": 10
+      },
+      "description": "Docker log volume split by source type over the last 5 minutes.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      }
     },
     {
-      "type": "table",
-      "title": "Volume by source_type (5m)",
+      "type": "timeseries",
+      "title": "Top stacks",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -98,23 +1159,83 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (source_type) (count_over_time({log_source=\"docker\", source_type=~\".+\"}[5m])))"
+          "expr": "topk(15, sum by (stack) (count_over_time({log_source=\"docker\", stack=~\".+\"}[$__range])))",
+          "legendFormat": "{{stack}}"
         }
-      ]
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 45,
+        "w": 12,
+        "h": 10
+      },
+      "description": "Top stack labels by docker log volume over the last 5 minutes.",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      }
     },
     {
-      "type": "table",
-      "title": "Top stacks (5m)",
+      "type": "timeseries",
+      "title": "Errors by service_name (expected idle)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
-          "refId": "A",
-          "expr": "topk(15, sum by (stack) (count_over_time({log_source=\"docker\", stack=~\".+\"}[5m])))"
+          "refId": "F",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"docker\",service_name=~\".+\"} |~ \"(?i)(error|fail|exception|panic)\" [$__range])))",
+          "legendFormat": "{{service_name}}"
         }
-      ]
+      ],
+      "description": "Expected idle in healthy periods; shows service-level error/fail volume when present.",
+      "gridPos": {
+        "x": 0,
+        "y": 55,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        }
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Top docker error signatures (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "H",
+          "expr": "topk(20, sum by (sig) (count_over_time({log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" | regexp \"(?P<sig>.{1,120})\" [$__range])))"
+        }
+      ],
+      "description": "Approximate recurring docker error signatures over the last 5 minutes.",
+      "gridPos": {
+        "x": 12,
+        "y": 55,
+        "w": 12,
+        "h": 10
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "showUnfilled": false,
+        "minVizHeight": 10,
+        "minVizWidth": 0
+      }
     },
     {
       "type": "logs",
@@ -126,9 +1247,1338 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"docker\"}"
+          "expr": "{log_source=\"docker\"} ${log_type}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 65,
+        "w": 24,
+        "h": 12
+      },
+      "description": "Raw logs for the active filters. Use field filters and Explore to drill into incidents and root causes."
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 77,
+        "w": 24,
+        "h": 12
+      },
+      "id": 5,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "editorMode": "builder",
+          "expr": "{log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" ${log_type}",
+          "legendFormat": "",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Docker Errors",
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "format": "kvp",
+            "source": "labels"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {
+              "Line": true,
+              "Time": true,
+              "env": false,
+              "filename": true,
+              "labelTypes": false,
+              "labels": false,
+              "level": true,
+              "log_source": false,
+              "service": false,
+              "service_name": false,
+              "source_type": false,
+              "stack": true,
+              "tsNs": false
+            },
+            "indexByName": {
+              "Line": 3,
+              "Time": 0,
+              "env": 6,
+              "id": 12,
+              "labelTypes": 11,
+              "labels": 9,
+              "level": 2,
+              "log_source": 7,
+              "service": 4,
+              "service_name": 8,
+              "source_type": 5,
+              "stack": 1,
+              "tsNs": 10
+            },
+            "renameByName": {
+              "Line": "Details",
+              "Time": "Time",
+              "env": "ENV Sandbox",
+              "level": "Error Code",
+              "log_source": "docker",
+              "service": "Service",
+              "source_type": "docker",
+              "stack": "Container"
+            }
+          }
+        }
+      ],
+      "type": "logs",
+      "description": "Raw logs for the active filters and time range. Use search, labels, and Explore for deeper triage."
+    },
+    {
+      "type": "logs",
+      "title": "Deploy/Restart markers (expected idle)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "MK",
+          "expr": "{log_source=\"docker\"} |~ \"(?i)(deploy|release|restart|started|stopped|rolling update|shutting down)\" ${log_type}"
+        }
+      ],
+      "description": "Operational lifecycle markers; expected sparse except during maintenance/release windows.",
+      "gridPos": {
+        "x": 0,
+        "y": 89,
+        "w": 24,
+        "h": 12
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Logs by volume",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 81
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"docker\"} |~ \"(?i)\\bdebug\\b\" [$__range]))",
+          "legendFormat": "debug"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(count_over_time({log_source=\"docker\"} |~ \"(?i)\\binfo\\b\" [$__range]))",
+          "legendFormat": "info"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(count_over_time({log_source=\"docker\"} |~ \"(?i)\\bwarn(ing)?\\b\" [$__range]))",
+          "legendFormat": "warn"
+        },
+        {
+          "refId": "D",
+          "expr": "sum(count_over_time({log_source=\"docker\"} |~ \"(?i)\\b(err(or)?|fatal|panic|fail(ed)?)\\b\" [$__range]))",
+          "legendFormat": "error"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 75,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 6,
+      "description": "Breakdown of log volume by severity (debug/info/warn/error) for the current filters over a 5 minute window."
+    },
+    {
+      "type": "bargauge",
+      "title": "Core containers CPU (% host)",
+      "description": "Share of total host CPU capacity used by each core container over 5m.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * sum by (container_id) (label_replace(rate(container_cpu_usage_seconds_total{id=~\"/system.slice/docker-(0ca694051789|7faee8532ce8|588e96b1349c|1856de65cc08|b3e6d47c4757)[a-f0-9]*\\\\.scope\"}[$__rate_interval]), \"container_id\", \"$1\", \"id\", \".*/docker-([a-f0-9]{12}).*\")) / scalar(count(count by (cpu) (node_cpu_seconds_total{job=\"host-monitor\",mode=\"idle\"})))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "0ca694051789"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "codeswarm-mcp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"0ca694051789\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "codeswarm-mcp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "0e8068af10b8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"0e8068af10b8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "1856de65cc08"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-sql-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"1856de65cc08\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-sql-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2f2ba48e6a23"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"2f2ba48e6a23\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "41d09b63eb4a"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"41d09b63eb4a\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "588e96b1349c"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-app-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"588e96b1349c\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-app-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "6fcdb8b06ee3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"6fcdb8b06ee3\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "7faee8532ce8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"7faee8532ce8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "b3e6d47c4757"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-typesense-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"b3e6d47c4757\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-typesense-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dd790d590f3a"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-docker-metrics-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"dd790d590f3a\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-docker-metrics-1"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^0ca694051789$",
+            "renamePattern": "codeswarm-mcp"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"0ca694051789\".*",
+            "renamePattern": "codeswarm-mcp"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^0e8068af10b8$",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"0e8068af10b8\".*",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^1856de65cc08$",
+            "renamePattern": "hex-atlas-sql-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"1856de65cc08\".*",
+            "renamePattern": "hex-atlas-sql-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^2f2ba48e6a23$",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"2f2ba48e6a23\".*",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^41d09b63eb4a$",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"41d09b63eb4a\".*",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^588e96b1349c$",
+            "renamePattern": "hex-atlas-app-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"588e96b1349c\".*",
+            "renamePattern": "hex-atlas-app-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^6fcdb8b06ee3$",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"6fcdb8b06ee3\".*",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^7faee8532ce8$",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"7faee8532ce8\".*",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^b3e6d47c4757$",
+            "renamePattern": "hex-atlas-typesense-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"b3e6d47c4757\".*",
+            "renamePattern": "hex-atlas-typesense-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^dd790d590f3a$",
+            "renamePattern": "logging-docker-metrics-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"dd790d590f3a\".*",
+            "renamePattern": "logging-docker-metrics-1"
+          }
         }
       ]
+    },
+    {
+      "type": "bargauge",
+      "title": "Core containers Mem (current)",
+      "description": "Atlas/Grafana/Codeswarm-MCP current memory working set.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (container_id) (label_replace(container_memory_working_set_bytes{id=~\"/system.slice/docker-(0ca694051789|7faee8532ce8|588e96b1349c|1856de65cc08|b3e6d47c4757)[a-f0-9]*\\\\.scope\"}, \"container_id\", \"$1\", \"id\", \".*/docker-([a-f0-9]{12}).*\"))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "0ca694051789"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "codeswarm-mcp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"0ca694051789\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "codeswarm-mcp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "0e8068af10b8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"0e8068af10b8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "1856de65cc08"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-sql-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"1856de65cc08\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-sql-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2f2ba48e6a23"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"2f2ba48e6a23\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "41d09b63eb4a"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"41d09b63eb4a\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "588e96b1349c"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-app-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"588e96b1349c\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-app-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "6fcdb8b06ee3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"6fcdb8b06ee3\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "7faee8532ce8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"7faee8532ce8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "b3e6d47c4757"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-typesense-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"b3e6d47c4757\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "hex-atlas-typesense-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dd790d590f3a"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-docker-metrics-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"dd790d590f3a\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-docker-metrics-1"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^0ca694051789$",
+            "renamePattern": "codeswarm-mcp"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"0ca694051789\".*",
+            "renamePattern": "codeswarm-mcp"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^0e8068af10b8$",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"0e8068af10b8\".*",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^1856de65cc08$",
+            "renamePattern": "hex-atlas-sql-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"1856de65cc08\".*",
+            "renamePattern": "hex-atlas-sql-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^2f2ba48e6a23$",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"2f2ba48e6a23\".*",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^41d09b63eb4a$",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"41d09b63eb4a\".*",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^588e96b1349c$",
+            "renamePattern": "hex-atlas-app-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"588e96b1349c\".*",
+            "renamePattern": "hex-atlas-app-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^6fcdb8b06ee3$",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"6fcdb8b06ee3\".*",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^7faee8532ce8$",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"7faee8532ce8\".*",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^b3e6d47c4757$",
+            "renamePattern": "hex-atlas-typesense-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"b3e6d47c4757\".*",
+            "renamePattern": "hex-atlas-typesense-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^dd790d590f3a$",
+            "renamePattern": "logging-docker-metrics-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"dd790d590f3a\".*",
+            "renamePattern": "logging-docker-metrics-1"
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "bargauge",
+      "title": "Docker services by log volume (ranked)",
+      "description": "Top Docker service labels by log volume.",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"docker\",service_name=~\".+\"}[$__range])))"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 101
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
     }
-  ]
+  ],
+  "links": [
+    {
+      "title": "Source Index",
+      "url": "/d/codeswarm-source-index",
+      "type": "link",
+      "keepTime": true,
+      "includeVars": true
+    },
+    {
+      "title": "Errors by Service",
+      "url": "/d/top-errors-log-explorer?var-log_source=docker",
+      "type": "link",
+      "keepTime": true,
+      "includeVars": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "log_source",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(log_source)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service_name",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service_name)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "source_type",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(source_type)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "env",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(env)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "filename",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(filename)",
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "stack",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(stack)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(service)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "mcp_level",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "query": "label_values(mcp_level)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "log_type",
+        "label": "Log Type",
+        "type": "custom",
+        "hide": 0,
+        "query": "all,debug,info,warn,error/fail",
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "selected": true,
+          "text": "all",
+          "value": ""
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "all",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "debug",
+            "value": "|~ \"(?i)\\bdebug\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "info",
+            "value": "|~ \"(?i)\\binfo\\b\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)(warn|warning)\""
+          },
+          {
+            "selected": false,
+            "text": "warn",
+            "value": "|~ \"(?i)(warn|warning)\" !~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          },
+          {
+            "selected": false,
+            "text": "error/fail",
+            "value": "|~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\""
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Canonical Docker and container operations dashboard combining container resource metrics with docker log/error triage.",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 140, 0, 1)",
+        "name": "Deploy events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "deploy",
+            "release"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(31, 120, 193, 1)",
+        "name": "Restart events",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "restart",
+            "started",
+            "stopped"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(245, 54, 54, 1)",
+        "name": "Incident markers",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "incident",
+            "error",
+            "panic"
+          ],
+          "type": "tags"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "graphTooltip": 1
 }

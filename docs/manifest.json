@@ -16,6 +16,9 @@
   "files": [
     "INDEX.md",
     "README.md",
+    "api_usage/README.md",
+    "api_usage/authoritative-loki-grafana-api.md",
+    "api_usage/server-specific-api-usage.md",
     "architecture.md",
     "build-documentation.md",
     "cloudflared-queries.md",
