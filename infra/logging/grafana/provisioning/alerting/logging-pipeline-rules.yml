@@ -18,6 +18,12 @@ groups:
             model:
               expr: sum(count_over_time({log_source="rsyslog_syslog"} |~ "MARKER=" [15m]))
               queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
           - refId: C
             datasourceUid: __expr__
             model:
@@ -29,7 +35,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     type: last
                   type: query
@@ -51,6 +57,12 @@ groups:
             model:
               expr: sum(count_over_time({log_source=~".+"}[5m]))
               queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
           - refId: C
             datasourceUid: __expr__
             model:
@@ -62,7 +74,7 @@ groups:
                   operator:
                     type: and
                   query:
-                    params: [A]
+                    params: [B]
                   reducer:
                     type: last
                   type: query

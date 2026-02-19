@@ -11,11 +11,81 @@
   },
   "tags": [
     "codeswarm",
+    "codeswarm_mcp",
     "logging",
-    "source",
-    "codeswarm_mcp"
+    "source"
   ],
   "panels": [
+    {
+      "type": "stat",
+      "title": "Logs (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"codeswarm_mcp\"}[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Log rate (6h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"}[5m]))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error rate (6h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate({log_source=\"codeswarm_mcp\"} |~ \"(?i)(error|fail|exception|panic)\" [5m]))"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top offenders by service_name (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=\"codeswarm_mcp\", service_name=~\".+\"}[5m])))"
+        }
+      ]
+    },
+    {
+      "type": "logs",
+      "title": "Drill logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=\"codeswarm_mcp\"}"
+        }
+      ]
+    },
     {
       "id": 1,
       "type": "stat",
