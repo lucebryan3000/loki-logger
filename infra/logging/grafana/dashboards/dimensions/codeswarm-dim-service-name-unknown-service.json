@@ -381,7 +381,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=\"unknown_service\"} ${log_type}"
+          "expr": "{service_name=\"unknown_service\"} ${log_type:raw}"
         }
       ],
       "gridPos": {

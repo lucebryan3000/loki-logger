@@ -219,7 +219,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "0ca694051789"
+              "options": "1a72861813da"
             },
             "properties": [
               {
@@ -231,108 +231,12 @@
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"0ca694051789\".*"
+              "options": ".*container_id=\"1a72861813da\".*"
             },
             "properties": [
               {
                 "id": "displayName",
                 "value": "codeswarm-mcp"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "0e8068af10b8"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-loki-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"0e8068af10b8\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-loki-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "1856de65cc08"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "hex-atlas-sql-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"1856de65cc08\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "hex-atlas-sql-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "2f2ba48e6a23"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-prometheus-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"2f2ba48e6a23\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-prometheus-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "41d09b63eb4a"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-alloy-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"41d09b63eb4a\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-alloy-1"
               }
             ]
           },
@@ -363,48 +267,24 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "6fcdb8b06ee3"
+              "options": "1856de65cc08"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "logging-host-monitor-1"
+                "value": "hex-atlas-sql-1"
               }
             ]
           },
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"6fcdb8b06ee3\".*"
+              "options": ".*container_id=\"1856de65cc08\".*"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "logging-host-monitor-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "7faee8532ce8"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-grafana-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"7faee8532ce8\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-grafana-1"
+                "value": "hex-atlas-sql-1"
               }
             ]
           },
@@ -435,7 +315,103 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "dd790d590f3a"
+              "options": "ad0df44685a8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"ad0df44685a8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "c8d88013ae7d"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"c8d88013ae7d\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "f184ec17eb04"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"f184ec17eb04\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "164c0a9a6a24"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"164c0a9a6a24\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "6d7dbeff948e"
             },
             "properties": [
               {
@@ -447,7 +423,7 @@
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"dd790d590f3a\".*"
+              "options": ".*container_id=\"6d7dbeff948e\".*"
             },
             "properties": [
               {
@@ -455,12 +431,36 @@
                 "value": "logging-docker-metrics-1"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "224b3207bd99"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"224b3207bd99\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
           }
         ]
       },
       "options": {
         "legend": {
-          "showLegend": true,
+          "showLegend": false,
           "displayMode": "list",
           "placement": "bottom",
           "calcs": []
@@ -470,71 +470,15 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^0ca694051789$",
+            "regex": "^1a72861813da$",
             "renamePattern": "codeswarm-mcp"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"0ca694051789\".*",
+            "regex": ".*container_id=\"1a72861813da\".*",
             "renamePattern": "codeswarm-mcp"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^0e8068af10b8$",
-            "renamePattern": "logging-loki-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"0e8068af10b8\".*",
-            "renamePattern": "logging-loki-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^1856de65cc08$",
-            "renamePattern": "hex-atlas-sql-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"1856de65cc08\".*",
-            "renamePattern": "hex-atlas-sql-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^2f2ba48e6a23$",
-            "renamePattern": "logging-prometheus-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"2f2ba48e6a23\".*",
-            "renamePattern": "logging-prometheus-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^41d09b63eb4a$",
-            "renamePattern": "logging-alloy-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"41d09b63eb4a\".*",
-            "renamePattern": "logging-alloy-1"
           }
         },
         {
@@ -554,29 +498,15 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^6fcdb8b06ee3$",
-            "renamePattern": "logging-host-monitor-1"
+            "regex": "^1856de65cc08$",
+            "renamePattern": "hex-atlas-sql-1"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"6fcdb8b06ee3\".*",
-            "renamePattern": "logging-host-monitor-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^7faee8532ce8$",
-            "renamePattern": "logging-grafana-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"7faee8532ce8\".*",
-            "renamePattern": "logging-grafana-1"
+            "regex": ".*container_id=\"1856de65cc08\".*",
+            "renamePattern": "hex-atlas-sql-1"
           }
         },
         {
@@ -596,15 +526,85 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^dd790d590f3a$",
+            "regex": "^ad0df44685a8$",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"ad0df44685a8\".*",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^c8d88013ae7d$",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"c8d88013ae7d\".*",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^f184ec17eb04$",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"f184ec17eb04\".*",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^164c0a9a6a24$",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"164c0a9a6a24\".*",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^6d7dbeff948e$",
             "renamePattern": "logging-docker-metrics-1"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"dd790d590f3a\".*",
+            "regex": ".*container_id=\"6d7dbeff948e\".*",
             "renamePattern": "logging-docker-metrics-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^224b3207bd99$",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"224b3207bd99\".*",
+            "renamePattern": "logging-host-monitor-1"
           }
         }
       ]
@@ -645,7 +645,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "0ca694051789"
+              "options": "1a72861813da"
             },
             "properties": [
               {
@@ -657,108 +657,12 @@
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"0ca694051789\".*"
+              "options": ".*container_id=\"1a72861813da\".*"
             },
             "properties": [
               {
                 "id": "displayName",
                 "value": "codeswarm-mcp"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "0e8068af10b8"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-loki-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"0e8068af10b8\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-loki-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "1856de65cc08"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "hex-atlas-sql-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"1856de65cc08\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "hex-atlas-sql-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "2f2ba48e6a23"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-prometheus-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"2f2ba48e6a23\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-prometheus-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "41d09b63eb4a"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-alloy-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"41d09b63eb4a\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-alloy-1"
               }
             ]
           },
@@ -789,48 +693,24 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "6fcdb8b06ee3"
+              "options": "1856de65cc08"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "logging-host-monitor-1"
+                "value": "hex-atlas-sql-1"
               }
             ]
           },
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"6fcdb8b06ee3\".*"
+              "options": ".*container_id=\"1856de65cc08\".*"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "logging-host-monitor-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "7faee8532ce8"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-grafana-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"7faee8532ce8\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-grafana-1"
+                "value": "hex-atlas-sql-1"
               }
             ]
           },
@@ -861,7 +741,103 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "dd790d590f3a"
+              "options": "ad0df44685a8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"ad0df44685a8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "c8d88013ae7d"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"c8d88013ae7d\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "f184ec17eb04"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"f184ec17eb04\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "164c0a9a6a24"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"164c0a9a6a24\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "6d7dbeff948e"
             },
             "properties": [
               {
@@ -873,7 +849,7 @@
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"dd790d590f3a\".*"
+              "options": ".*container_id=\"6d7dbeff948e\".*"
             },
             "properties": [
               {
@@ -881,12 +857,36 @@
                 "value": "logging-docker-metrics-1"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "224b3207bd99"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"224b3207bd99\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
           }
         ]
       },
       "options": {
         "legend": {
-          "showLegend": true,
+          "showLegend": false,
           "displayMode": "list",
           "placement": "bottom",
           "calcs": []
@@ -896,71 +896,15 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^0ca694051789$",
+            "regex": "^1a72861813da$",
             "renamePattern": "codeswarm-mcp"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"0ca694051789\".*",
+            "regex": ".*container_id=\"1a72861813da\".*",
             "renamePattern": "codeswarm-mcp"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^0e8068af10b8$",
-            "renamePattern": "logging-loki-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"0e8068af10b8\".*",
-            "renamePattern": "logging-loki-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^1856de65cc08$",
-            "renamePattern": "hex-atlas-sql-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"1856de65cc08\".*",
-            "renamePattern": "hex-atlas-sql-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^2f2ba48e6a23$",
-            "renamePattern": "logging-prometheus-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"2f2ba48e6a23\".*",
-            "renamePattern": "logging-prometheus-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^41d09b63eb4a$",
-            "renamePattern": "logging-alloy-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"41d09b63eb4a\".*",
-            "renamePattern": "logging-alloy-1"
           }
         },
         {
@@ -980,29 +924,15 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^6fcdb8b06ee3$",
-            "renamePattern": "logging-host-monitor-1"
+            "regex": "^1856de65cc08$",
+            "renamePattern": "hex-atlas-sql-1"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"6fcdb8b06ee3\".*",
-            "renamePattern": "logging-host-monitor-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^7faee8532ce8$",
-            "renamePattern": "logging-grafana-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"7faee8532ce8\".*",
-            "renamePattern": "logging-grafana-1"
+            "regex": ".*container_id=\"1856de65cc08\".*",
+            "renamePattern": "hex-atlas-sql-1"
           }
         },
         {
@@ -1022,15 +952,85 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^dd790d590f3a$",
+            "regex": "^ad0df44685a8$",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"ad0df44685a8\".*",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^c8d88013ae7d$",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"c8d88013ae7d\".*",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^f184ec17eb04$",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"f184ec17eb04\".*",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^164c0a9a6a24$",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"164c0a9a6a24\".*",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^6d7dbeff948e$",
             "renamePattern": "logging-docker-metrics-1"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"dd790d590f3a\".*",
+            "regex": ".*container_id=\"6d7dbeff948e\".*",
             "renamePattern": "logging-docker-metrics-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^224b3207bd99$",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"224b3207bd99\".*",
+            "renamePattern": "logging-host-monitor-1"
           }
         }
       ]
@@ -1247,7 +1247,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"docker\"} ${log_type}"
+          "expr": "{log_source=\"docker\"} ${log_type:raw}"
         }
       ],
       "gridPos": {
@@ -1288,7 +1288,7 @@
             "uid": "P8E80F9AEF21F6940"
           },
           "editorMode": "builder",
-          "expr": "{log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" ${log_type}",
+          "expr": "{log_source=\"docker\"} |~ \"(?i)(error|fail|exception|panic)\" ${log_type:raw}",
           "legendFormat": "",
           "queryType": "range",
           "refId": "A"
@@ -1363,7 +1363,7 @@
       "targets": [
         {
           "refId": "MK",
-          "expr": "{log_source=\"docker\"} |~ \"(?i)(deploy|release|restart|started|stopped|rolling update|shutting down)\" ${log_type}"
+          "expr": "{log_source=\"docker\"} |~ \"(?i)(deploy|release|restart|started|stopped|rolling update|shutting down)\" ${log_type:raw}"
         }
       ],
       "description": "Operational lifecycle markers; expected sparse except during maintenance/release windows.",
@@ -1466,7 +1466,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "0ca694051789"
+              "options": "1a72861813da"
             },
             "properties": [
               {
@@ -1478,108 +1478,12 @@
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"0ca694051789\".*"
+              "options": ".*container_id=\"1a72861813da\".*"
             },
             "properties": [
               {
                 "id": "displayName",
                 "value": "codeswarm-mcp"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "0e8068af10b8"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-loki-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"0e8068af10b8\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-loki-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "1856de65cc08"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "hex-atlas-sql-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"1856de65cc08\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "hex-atlas-sql-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "2f2ba48e6a23"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-prometheus-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"2f2ba48e6a23\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-prometheus-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "41d09b63eb4a"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-alloy-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"41d09b63eb4a\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-alloy-1"
               }
             ]
           },
@@ -1610,48 +1514,24 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "6fcdb8b06ee3"
+              "options": "1856de65cc08"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "logging-host-monitor-1"
+                "value": "hex-atlas-sql-1"
               }
             ]
           },
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"6fcdb8b06ee3\".*"
+              "options": ".*container_id=\"1856de65cc08\".*"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "logging-host-monitor-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "7faee8532ce8"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-grafana-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"7faee8532ce8\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-grafana-1"
+                "value": "hex-atlas-sql-1"
               }
             ]
           },
@@ -1682,7 +1562,103 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "dd790d590f3a"
+              "options": "ad0df44685a8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"ad0df44685a8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "c8d88013ae7d"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"c8d88013ae7d\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "f184ec17eb04"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"f184ec17eb04\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "164c0a9a6a24"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"164c0a9a6a24\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "6d7dbeff948e"
             },
             "properties": [
               {
@@ -1694,12 +1670,36 @@
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"dd790d590f3a\".*"
+              "options": ".*container_id=\"6d7dbeff948e\".*"
             },
             "properties": [
               {
                 "id": "displayName",
                 "value": "logging-docker-metrics-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "224b3207bd99"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"224b3207bd99\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
               }
             ]
           }
@@ -1720,71 +1720,15 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^0ca694051789$",
+            "regex": "^1a72861813da$",
             "renamePattern": "codeswarm-mcp"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"0ca694051789\".*",
+            "regex": ".*container_id=\"1a72861813da\".*",
             "renamePattern": "codeswarm-mcp"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^0e8068af10b8$",
-            "renamePattern": "logging-loki-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"0e8068af10b8\".*",
-            "renamePattern": "logging-loki-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^1856de65cc08$",
-            "renamePattern": "hex-atlas-sql-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"1856de65cc08\".*",
-            "renamePattern": "hex-atlas-sql-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^2f2ba48e6a23$",
-            "renamePattern": "logging-prometheus-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"2f2ba48e6a23\".*",
-            "renamePattern": "logging-prometheus-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^41d09b63eb4a$",
-            "renamePattern": "logging-alloy-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"41d09b63eb4a\".*",
-            "renamePattern": "logging-alloy-1"
           }
         },
         {
@@ -1804,29 +1748,15 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^6fcdb8b06ee3$",
-            "renamePattern": "logging-host-monitor-1"
+            "regex": "^1856de65cc08$",
+            "renamePattern": "hex-atlas-sql-1"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"6fcdb8b06ee3\".*",
-            "renamePattern": "logging-host-monitor-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^7faee8532ce8$",
-            "renamePattern": "logging-grafana-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"7faee8532ce8\".*",
-            "renamePattern": "logging-grafana-1"
+            "regex": ".*container_id=\"1856de65cc08\".*",
+            "renamePattern": "hex-atlas-sql-1"
           }
         },
         {
@@ -1846,15 +1776,85 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^dd790d590f3a$",
+            "regex": "^ad0df44685a8$",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"ad0df44685a8\".*",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^c8d88013ae7d$",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"c8d88013ae7d\".*",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^f184ec17eb04$",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"f184ec17eb04\".*",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^164c0a9a6a24$",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"164c0a9a6a24\".*",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^6d7dbeff948e$",
             "renamePattern": "logging-docker-metrics-1"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"dd790d590f3a\".*",
+            "regex": ".*container_id=\"6d7dbeff948e\".*",
             "renamePattern": "logging-docker-metrics-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^224b3207bd99$",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"224b3207bd99\".*",
+            "renamePattern": "logging-host-monitor-1"
           }
         }
       ]
@@ -1881,7 +1881,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "0ca694051789"
+              "options": "1a72861813da"
             },
             "properties": [
               {
@@ -1893,108 +1893,12 @@
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"0ca694051789\".*"
+              "options": ".*container_id=\"1a72861813da\".*"
             },
             "properties": [
               {
                 "id": "displayName",
                 "value": "codeswarm-mcp"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "0e8068af10b8"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-loki-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"0e8068af10b8\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-loki-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "1856de65cc08"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "hex-atlas-sql-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"1856de65cc08\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "hex-atlas-sql-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "2f2ba48e6a23"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-prometheus-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"2f2ba48e6a23\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-prometheus-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "41d09b63eb4a"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-alloy-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"41d09b63eb4a\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-alloy-1"
               }
             ]
           },
@@ -2025,48 +1929,24 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "6fcdb8b06ee3"
+              "options": "1856de65cc08"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "logging-host-monitor-1"
+                "value": "hex-atlas-sql-1"
               }
             ]
           },
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"6fcdb8b06ee3\".*"
+              "options": ".*container_id=\"1856de65cc08\".*"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "logging-host-monitor-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "7faee8532ce8"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-grafana-1"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*container_id=\"7faee8532ce8\".*"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "logging-grafana-1"
+                "value": "hex-atlas-sql-1"
               }
             ]
           },
@@ -2097,7 +1977,103 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "dd790d590f3a"
+              "options": "ad0df44685a8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"ad0df44685a8\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-grafana-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "c8d88013ae7d"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"c8d88013ae7d\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-prometheus-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "f184ec17eb04"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"f184ec17eb04\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-loki-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "164c0a9a6a24"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"164c0a9a6a24\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-alloy-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "6d7dbeff948e"
             },
             "properties": [
               {
@@ -2109,12 +2085,36 @@
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*container_id=\"dd790d590f3a\".*"
+              "options": ".*container_id=\"6d7dbeff948e\".*"
             },
             "properties": [
               {
                 "id": "displayName",
                 "value": "logging-docker-metrics-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "224b3207bd99"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*container_id=\"224b3207bd99\".*"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "logging-host-monitor-1"
               }
             ]
           }
@@ -2135,71 +2135,15 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^0ca694051789$",
+            "regex": "^1a72861813da$",
             "renamePattern": "codeswarm-mcp"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"0ca694051789\".*",
+            "regex": ".*container_id=\"1a72861813da\".*",
             "renamePattern": "codeswarm-mcp"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^0e8068af10b8$",
-            "renamePattern": "logging-loki-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"0e8068af10b8\".*",
-            "renamePattern": "logging-loki-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^1856de65cc08$",
-            "renamePattern": "hex-atlas-sql-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"1856de65cc08\".*",
-            "renamePattern": "hex-atlas-sql-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^2f2ba48e6a23$",
-            "renamePattern": "logging-prometheus-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"2f2ba48e6a23\".*",
-            "renamePattern": "logging-prometheus-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^41d09b63eb4a$",
-            "renamePattern": "logging-alloy-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"41d09b63eb4a\".*",
-            "renamePattern": "logging-alloy-1"
           }
         },
         {
@@ -2219,29 +2163,15 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^6fcdb8b06ee3$",
-            "renamePattern": "logging-host-monitor-1"
+            "regex": "^1856de65cc08$",
+            "renamePattern": "hex-atlas-sql-1"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"6fcdb8b06ee3\".*",
-            "renamePattern": "logging-host-monitor-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": "^7faee8532ce8$",
-            "renamePattern": "logging-grafana-1"
-          }
-        },
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*container_id=\"7faee8532ce8\".*",
-            "renamePattern": "logging-grafana-1"
+            "regex": ".*container_id=\"1856de65cc08\".*",
+            "renamePattern": "hex-atlas-sql-1"
           }
         },
         {
@@ -2261,15 +2191,85 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "^dd790d590f3a$",
+            "regex": "^ad0df44685a8$",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"ad0df44685a8\".*",
+            "renamePattern": "logging-grafana-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^c8d88013ae7d$",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"c8d88013ae7d\".*",
+            "renamePattern": "logging-prometheus-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^f184ec17eb04$",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"f184ec17eb04\".*",
+            "renamePattern": "logging-loki-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^164c0a9a6a24$",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"164c0a9a6a24\".*",
+            "renamePattern": "logging-alloy-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^6d7dbeff948e$",
             "renamePattern": "logging-docker-metrics-1"
           }
         },
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*container_id=\"dd790d590f3a\".*",
+            "regex": ".*container_id=\"6d7dbeff948e\".*",
             "renamePattern": "logging-docker-metrics-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^224b3207bd99$",
+            "renamePattern": "logging-host-monitor-1"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*container_id=\"224b3207bd99\".*",
+            "renamePattern": "logging-host-monitor-1"
           }
         }
       ]

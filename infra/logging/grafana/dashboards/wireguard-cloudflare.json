@@ -302,7 +302,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" ${log_type}"
+          "expr": "{log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\"} |~ \"$signal\" ${log_type:raw}"
         }
       ],
       "gridPos": {

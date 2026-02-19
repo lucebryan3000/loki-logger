@@ -310,7 +310,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=~\"$service_name\"} ${log_type}",
+          "expr": "{service_name=~\"$service_name\"} ${log_type:raw}",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"

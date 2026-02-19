@@ -563,7 +563,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"codeswarm_mcp\"} ${log_type}"
+          "expr": "{log_source=\"codeswarm_mcp\"} ${log_type:raw}"
         }
       ],
       "gridPos": {
@@ -585,7 +585,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"codeswarm_mcp\"} ${log_type}",
+          "expr": "{log_source=\"codeswarm_mcp\"} ${log_type:raw}",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
@@ -610,7 +610,7 @@
       "targets": [
         {
           "refId": "MK",
-          "expr": "{log_source=\"codeswarm_mcp\"} |~ \"(?i)(deploy|release|restart|started|stopped|rolling update|shutting down)\" ${log_type}"
+          "expr": "{log_source=\"codeswarm_mcp\"} |~ \"(?i)(deploy|release|restart|started|stopped|rolling update|shutting down)\" ${log_type:raw}"
         }
       ],
       "description": "Operational lifecycle markers; expected sparse except during maintenance/release windows.",

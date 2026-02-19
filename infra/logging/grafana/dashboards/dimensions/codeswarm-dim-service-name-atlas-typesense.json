@@ -149,7 +149,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=\"atlas-typesense\"} ${log_type}",
+          "expr": "{service_name=\"atlas-typesense\"} ${log_type:raw}",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"

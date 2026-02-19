@@ -212,7 +212,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"codeswarm_mcp\"} ${log_type}"
+          "expr": "{log_source=\"codeswarm_mcp\"} ${log_type:raw}"
         }
       ],
       "gridPos": {

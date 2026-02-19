@@ -327,7 +327,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(omfwd|suspend|refused|error)\" ${log_type}"
+          "expr": "{log_source=\"rsyslog_syslog\",syslog_channel=~\"$syslog_channel\",syslog_level=~\"$syslog_level\"} |~ \"(?i)(omfwd|suspend|refused|error)\" ${log_type:raw}"
         }
       ],
       "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",

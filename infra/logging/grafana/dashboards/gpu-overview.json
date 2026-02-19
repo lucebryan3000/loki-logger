@@ -768,7 +768,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(8[3-9]|9[0-9]),\" [$__range])) + sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(29[0-9]|3[0-9][0-9])\\.[0-9]+$\" [$__range]))",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(8[3-9]|9[0-9]),\" [$__range])) + sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(29[0-9]|3[0-9][0-9])[.][0-9]+$\" [$__range]))",
           "legendFormat": "Throttling risk events (5m)"
         }
       ],
@@ -1067,8 +1067,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, max_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-proc.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<pid>,<proc_name>,<mem_mib>\" | unwrap mem_mib | __error__=\"\")[$__range]))",
-          "legendFormat": "{{proc_name}} pid={{pid}}"
+          "expr": "topk(10, sum by (proc_name) (max_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-proc.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<proc_name>,<mem_mib>\" | unwrap mem_mib | __error__=\"\")[$__range])))",
+          "legendFormat": "{{proc_name}}"
         }
       ],
       "fieldConfig": {
@@ -1253,7 +1253,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\",filename=~\".*gpu-live.*csv\"} |~ \"$gpu_match\" [$__range]))",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\",filename=~\".*gpu-(live|proc).*csv\"} |~ \"$gpu_match\" [$__range]))",
           "legendFormat": "gpu-live samples"
         },
         {

@@ -352,7 +352,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=~\"$log_source\"} ${log_type}",
+          "expr": "{log_source=~\"$log_source\"} ${log_type:raw}",
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"

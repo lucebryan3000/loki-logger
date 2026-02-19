@@ -35,7 +35,7 @@
       },
       "targets": [
         {
-          "expr": "{log_source=\"rsyslog_syslog\"} ${log_type}",
+          "expr": "{log_source=\"rsyslog_syslog\"} ${log_type:raw}",
           "refId": "A",
           "datasource": {
             "type": "loki",
