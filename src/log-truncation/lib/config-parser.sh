@@ -12,6 +12,7 @@ load_config() {
 
     # Source the config (bash-native)
     set -a  # Export all variables
+    # shellcheck disable=SC1090
     source "$config_file"
     set +a
 

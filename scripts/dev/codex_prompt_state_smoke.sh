@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 PROMPTS_DIR="${REPO_ROOT}/_build/Sprint-3/prompts/codex-prompt-state-tests"
+# shellcheck disable=SC2034
 STORE_ROOT="${REPO_ROOT}/temp/codex-prompt-state"
 OUT_DIR="${REPO_ROOT}/temp/codex-prompt-state-tests/output"
 PROMPT_EXEC_BIN="${PROMPT_EXEC_BIN:-$(command -v prompt-exec || true)}"

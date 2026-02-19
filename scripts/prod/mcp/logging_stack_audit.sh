@@ -46,8 +46,8 @@ export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
 OBS="infra/logging/docker-compose.observability.yml"
 ENV_FILE=".env"
 
-# shellcheck disable=SC1090
 set -a
+# shellcheck disable=SC1090
 . "$ENV_FILE"
 set +a
 

@@ -30,8 +30,8 @@ OBS="infra/logging/docker-compose.observability.yml"
 
 scripts/prod/mcp/validate_env.sh "$ENV_FILE"
 
-# shellcheck disable=SC1090
 set -a
+# shellcheck disable=SC1090
 . "$ENV_FILE"
 set +a
 

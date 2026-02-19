@@ -15,6 +15,7 @@ echo "MARKER=${marker}"
 logger -t "${TAG}" "${marker}"
 
 ok_j=0
+# shellcheck disable=SC2034
 for i in $(seq 1 "$ATTEMPTS"); do
   if journalctl -t "${TAG}" --since "${WINDOW_MINUTES} minutes ago" --no-pager | rg -q "${marker}"; then
     ok_j=1
@@ -31,6 +32,7 @@ end_ns=$((($(date +%s)+60)*1000000000))
 query='{log_source="rsyslog_syslog"} |= "'"${marker}"'"'
 
 ok_l=0
+# shellcheck disable=SC2034
 for i in $(seq 1 "$ATTEMPTS"); do
   resp=$(curl -fsS "${LOKI_BASE}/loki/api/v1/query_range" --get \
     --data-urlencode "query=${query}" \

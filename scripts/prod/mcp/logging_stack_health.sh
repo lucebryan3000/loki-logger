@@ -35,8 +35,8 @@ PROJECT="${COMPOSE_PROJECT_NAME:-logging}"
 ENV_FILE=".env"
 
 if [[ -f "$ENV_FILE" ]]; then
-  # shellcheck disable=SC1090
   set -a
+  # shellcheck disable=SC1090
   . "$ENV_FILE"
   set +a
 fi

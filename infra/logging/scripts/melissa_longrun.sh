@@ -40,11 +40,13 @@ if [[ -f "$MANIFEST" ]]; then
   checkpoint_every=$(jq -r '.checkpoint_every // 5' "$MANIFEST")
   heartbeat_minutes=$(jq -r '.heartbeat_minutes // 20' "$MANIFEST")
   continue_on_fail=$(jq -r '.continue_on_fail // true' "$MANIFEST")
+  # shellcheck disable=SC2034
   max_grafana_restarts=$(jq -r '.max_grafana_restarts_per_run // 1' "$MANIFEST")
 fi
 
 run_name="melissa-queue-$(date -u +%Y%m%dT%H%M%SZ)"
 start_epoch=$(date +%s)
+# shellcheck disable=SC2034
 grafana_restart_count=0
 last_checkpoint_hash=""
 
@@ -537,6 +539,7 @@ run_item(){
   local rc=0
 
   item_note=""
+  # shellcheck disable=SC2034
   item_expected_zero="no"
 
   set +e

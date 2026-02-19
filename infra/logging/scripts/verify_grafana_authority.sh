@@ -35,6 +35,7 @@ if [[ -x "$E2E_SCRIPT" ]]; then
   "$E2E_SCRIPT" >/tmp/e2e_authority.out 2>&1 || { cat /tmp/e2e_authority.out >&2; fail "repo hardened E2E script failed"; }
   rg -q 'PASS: marker found in Loki' /tmp/e2e_authority.out && pass "E2E marker found in Loki" || { cat /tmp/e2e_authority.out >&2; fail "E2E marker not found"; }
 else
+  # shellcheck disable=SC2024
   sudo /usr/local/bin/logging-e2e-check.sh >/tmp/e2e_authority.out 2>&1 || { cat /tmp/e2e_authority.out >&2; fail "system E2E script failed"; }
   rg -q 'PASS: marker found in Loki' /tmp/e2e_authority.out && pass "E2E marker found in Loki" || { cat /tmp/e2e_authority.out >&2; fail "E2E marker not found"; }
 fi
@@ -47,16 +48,16 @@ echo "$rules_json" | rg -q '"provenance":"file"' && pass "Grafana alert rules pr
 SRC_COUNT="$(jq -r '.count' "$SRC_JSON")"
 [[ "$SRC_COUNT" =~ ^[0-9]+$ ]] || fail "Invalid source count in log_source_values.json"
 
-INDEX_META="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/codeswarm-source-index" | jq -r '.meta.provisioned' || echo false)"
-[[ "$INDEX_META" == "true" ]] && pass "Source Index provisioned" || fail "Source Index not provisioned"
+INDEX_EXT_ID="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/codeswarm-source-index" | jq -r '.meta.provisionedExternalId // ""' || echo "")"
+[[ -n "$INDEX_EXT_ID" && "$INDEX_EXT_ID" != "null" ]] && pass "Source Index provisioned (externalId=$INDEX_EXT_ID)" || fail "Source Index not provisioned"
 
 PRESENT_FILES="$(ls "$SRC_DASH_DIR" 2>/dev/null | rg -c '^codeswarm-src-.*\.json$' || echo 0)"
 MISSING_UIDS=()
 while IFS= read -r src; do
   [[ -z "$src" ]] && continue
   uid="codeswarm-src-$(echo "$src" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
-  prov="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/$uid" | jq -r '.meta.provisioned' 2>/dev/null || echo false)"
-  if [[ "$prov" != "true" ]]; then
+  ext_id="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/$uid" | jq -r '.meta.provisionedExternalId // ""' 2>/dev/null || echo "")"
+  if [[ -z "$ext_id" || "$ext_id" == "null" ]]; then
     MISSING_UIDS+=("$uid")
   fi
 done < <(jq -r '.values[]' "$SRC_JSON")
@@ -105,8 +106,8 @@ DIM_COUNT="$(rg -c '.' "$DIM_VALUES_FILE" || true)"
 DIM_PRESENT_FILES="$(ls "$DIM_DASH_DIR" 2>/dev/null | rg -c "^codeswarm-dim-${DIM_NAME_SLUG}-.*\\.json$|^codeswarm-dim-index-${DIM_NAME}\\.json$|^codeswarm-dim-index-${DIM_NAME_SLUG}\\.json$" || echo 0)"
 
 DIM_INDEX_UID="codeswarm-dim-index-${DIM_NAME_SLUG}"
-DIM_INDEX_PROV="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/$DIM_INDEX_UID" | jq -r '.meta.provisioned' 2>/dev/null || echo false)"
-[[ "$DIM_INDEX_PROV" == "true" ]] && pass "Dimension index provisioned ($DIM_INDEX_UID)" || fail "Dimension index missing ($DIM_INDEX_UID)"
+DIM_INDEX_EXT_ID="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/$DIM_INDEX_UID" | jq -r '.meta.provisionedExternalId // ""' 2>/dev/null || echo "")"
+[[ -n "$DIM_INDEX_EXT_ID" && "$DIM_INDEX_EXT_ID" != "null" ]] && pass "Dimension index provisioned ($DIM_INDEX_UID)" || fail "Dimension index missing ($DIM_INDEX_UID)"
 
 DIM_MISSING_UIDS=()
 while IFS= read -r v; do
@@ -118,8 +119,8 @@ while IFS= read -r v; do
     max_slug_len=1
   fi
   uid="${prefix}${slug:0:max_slug_len}"
-  prov="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/$uid" | jq -r '.meta.provisioned' 2>/dev/null || echo false)"
-  if [[ "$prov" != "true" ]]; then
+  ext_id="$(curl -fsS -u "${GRAFANA_USER}:${GRAFANA_PASS}" "$GRAFANA_URL/api/dashboards/uid/$uid" | jq -r '.meta.provisionedExternalId // ""' 2>/dev/null || echo "")"
+  if [[ -z "$ext_id" || "$ext_id" == "null" ]]; then
     DIM_MISSING_UIDS+=("$uid")
   fi
 done < "$DIM_VALUES_FILE"
@@ -128,6 +129,38 @@ if [[ "${#DIM_MISSING_UIDS[@]}" -gt 0 ]]; then
   fail "Per-dimension dashboards missing in Grafana provisioning: ${DIM_MISSING_UIDS[*]}"
 fi
 pass "Per-dimension dashboards complete (${DIM_COUNT}/${DIM_COUNT})"
+
+# Canonical navigation governance: codeswarm-managed dashboards must carry both
+# codeswarm and canonical tags for predictable discovery/search.
+python3 - <<'PY' || fail "Canonical tag governance failed (codeswarm/canonical tags missing)"
+import glob
+import json
+
+missing = []
+for fp in glob.glob('/home/luce/apps/loki-logging/infra/logging/grafana/dashboards/**/*.json', recursive=True):
+    try:
+        d = json.load(open(fp))
+    except Exception:
+        continue
+    title = d.get('title', '')
+    uid = d.get('uid', '')
+    tags = d.get('tags') if isinstance(d.get('tags'), list) else []
+    managed = title.startswith('CodeSwarm') or uid.startswith('codeswarm-') or ('codeswarm' in tags)
+    if not managed:
+        continue
+    need = {'codeswarm', 'canonical'}
+    if not need.issubset(set(tags)):
+        missing.append((fp, tags))
+
+if missing:
+    print('MISSING_CANONICAL_TAGS=' + str(len(missing)))
+    for fp, tags in missing:
+        print(f'{fp}\t{tags}')
+    raise SystemExit(1)
+
+print('CANONICAL_TAG_GOVERNANCE=ok')
+PY
+pass "Canonical tag governance (codeswarm + canonical) OK"
 
 # Adopted dashboards coverage for non-repo-managed dashboards
 if [[ -f "$ADOPT_OFF_FILE" ]]; then

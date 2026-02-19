@@ -16,7 +16,8 @@ load_config "$ROOT_DIR/config/retention.conf"
 ok "Config loaded"
 
 # Set generation timestamp
-export GENERATION_TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+GENERATION_TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+export GENERATION_TIMESTAMP
 
 # Create temp build directory
 BUILD_DIR="$ROOT_DIR/.build"
