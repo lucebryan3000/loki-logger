@@ -46,6 +46,11 @@ export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
 OBS="infra/logging/docker-compose.observability.yml"
 ENV_FILE=".env"
 
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "missing_env_file=$ENV_FILE" >&2
+  exit 1
+fi
+
 set -a
 # shellcheck disable=SC1090
 . "$ENV_FILE"
@@ -97,6 +102,12 @@ if (( ${#missing[@]} == 0 )); then
   pass compose_services_running critical "all required services are running"
 else
   fail compose_services_running critical "missing running services: ${missing[*]}"
+fi
+
+if grep -qx "alert-sink" <<<"$running_services"; then
+  pass alert_sink_running warning "alert-sink webhook receiver is running"
+else
+  warn alert_sink_running warning "alert-sink is not running (alert delivery may fail in sandbox)"
 fi
 
 # 2) Endpoint readiness
@@ -207,7 +218,7 @@ else
   fail compose_config_valid critical "docker compose config failed"
 fi
 
-prom_image="$(sed -nE 's/^[[:space:]]*image:[[:space:]]*(prom\/prometheus:[^[:space:]]+).*/\1/p' "$OBS" | head -n1 || true)"
+prom_image="$(docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$ENV_FILE" -f "$OBS" config --format json 2>/dev/null | jq -r '.services.prometheus.image // empty' || true)"
 [[ -n "$prom_image" ]] || prom_image='prom/prometheus:latest'
 if docker run --rm --entrypoint /bin/promtool -v "$PWD/infra/logging/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro" "$prom_image" check config /etc/prometheus/prometheus.yml >/dev/null 2>&1; then
   pass promtool_config_valid critical "promtool syntax check passed"

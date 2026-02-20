@@ -1,9 +1,0 @@
-{
-  "mode": "real",
-  "max_minutes": 240,
-  "hard_gate_every": 3,
-  "checkpoint_every": 5,
-  "heartbeat_minutes": 20,
-  "continue_on_fail": true,
-  "max_grafana_restarts_per_run": 1
-}

@@ -36,7 +36,7 @@ Single-node deployment. Not a library or application — it's infrastructure con
 ./scripts/prod/mcp/restore_volumes.sh
 ```
 
-All compose commands require the file flag: `docker compose -p logging -f infra/logging/docker compose.observability.yml ...`
+All compose commands require the file flag: `docker compose -p logging -f infra/logging/docker-compose.observability.yml ...`
 
 The compose project name is `logging` (set via `COMPOSE_PROJECT_NAME` in `.env`). Container names follow the pattern `logging-<service>-1`.
 
@@ -70,13 +70,14 @@ Log Sources → Alloy (ingestion) → Loki (storage) → Grafana (query/visualiz
 Metrics Sources → Prometheus (scrape/store) → Grafana (query/visualize)
 ```
 
-**6 services** on Docker network `obs` (bridge):
+**7 services** on Docker network `obs` (bridge):
 
 | Service | Compose name | External port | Internal port |
 |---------|-------------|---------------|---------------|
 | Grafana | grafana | 9001 (configurable) | 3000 |
 | Prometheus | prometheus | 9004 (configurable) | 9090 |
 | Loki | loki | 127.0.0.1:3200 | 3100 |
+| Alert sink | alert-sink | None | 8080 |
 | Alloy | alloy | None | 12345 |
 | Node Exporter | host-monitor | None | 9100 |
 | cAdvisor | docker-metrics | None | 8080 |
@@ -87,12 +88,13 @@ Metrics Sources → Prometheus (scrape/store) → Grafana (query/visualize)
 |---------|-------------|--------|
 | grafana | `1g` | `0.50` |
 | loki | `2g` | `1.00` |
+| alert-sink | `128m` | `0.10` |
 | prometheus | `2g` | `1.00` |
 | alloy | `1g` | `0.75` |
 | host-monitor | `1g` | `1.00` |
 | docker-metrics | `2g` | `2.00` |
 
-**Volumes:** `grafana-data`, `prometheus-data`, `loki-data`
+**Volumes:** `grafana-data`, `prometheus-data`, `loki-data`, `alloy-positions`
 
 **Additional scrape target:** Prometheus also scrapes a `wireguard` exporter at `172.20.0.1:9586` (Docker bridge gateway — host-side exporter, not a stack service).
 
@@ -102,7 +104,7 @@ Metrics Sources → Prometheus (scrape/store) → Grafana (query/visualize)
 
 | File | Format | Purpose |
 |------|--------|---------|
-| `infra/logging/docker compose -p logging.observability.yml` | YAML with env var substitution | Service definitions |
+| `infra/logging/docker-compose.observability.yml` | YAML with env var substitution | Service definitions |
 | `infra/logging/loki-config.yml` | YAML | Loki schema, retention, compaction |
 | `infra/logging/alloy-config.alloy` | **HCL** (uses `//` comments, NOT `#`) | Log ingestion pipelines |
 | `infra/logging/prometheus/prometheus.yml` | YAML | Scrape targets |
@@ -118,7 +120,7 @@ Secrets live in `.env` at repo root (symlink to `infra/logging/.env`). Template 
 
 Required: `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD` (min 8 chars), `GRAFANA_SECRET_KEY` (32+ random chars).
 
-Port bindings are set to `0.0.0.0` (all interfaces) for LAN access on headless host. Set `GRAFANA_HOST=127.0.0.1` and `PROM_HOST=127.0.0.1` for loopback-only access. UFW provides access control.
+Grafana/Prometheus default to `0.0.0.0` for LAN access. Set `GRAFANA_HOST=127.0.0.1` and `PROM_HOST=127.0.0.1` for loopback-only access. Loki is loopback-bound by default (`127.0.0.1:3200`).
 
 Image versions are pinned via env vars (e.g., `GRAFANA_IMAGE=grafana/grafana:11.5.2`).
 
@@ -128,8 +130,8 @@ Image versions are pinned via env vars (e.g., `GRAFANA_IMAGE=grafana/grafana:11.
 2. **Loki requires non-empty label selectors** — `{env=~".+"}` works, `{}` is rejected
 3. **Prometheus retention is CLI-only** — set via `--storage.tsdb.retention.time` flag in compose, NOT in `prometheus.yml`
 4. **Loki port exposure** — Loki is not exposed externally; access from the host loopback is at 127.0.0.1:3200 (mapped from internal port 3100).
-5. **Log ingestion delay is normal** — 10-15 seconds between file write and Loki availability
-6. **Config changes require restart** — `docker compose -p logging -f infra/logging/docker compose.observability.yml restart <service>`
+5. **Log ingestion delay is non-zero** — ingestion is asynchronous; verify with health/audit scripts before assuming data loss
+6. **Config changes require restart** — `docker compose -p logging -f infra/logging/docker-compose.observability.yml restart <service>`
 
 ## Log Sources (Alloy Pipelines)
 

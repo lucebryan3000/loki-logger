@@ -4,12 +4,12 @@ contactPoints:
   - orgId: 1
     name: logging-ops
     receivers:
-      - uid: logging-ops-email
-        type: email
+      - uid: logging-ops-webhook
+        type: webhook
         disableResolveMessage: false
         settings:
-          addresses: admin@localhost
-          singleEmail: false
+          url: http://alert-sink:8080/alerts
+          httpMethod: POST
 
 policies:
   - orgId: 1
@@ -21,7 +21,7 @@ policies:
     routes:
       - receiver: logging-ops
         object_matchers:
-          - [severity, =, critical]
+          - [severity, "=", critical]
         group_wait: 10s
         group_interval: 2m
         repeat_interval: 30m

@@ -1,5 +1,23 @@
 #!/usr/bin/env bash
-# Simple template engine using envsubst-style substitution
+# Simple template engine using {{VAR}} substitution from exported env vars.
+
+_substitute_template_file() {
+    local template_file="$1"
+    local output_file="$2"
+    local line before var after
+
+    : > "$output_file"
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Resolve all placeholders on the current line.
+        while [[ "$line" =~ ^(.*)\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}(.*)$ ]]; do
+            before="${BASH_REMATCH[1]}"
+            var="${BASH_REMATCH[2]}"
+            after="${BASH_REMATCH[3]}"
+            line="${before}${!var-}${after}"
+        done
+        printf '%s\n' "$line" >> "$output_file"
+    done < "$template_file"
+}
 
 render_template() {
     local template_file="$1"
@@ -10,30 +28,10 @@ render_template() {
         return 1
     fi
 
-    # Use envsubst to replace {{VAR}} with $VAR values
-    # First convert {{VAR}} to ${VAR} format
-    local processed
-    processed=$(sed 's/{{/\${/g; s/}}/}/g' "$template_file")
-
-    # Then use bash eval to substitute
-    # Note: set -euo pipefail provides some protection against malformed values
-    eval "cat <<EOF
-$processed
-EOF
-" > "$output_file"
+    _substitute_template_file "$template_file" "$output_file"
 }
 
-# Alternative: Pure bash substitution (no external tools)
+# Backward-compatible alias retained for callers.
 render_template_pure() {
-    local template_file="$1"
-    local output_file="$2"
-    local template_content
-
-    template_content=$(<"$template_file")
-
-    # Replace {{VAR}} with ${VAR} and evaluate
-    template_content="${template_content//\{\{/\$\{}"
-    template_content="${template_content//\}\}/\}}"
-
-    eval "echo \"$template_content\"" > "$output_file"
+    render_template "$1" "$2"
 }

@@ -8,15 +8,16 @@ Stable reference data for the Loki logging stack.
 |---------|---------------|------------------|----------|---------|
 | Grafana | 3000 | 0.0.0.0:9001 | HTTP | Web UI, API |
 | Prometheus | 9090 | 0.0.0.0:9004 | HTTP | Web UI, API |
-| Loki | 3100 | None (internal) | HTTP | Push/query API |
+| Loki | 3100 | 127.0.0.1:3200 | HTTP | Push/query API |
+| Alert sink | 8080 | None (internal) | HTTP | Local Grafana webhook receiver |
 | Alloy | 12345 | None (internal) | HTTP | Admin UI |
 | Alloy (syslog) | 1514 | 127.0.0.1:1514 | TCP | rsyslog → Alloy syslog listener |
 | Node Exporter | 9100 | None (internal) | HTTP | Metrics endpoint |
 | cAdvisor | 8080 | None (internal) | HTTP | Metrics endpoint |
 
-**LAN-accessible services:** Grafana, Prometheus (0.0.0.0 binding, protected by UFW)
+**LAN-accessible services:** Grafana, Prometheus (default `0.0.0.0` binding)
 
-**Internal-only services:** Loki, Alloy, Node Exporter, cAdvisor (no exposed ports)
+**Loopback/internal services:** Loki (`127.0.0.1` only), alert-sink, Alloy, Node Exporter, cAdvisor
 
 ## Environment Variables (.env)
 
@@ -116,6 +117,7 @@ Stable reference data for the Loki logging stack.
 | Grafana | `logging-grafana-1` |
 | Loki | `logging-loki-1` |
 | Prometheus | `logging-prometheus-1` |
+| Alert sink | `logging-alert-sink-1` |
 | Alloy | `logging-alloy-1` |
 | Node Exporter | `logging-host-monitor-1` |
 | cAdvisor | `logging-docker-metrics-1` |
@@ -137,6 +139,7 @@ Resource limits are currently set in compose using `mem_limit` + `cpus` (not `de
 |---------|-------------|--------|
 | grafana | `1g` | `0.50` |
 | loki | `2g` | `1.00` |
+| alert-sink | `128m` | `0.10` |
 | prometheus | `2g` | `1.00` |
 | alloy | `1g` | `0.75` |
 | host-monitor | `1g` | `1.00` |
@@ -207,7 +210,7 @@ Resource limits are currently set in compose using `mem_limit` + `cpus` (not `de
 
 **Authentication:** None (UFW-protected LAN access)
 
-### Loki (Internal Only)
+### Loki (Loopback + Internal)
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -218,8 +221,9 @@ Resource limits are currently set in compose using `mem_limit` + `cpus` (not `de
 | `/loki/api/v1/labels` | GET | List labels |
 
 **Base URL (internal):** http://loki:3100
+**Base URL (host loopback):** http://127.0.0.1:3200
 
-**Access:** Only from `obs` Docker network (no external exposure)
+**Access:** `obs` Docker network and host loopback only (not LAN-exposed by default)
 
 ## Configuration Parameters
 

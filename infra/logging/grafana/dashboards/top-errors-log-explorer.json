@@ -63,7 +63,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])) or vector(0)"
+          "expr": "sum(count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])) or vector(0)"
         }
       ],
       "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",
@@ -84,7 +84,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (log_source) (rate({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]))"
+          "expr": "sum by (log_source) (rate({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]))"
         }
       ],
       "description": "Error-like rate split by log_source. If only one bar/line appears, only one source currently emits error-like logs.",
@@ -125,7 +125,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
           "queryType": "range",
           "legendFormat": "{{service_name}}"
         }
@@ -200,7 +200,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (log_source) (count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "expr": "topk(15, sum by (log_source) (count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
           "queryType": "range",
           "legendFormat": "{{log_source}}"
         }
@@ -277,7 +277,7 @@
           "refId": "F",
           "queryType": "range",
           "legendFormat": "{{filename}}",
-          "expr": "topk(15, sum by (filename) (count_over_time({log_source=~\"$log_source\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))"
+          "expr": "topk(15, sum by (filename) (count_over_time({log_source=~\"$log_source\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))"
         }
       ],
       "description": "Concrete file-path attribution for error/fail signals in last 15 minutes. Use legend to identify exact source files.",
@@ -316,7 +316,7 @@
       "targets": [
         {
           "refId": "N",
-          "expr": "{log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\"",
+          "expr": "{log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\"",
           "queryType": "range",
           "legendFormat": "{{sig}}"
         }
@@ -353,7 +353,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" ${log_type:raw}"
+          "expr": "{log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" ${log_type:raw}"
         }
       ],
       "description": "Expected to be zero when system is healthy/idle. Non-zero indicates actionable anomalies.",
@@ -380,7 +380,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (level) (count_over_time({log_source=~\"$log_source\"} | regexp \"(?i)(?P<level>debug|info|warn|warning|error|err|fatal|panic)\" [$__range])) !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"Stopped atlas-mcp[.]service\" !~ \"Started atlas-mcp[.]service\" !~ \"throw err;\" !~ \"atlas-mcp[.]service\"",
+          "expr": "sum by (level) (count_over_time({log_source=~\"$log_source\"} | regexp \"(?i)(?P<level>debug|info|warn|warning|error|err|fatal|panic)\" [$__range])) !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"Stopped atlas-mcp[.]service\" !~ \"Started atlas-mcp[.]service\" !~ \"throw err;\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\"",
           "legendFormat": "debug"
         },
         {
@@ -451,7 +451,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]))",
+          "expr": "sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]))",
           "legendFormat": "{{log_source}}"
         }
       ],
@@ -515,7 +515,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(12, sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "expr": "topk(12, sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
           "legendFormat": "{{log_source}}"
         }
       ],
@@ -567,7 +567,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(20, sum by (log_source,service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "expr": "topk(20, sum by (log_source,service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
           "legendFormat": "{{log_source}} / {{service_name}}"
         }
       ],
@@ -619,7 +619,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])) / sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} [$__range]))",
+          "expr": "100 * sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])) / sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} [$__range]))",
           "legendFormat": "{{log_source}}"
         }
       ],
@@ -681,7 +681,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(20, sum by (tool) (label_replace(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\".+[.]log\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]), \"tool\", \"$1\", \"filename\", \".*/([^/]+)[.]log$\")))",
+          "expr": "topk(20, sum by (tool) (label_replace(count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\".+[.]log\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]), \"tool\", \"$1\", \"filename\", \".*/([^/]+)[.]log$\")))",
           "legendFormat": "{{tool}}"
         }
       ],
@@ -782,7 +782,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(20, sum by (tool) (label_replace(count_over_time({log_source=~\"$log_source\",service_name=\"unknown_service\",source_type=~\"$source_type\",filename=~\".+[.]log\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]), \"tool\", \"$1\", \"filename\", \".*/([^/]+)[.]log$\")))",
+          "expr": "topk(20, sum by (tool) (label_replace(count_over_time({log_source=~\"$log_source\",service_name=\"unknown_service\",source_type=~\"$source_type\",filename=~\".+[.]log\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]), \"tool\", \"$1\", \"filename\", \".*/([^/]+)[.]log$\")))",
           "legendFormat": "{{log_source}} / {{filename}}"
         }
       ],
@@ -883,7 +883,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])) / (sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" [$__range])) / 6)",
+          "expr": "sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])) / (sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" [$__range])) / 6)",
           "legendFormat": "{{log_source}}"
         }
       ],
@@ -944,7 +944,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\""
+          "expr": "{log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\""
         }
       ],
       "links": [
@@ -982,7 +982,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(fatal|panic|oom|segfault|xid|cuda error|gpu has fallen off the bus)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]))",
+          "expr": "sum by (log_source) (count_over_time({log_source=~\"$log_source\",service_name=~\"$service_name\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(fatal|panic|oom|segfault|xid|cuda error|gpu has fallen off the bus)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range]))",
           "legendFormat": "{{log_source}}"
         }
       ],
@@ -1047,7 +1047,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(20, sum by (log_source,service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".+\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "expr": "topk(20, sum by (log_source,service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".+\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
           "legendFormat": "{{log_source}} / {{service_name}}"
         }
       ],
@@ -1137,7 +1137,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".*\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))"
+          "expr": "topk(15, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".*\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))"
         }
       ],
       "gridPos": {
@@ -1175,7 +1175,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(20, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".+\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "expr": "topk(20, sum by (service_name) (count_over_time({log_source=~\"$log_source\",service_name=~\".+\",source_type=~\"$source_type\",filename=~\"$filename\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
           "legendFormat": "{{service_name}}"
         }
       ],
@@ -1214,7 +1214,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(20, sum by (svc) (count_over_time({log_source=~\".+\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout|not permitted)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" | regexp \"(?P<svc>[A-Za-z0-9_.@-]+[.]service)\" | svc=~\".+\" [$__range])))"
+          "expr": "topk(20, sum by (svc) (count_over_time({log_source=~\".+\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout|not permitted)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"Started atlas-mcp[.]service\" !~ \"Stopped atlas-mcp[.]service\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" | regexp \"(?P<svc>[A-Za-z0-9_.@-]+[.]service)\" | svc=~\".+\" [$__range])))"
         }
       ],
       "gridPos": {
@@ -1252,7 +1252,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(12, sum by (log_source) (count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
+          "expr": "topk(12, sum by (log_source) (count_over_time({log_source=~\"$log_source\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" !~ \"throw err;\" !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" [$__range])))",
           "legendFormat": "{{log_source}}"
         }
       ],

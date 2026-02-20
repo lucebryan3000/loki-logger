@@ -38,6 +38,7 @@ tmp/
 *.tmp
 *.bak
 *.backup
+*.backup-*
 
 # --- Logs ---
 *.log

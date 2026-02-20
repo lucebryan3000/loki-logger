@@ -1067,7 +1067,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (proc_name) (max_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-proc.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<proc_name>,<mem_mib>\" | unwrap mem_mib | __error__=\"\")[$__range])))",
+          "expr": "topk(8, sum by (proc_name) (max_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-proc.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<proc_name>,<mem_mib>\" | unwrap mem_mib | __error__=\"\")[30m])))",
           "legendFormat": "{{proc_name}}"
         }
       ],
@@ -1914,7 +1914,7 @@
         },
         "target": {
           "refId": "A",
-          "expr": "{log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(8[3-9]|9[0-9]),\" |~ \",(29[0-9]|3[0-9][0-9])\\.[0-9]+$\""
+          "expr": "{log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(8[3-9]|9[0-9]),\" |~ \",(29[0-9]|3[0-9][0-9])\\\\.[0-9]+$\""
         }
       }
     ]

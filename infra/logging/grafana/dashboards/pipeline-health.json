@@ -422,7 +422,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(12, sum by (log_source) (count_over_time({log_source=~\".+\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" [$__range])))"
+          "expr": "topk(12, sum by (log_source) (count_over_time({log_source=~\".+\"} |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\" !~ \"(?i)^Finished update-notifier-download[.]service\" [$__range])))"
         }
       ],
       "gridPos": {
