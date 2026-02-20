@@ -3574,3 +3574,40 @@ The following early ADR entries were written as "Open" but have since been resol
 **Evidence**
 - `rg -n "disableDeletion|allowUiUpdates|editable" infra/logging/grafana/provisioning/dashboards/dashboards.yml` => `disableDeletion: true`, `allowUiUpdates: true`, `editable: true`
 - `curl -fsS -u admin:<redacted> -X POST http://127.0.0.1:9001/api/admin/provisioning/dashboards/reload` => HTTP 200
+
+---
+
+## Phase 2: Grafana Log Scan & Bug Fixes (2026-02-20)
+
+29. `ADR-160 — Grafana Alert Rule Threshold Node Missing expression Field` — **Grafana 11.5 SSE regression** (severity: `CRITICAL`)
+    - completion_basis: `alert_rule_expression_field_added`
+    - evidence_note: Added `expression: "B"` to all 4 alert rules; provisioning reload confirmed fix
+
+30. `ADR-162 — Grafana Wireguard Dashboard $__rate_interval Issue` — **Variable not substituted in Loki queries** (severity: `MEDIUM`)
+    - completion_basis: `dashboard_variable_scope_fixed`
+    - evidence_note: Replaced 17 occurrences of `[$__rate_interval]` with `[$__interval]` across 12 dashboards
+
+31. `ADR-163 — Grafana Missing provisioning/plugins Directory` — **Startup error on missing directory** (severity: `LOW`)
+    - completion_basis: `plugins_dir_created`
+    - evidence_note: Created `infra/logging/grafana/provisioning/plugins/` with .gitkeep
+
+32. `ADR-164 — Grafana resource-server Duplicate Metrics Registration` — **Benign startup warning** (severity: `LOW`)
+    - completion_basis: `benign_warning_accepted`
+    - evidence_note: Observed but doesn't affect functionality; no action needed
+
+---
+
+## Phase 3: Build Artifact Cleanup (2026-02-20)
+
+33. `ADR-015 — Alloy Backup Files Tracked in Git` — **Timestamped backups in git** (severity: `MEDIUM`)
+    - completion_basis: `backups_consolidated_to_root`
+    - evidence_note: Moved to `/backup/` folder at root; Commit 8eed2c8
+
+34. `ADR-Metadata — Cleanup One-Time Documentation Files` — **27KB metadata cluttering infra/logging/** (severity: `LOW`)
+    - completion_basis: `metadata_files_deleted`
+    - evidence_note: Deleted CHANGELOG_authoritative_logging.md, PR_BUNDLE_logging_visibility.md, RELEASE_NOTES_logging_visibility.md, upstream-references.lock; Commit c1b57c5
+
+35. `ADR-Melissa — Queue Consolidation and Artifact Archiving` — **28 queue items scattered; ephemeral state** (severity: `MEDIUM`)
+    - completion_basis: `melissa_queue_consolidated`
+    - evidence_note: Consolidated all 28 tasks into /docs/adr.md with 4-tier priority; archived artifacts to /_DELETE/melissa-artifacts-archived/; Commit 3ee31de
+
