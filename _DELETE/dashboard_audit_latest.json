@@ -1,0 +1,16 @@
+{
+  "summary": {
+    "ts": "2026-02-20T01:11:53Z",
+    "pass": true,
+    "dashboards_total": 20,
+    "dashboards_provisioned_scanned": 0,
+    "queries_checked": 0,
+    "empty_panels": 0,
+    "expected_empty_panels": 0,
+    "unexpected_empty_panels": 0
+  },
+  "per_dashboard": {},
+  "empty": [],
+  "expected_empty": [],
+  "checked": []
+}

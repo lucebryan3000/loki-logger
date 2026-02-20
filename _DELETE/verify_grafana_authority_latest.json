@@ -1,0 +1,31 @@
+{
+  "timestamp_utc": "2026-02-19T20:35:58Z",
+  "pass": true,
+  "checks": {
+    "loki_ready": true,
+    "prom_healthy": true,
+    "grafana_api": true,
+    "e2e_marker_found": true,
+    "rule_uids_present": [
+      "logging-e2e-marker-missing",
+      "logging-total-ingest-down"
+    ],
+    "rule_provenance_file": true,
+    "source_index_provisioned": true,
+    "log_source_count": 5,
+    "dashboards_expected": 5,
+    "dashboards_present_files": 5,
+    "dashboards_missing": [],
+    "audit_pass": true,
+    "audit_empty_panels": 0,
+    "audit_expected_empty_panels": 0,
+    "audit_unexpected_empty_panels": 0,
+    "dimension_name": "service_name",
+    "dimension_values_count": 4,
+    "dimension_dashboards_present_files": 5,
+    "dimension_dashboards_missing": [],
+    "dimension_index_uid": "codeswarm-dim-index-service-name",
+    "adoption_offending_count": 3,
+    "adoption_adopted_count": 3
+  }
+}

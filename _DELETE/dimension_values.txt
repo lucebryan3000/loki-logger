@@ -1,0 +1,4 @@
+atlas-sql
+atlas-typesense
+codeswarm-mcp
+unknown_service

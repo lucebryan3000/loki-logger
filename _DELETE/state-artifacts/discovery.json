@@ -1,0 +1,36 @@
+{
+  "ts_utc": "2026-02-17T20:55:37Z",
+  "objective": "MVP parity + interpretability per active log_source",
+  "active_log_source_6h": [
+    "codeswarm_mcp",
+    "docker",
+    "rsyslog_syslog",
+    "telemetry",
+    "vscode_server"
+  ],
+  "active_log_source_6h_count": 5,
+  "tuned_in_run": [
+    "docker",
+    "codeswarm_mcp",
+    "telemetry",
+    "vscode_server"
+  ],
+  "files_touched": [
+    "infra/logging/grafana/dashboards/sources/codeswarm-src-vscode_server.json"
+  ],
+  "gates": {
+    "audit": {
+      "pass": true,
+      "unexpected_empty_panels": 0,
+      "queries_checked": 120
+    },
+    "verifier": {
+      "pass": true,
+      "audit_unexpected_empty_panels": 0
+    }
+  },
+  "notes": [
+    "No interactive drift prompts observed",
+    "No restart required in this phase"
+  ]
+}

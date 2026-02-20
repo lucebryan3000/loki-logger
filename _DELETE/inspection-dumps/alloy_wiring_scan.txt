@@ -1,0 +1,5 @@
+135:local.file_match "codeswarm_mcp" {
+136:  path_targets = [{ "__path__" = "/host/home/luce/apps/vLLM/_data/mcp-logs/*.log" }]
+140:loki.source.file "codeswarm_mcp" {
+141:  targets       = local.file_match.codeswarm_mcp.targets
+177:      log_source = "codeswarm_mcp",

@@ -1,0 +1,4 @@
+ALLOY_REDACTION_SCAN=PASS
+file=infra/logging/alloy-config.alloy
+hits=14
+details=_build/Sprint-3/reference/phase1_prompt2/alloy_redaction_scan_raw.txt

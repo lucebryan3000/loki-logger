@@ -1,0 +1,3 @@
+NVIDIA_WIRING=PASS
+file=infra/logging/alloy-config.alloy
+details=_build/Sprint-3/reference/nvidia/phase4a_prompt6/alloy_nvidia_wiring_scan_raw.txt

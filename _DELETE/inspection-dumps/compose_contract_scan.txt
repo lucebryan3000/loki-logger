@@ -1,0 +1,6 @@
+compose_contract_scan_status=PASS
+compose_contract_violation_count=0
+contract=docker compose -p logging -f infra/logging/docker-compose.observability.yml ...
+details_before=_build/Sprint-3/reference/phase0_prompt1/compose_scan_before.txt
+details_after=_build/Sprint-3/reference/phase0_prompt1/compose_scan_after.txt
+fix_report=_build/Sprint-3/reference/phase0_prompt1/compose_fix_report.json

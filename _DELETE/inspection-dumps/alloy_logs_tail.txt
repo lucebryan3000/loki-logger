@@ -1,0 +1,49 @@
+ts=2026-02-14T13:08:37.06490708Z level=info "boringcrypto enabled"=false
+ts=2026-02-14T13:08:37.064924181Z level=info msg="running usage stats reporter"
+ts=2026-02-14T13:08:37.064926422Z level=info msg="starting complete graph evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2
+ts=2026-02-14T13:08:37.064931233Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=loki.write.default duration=284.975µs
+ts=2026-02-14T13:08:37.06493734Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=loki.process.codeswarm duration=111.265µs
+ts=2026-02-14T13:08:37.064940729Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=loki.process.main duration=44.786µs
+ts=2026-02-14T13:08:37.064942882Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=loki.source.journal.journald duration=539.077µs
+ts=2026-02-14T13:08:37.064944964Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=local.file_match.telemetry duration=20.483µs
+ts=2026-02-14T13:08:37.064947065Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=loki.source.file.telemetry duration=98.948µs
+ts=2026-02-14T13:08:37.06494909Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=labelstore duration=4.832µs
+ts=2026-02-14T13:08:37.06495115Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=tracing duration=6.588µs
+ts=2026-02-14T13:08:37.064953635Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=logging duration=63.465µs
+ts=2026-02-14T13:08:37.064980972Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=remotecfg duration=21.914µs
+ts=2026-02-14T13:08:37.064987025Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=otel duration=2.886µs
+ts=2026-02-14T13:08:37.065029541Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=discovery.docker.all duration=39.595µs
+ts=2026-02-14T13:08:37.065120393Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=discovery.relabel.docker_filtered duration=86.393µs
+ts=2026-02-14T13:08:37.0652124Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=loki.source.docker.dockerlogs duration=86.589µs
+ts=2026-02-14T13:08:37.065225251Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=livedebugging duration=6.994µs
+ts=2026-02-14T13:08:37.065246572Z level=info msg="applying non-TLS config to HTTP server" service=http
+ts=2026-02-14T13:08:37.065249079Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=http duration=19.55µs
+ts=2026-02-14T13:08:37.065256467Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=ui duration=3.897µs
+ts=2026-02-14T13:08:37.065263048Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=cluster duration=3.441µs
+ts=2026-02-14T13:08:37.065281011Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=local.file_match.codeswarm_mcp duration=14.865µs
+ts=2026-02-14T13:08:37.065344467Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=loki.source.file.codeswarm_mcp duration=60.107µs
+ts=2026-02-14T13:08:37.06536422Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=local.file_match.tool_sink duration=15.419µs
+ts=2026-02-14T13:08:37.065426702Z level=info msg="finished node evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 node_id=loki.source.file.tool_sink duration=58.781µs
+ts=2026-02-14T13:08:37.0654325Z level=info msg="finished complete graph evaluation" controller_path=/ controller_id="" trace_id=b7c43383f7ac0a52fe0c9fcf71de8ff2 duration=1.768111ms
+ts=2026-02-14T13:08:37.065548282Z level=info msg="scheduling loaded components and services"
+ts=2026-02-14T13:08:37.065789181Z level=info msg="starting cluster node" service=cluster peers_count=0 peers="" advertise_addr=127.0.0.1:12345
+ts=2026-02-14T13:08:37.065907461Z level=info msg="now listening for http traffic" service=http addr=0.0.0.0:12345
+ts=2026-02-14T13:08:37.066019323Z level=info msg="peers changed" service=cluster peers_count=1 peers=adc3f5dc7ec2
+ts=2026-02-14T13:08:37.066080673Z level=info msg="retrieved and stored the position of the last line" component_path=/ component_id=loki.source.file.tool_sink
+ts=2026-02-14T13:08:37.066108039Z level=info msg="retrieved and stored the position of the last line" component_path=/ component_id=loki.source.file.codeswarm_mcp
+ts=2026-02-14T13:08:37.066113634Z level=info msg="retrieved and stored the position of the last line" component_path=/ component_id=loki.source.file.telemetry
+ts=2026-02-14T13:08:37.066143289Z level=info msg="Seeked /host/home/luce/_logs/loki-logging-smoke.log - &{Offset:3065 Whence:0}" component_path=/ component_id=loki.source.file.tool_sink
+ts=2026-02-14T13:08:37.066145298Z level=info msg="retrieved and stored the position of the last line" component_path=/ component_id=loki.source.file.codeswarm_mcp
+ts=2026-02-14T13:08:37.066164241Z level=info msg="retrieved and stored the position of the last line" component_path=/ component_id=loki.source.file.codeswarm_mcp
+ts=2026-02-14T13:08:37.066155796Z level=info msg="Seeked /host/home/luce/apps/vLLM/_data/mcp-logs/mcp-2026-02-12.log - &{Offset:0 Whence:0}" component_path=/ component_id=loki.source.file.codeswarm_mcp
+ts=2026-02-14T13:08:37.066161066Z level=info msg="tail routine: started" component_path=/ component_id=loki.source.file.tool_sink component=tailer path=/host/home/luce/_logs/loki-logging-smoke.log
+ts=2026-02-14T13:08:37.066172655Z level=info msg="Seeked /host/home/luce/apps/vLLM/_data/mcp-logs/mcp-2026-02-13.log - &{Offset:2841 Whence:0}" component_path=/ component_id=loki.source.file.codeswarm_mcp
+ts=2026-02-14T13:08:37.066163475Z level=info msg="tail routine: started" component_path=/ component_id=loki.source.file.codeswarm_mcp component=tailer path=/host/home/luce/apps/vLLM/_data/mcp-logs/mcp-2026-02-12.log
+ts=2026-02-14T13:08:37.066197414Z level=info msg="retrieved and stored the position of the last line" component_path=/ component_id=loki.source.file.codeswarm_mcp
+ts=2026-02-14T13:08:37.06619711Z level=info msg="Seeked /host/home/luce/apps/vLLM/_data/mcp-logs/mcp-2026-02-14.log - &{Offset:10789 Whence:0}" component_path=/ component_id=loki.source.file.codeswarm_mcp
+ts=2026-02-14T13:08:37.066200233Z level=info msg="tail routine: started" component_path=/ component_id=loki.source.file.telemetry component=tailer path=/host/home/luce/_telemetry/telemetry.jsonl
+ts=2026-02-14T13:08:37.06619688Z level=info msg="tail routine: started" component_path=/ component_id=loki.source.file.codeswarm_mcp component=tailer path=/host/home/luce/apps/vLLM/_data/mcp-logs/mcp-2026-02-14.log
+ts=2026-02-14T13:08:37.066210261Z level=info msg="Seeked /host/home/luce/_telemetry/telemetry.jsonl - &{Offset:2479287 Whence:0}" component_path=/ component_id=loki.source.file.telemetry
+ts=2026-02-14T13:08:37.066223795Z level=info msg="Seeked /host/home/luce/apps/vLLM/_data/mcp-logs/mcp-test.log - &{Offset:1970 Whence:0}" component_path=/ component_id=loki.source.file.codeswarm_mcp
+ts=2026-02-14T13:08:37.066190581Z level=info msg="tail routine: started" component_path=/ component_id=loki.source.file.codeswarm_mcp component=tailer path=/host/home/luce/apps/vLLM/_data/mcp-logs/mcp-2026-02-13.log
+ts=2026-02-14T13:08:37.066222252Z level=info msg="tail routine: started" component_path=/ component_id=loki.source.file.codeswarm_mcp component=tailer path=/host/home/luce/apps/vLLM/_data/mcp-logs/mcp-test.log

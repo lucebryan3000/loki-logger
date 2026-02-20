@@ -1,0 +1,7 @@
+infra/logging/scripts/verify_grafana_authority.sh: line 35: /tmp/e2e_authority.out: Permission denied
+MARKER=logging-e2e-check-20260219T203551Z-22562
+PASS: marker present in journald
+PASS: Loki ready
+PASS: marker found in Loki
+FAIL: repo hardened E2E script failed
+jq: error: Could not open file /home/luce/apps/loki-logging/_build/logging/verify_grafana_authority_latest.json: No such file or directory

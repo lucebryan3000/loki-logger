@@ -1,0 +1,21 @@
+file=infra/logging/alloy-config.alloy
+generated_utc=2026-02-14T13:18:46Z
+file_match_blocks=5
+broad_wildcards_found=false
+required_lanes_present=true
+
+lanes:
+- tool_sink:
+  - /host/home/luce/_logs/*.log
+- telemetry:
+  - /host/home/luce/_telemetry/*.jsonl
+- nvidia_telem_main:
+  - /host/home/luce/apps/vLLM/logs/telemetry/nvidia/raw-30s.jsonl
+  - /host/home/luce/apps/vLLM/logs/telemetry/nvidia/raw-60s.jsonl
+  - /host/home/luce/apps/vLLM/logs/telemetry/nvidia/proc-5m.jsonl
+  - /host/home/luce/apps/vLLM/logs/telemetry/nvidia/health-15m.jsonl
+  - /host/home/luce/apps/vLLM/logs/telemetry/nvidia/alerts.jsonl
+- nvidia_telem_burst:
+  - /host/home/luce/apps/vLLM/logs/telemetry/nvidia/burst/*.jsonl
+- codeswarm_mcp:
+  - /host/home/luce/apps/vLLM/_data/mcp-logs/*.log

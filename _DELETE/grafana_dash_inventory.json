@@ -1,0 +1,403 @@
+[
+  {
+    "uid": "dfdgpdf22b9q8c",
+    "title": ".Ubuntu Host",
+    "folderTitle": "1-Ubuntu",
+    "tags": [],
+    "provisioned": false,
+    "provisionedExternalId": "",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "alloy_health_v1",
+    "title": "Alloy Health",
+    "folderTitle": null,
+    "tags": [
+      "baseline"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "alloy-health.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-src-codeswarm-mcp",
+    "title": "CodeSwarm - codeswarm_mcp",
+    "folderTitle": null,
+    "tags": [
+      "codeswarm",
+      "codeswarm_mcp",
+      "logging",
+      "source"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "sources/codeswarm-src-codeswarm_mcp.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-dim-index-service-name",
+    "title": "CodeSwarm - Dimension Index: service_name",
+    "folderTitle": null,
+    "tags": [
+      "codeswarm",
+      "dimension",
+      "logging",
+      "service_name"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "dimensions/codeswarm-dim-index-service_name.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-src-docker",
+    "title": "CodeSwarm - docker",
+    "folderTitle": null,
+    "tags": [
+      "codeswarm",
+      "docker",
+      "logging",
+      "source"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "sources/codeswarm-src-docker.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-src-rsyslog-syslog",
+    "title": "CodeSwarm - rsyslog_syslog",
+    "folderTitle": null,
+    "tags": [
+      "codeswarm",
+      "logging",
+      "rsyslog_syslog",
+      "source"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "sources/codeswarm-src-rsyslog_syslog.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-dim-service-name-atlas-sql",
+    "title": "CodeSwarm - service_name=atlas-sql",
+    "folderTitle": null,
+    "tags": [
+      "atlas-sql",
+      "codeswarm",
+      "dimension",
+      "logging",
+      "service_name"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "dimensions/codeswarm-dim-service-name-atlas-sql.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-dim-service-name-atlas-typesen",
+    "title": "CodeSwarm - service_name=atlas-typesense",
+    "folderTitle": null,
+    "tags": [
+      "atlas-typesense",
+      "codeswarm",
+      "dimension",
+      "logging",
+      "service_name"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "dimensions/codeswarm-dim-service-name-atlas-typesense.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-dim-service-name-codeswarm-mcp",
+    "title": "CodeSwarm - service_name=codeswarm-mcp",
+    "folderTitle": null,
+    "tags": [
+      "codeswarm",
+      "codeswarm-mcp",
+      "dimension",
+      "logging",
+      "service_name"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "dimensions/codeswarm-dim-service-name-codeswarm-mcp.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-dim-service-name-unknown-servi",
+    "title": "CodeSwarm - service_name=unknown_service",
+    "folderTitle": null,
+    "tags": [
+      "codeswarm",
+      "dimension",
+      "logging",
+      "service_name",
+      "unknown_service"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "dimensions/codeswarm-dim-service-name-unknown-service.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-source-index",
+    "title": "CodeSwarm - Source Index",
+    "folderTitle": null,
+    "tags": [
+      "audit",
+      "codeswarm",
+      "logging",
+      "loki"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "codeswarm-source-index.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-src-telemetry",
+    "title": "CodeSwarm - telemetry",
+    "folderTitle": null,
+    "tags": [
+      "codeswarm",
+      "logging",
+      "source",
+      "telemetry"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "sources/codeswarm-src-telemetry.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "codeswarm-src-vscode-server",
+    "title": "CodeSwarm - vscode_server",
+    "folderTitle": null,
+    "tags": [
+      "codeswarm",
+      "logging",
+      "source",
+      "vscode_server"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "sources/codeswarm-src-vscode_server.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "containers_overview_baseline",
+    "title": "Containers Overview (Baseline)",
+    "folderTitle": null,
+    "tags": [
+      "baseline",
+      "loki-logging"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "containers_overview.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "gpu_overview_v1",
+    "title": "GPU Overview (NVIDIA Telemetry-as-Logs)",
+    "folderTitle": null,
+    "tags": [
+      "gpu",
+      "nvidia"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "gpu-overview.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "isFoa0z7k",
+    "title": "Grafana metrics (Prom Health)",
+    "folderTitle": null,
+    "tags": [
+      "baseline",
+      "patched",
+      "prom-health",
+      "prometheus"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "grafana-metrics.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "host-container-overview",
+    "title": "Host + Container Overview",
+    "folderTitle": null,
+    "tags": [
+      "cadvisor",
+      "logging",
+      "node-exporter",
+      "observability",
+      "prometheus"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "host-container-overview.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "host_overview_baseline",
+    "title": "Host Overview (Baseline)",
+    "folderTitle": null,
+    "tags": [
+      "baseline",
+      "loki-logging"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "host_overview.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "loki_health_v1",
+    "title": "Loki Health",
+    "folderTitle": null,
+    "tags": [
+      "baseline"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "loki-health.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "dfdgqba65adj4b",
+    "title": "Loki Health",
+    "folderTitle": "Logging",
+    "tags": [],
+    "provisioned": false,
+    "provisionedExternalId": "",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "pipeline-health",
+    "title": "Pipeline Health",
+    "folderTitle": null,
+    "tags": [
+      "alloy",
+      "logging",
+      "loki",
+      "rsyslog"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "pipeline-health.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "UDdpyzz7z",
+    "title": "Prometheus 2.0 Stats",
+    "folderTitle": null,
+    "tags": [
+      "prometheus"
+    ],
+    "provisioned": false,
+    "provisionedExternalId": "",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "prom_health_v1",
+    "title": "Prometheus Health",
+    "folderTitle": null,
+    "tags": [
+      "baseline"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "prometheus-health.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "top-errors-log-explorer",
+    "title": "Top Errors / Log Explorer",
+    "folderTitle": null,
+    "tags": [
+      "errors",
+      "logging",
+      "loki",
+      "ops"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "top-errors-log-explorer.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "rpfmFFz7z",
+    "title": "zPrometheus Stats",
+    "folderTitle": null,
+    "tags": [
+      "baseline",
+      "patched",
+      "prometheus"
+    ],
+    "provisioned": true,
+    "provisionedExternalId": "zprometheus-stats.json",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  }
+]

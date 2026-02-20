@@ -1,0 +1,8 @@
+total 16
+drwxr-xr-x 2 luce luce 4096 Feb 12 17:39 .
+drwxr-xr-x 4 luce luce 4096 Feb 12 05:32 ..
+-rw-r--r-- 1 luce luce 1609 Feb 12 17:39 containers_overview.json
+-rw-r--r-- 1 luce luce 2085 Feb 12 17:39 host_overview.json
+
+/home/luce/apps/loki-logging/infra/logging/grafana/dashboards/host_overview.json
+/home/luce/apps/loki-logging/infra/logging/grafana/dashboards/containers_overview.json

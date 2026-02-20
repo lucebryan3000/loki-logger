@@ -1,0 +1,23 @@
+[
+  {
+    "src_uid": "dfdgpdf22b9q8c",
+    "src_title": ".Ubuntu Host",
+    "new_uid": "codeswarm-adopted-dfdgpdf22b9q8c",
+    "file": "adopted/codeswarm-adopted-dfdgpdf22b9q8c.json",
+    "status": "adopted"
+  },
+  {
+    "src_uid": "dfdgqba65adj4b",
+    "src_title": "Loki Health",
+    "new_uid": "codeswarm-adopted-dfdgqba65adj4b",
+    "file": "adopted/codeswarm-adopted-dfdgqba65adj4b.json",
+    "status": "adopted"
+  },
+  {
+    "src_uid": "UDdpyzz7z",
+    "src_title": "Prometheus 2.0 Stats",
+    "new_uid": "codeswarm-adopted-uddpyzz7z",
+    "file": "adopted/codeswarm-adopted-uddpyzz7z.json",
+    "status": "adopted"
+  }
+]

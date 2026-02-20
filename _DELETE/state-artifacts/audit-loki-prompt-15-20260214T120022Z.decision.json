@@ -1,0 +1,9 @@
+{
+  "status": "GO",
+  "confidence": "Medium",
+  "safe_default": "do not run prompt-exec until status is GO",
+  "blocking_findings": [],
+  "warning_count": 4,
+  "reason": "ready for prompt-exec",
+  "terminator": "NEXT: /home/luce/apps/loki-logging/_build/Sprint-3/prompts/loki-prompt-15.md is ready for prompt-exec"
+}

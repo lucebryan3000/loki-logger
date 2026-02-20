@@ -1,0 +1,5 @@
+total 12
+drwxrwxr-x 2 ubuntu ubuntu 4096 Feb 14 13:12 .
+drwxrwxr-x 3 ubuntu ubuntu 4096 Feb 14 08:24 ..
+-rw-rw-r-- 1 ubuntu ubuntu  162 Feb 14 13:12 raw-30s.jsonl
+ls: cannot access '/host/home/luce/apps/vLLM/logs/telemetry/nvidia/burst': No such file or directory

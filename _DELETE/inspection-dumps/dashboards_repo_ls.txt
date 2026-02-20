@@ -1,0 +1,8 @@
+total 28
+drwxr-xr-x 2 luce luce 4096 Feb 14 07:08 .
+drwxr-xr-x 4 luce luce 4096 Feb 12 05:32 ..
+-rw-rw-r-- 1 luce luce  674 Feb 14 07:08 alloy-health.json
+-rw-r--r-- 1 luce luce 1609 Feb 12 17:39 containers_overview.json
+-rw-r--r-- 1 luce luce 2085 Feb 12 17:39 host_overview.json
+-rw-rw-r-- 1 luce luce  693 Feb 14 07:08 loki-health.json
+-rw-rw-r-- 1 luce luce 1109 Feb 14 07:08 prometheus-health.json

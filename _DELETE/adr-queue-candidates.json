@@ -1,0 +1,162 @@
+[
+  {
+    "adr": 6,
+    "title": "Docker+UFW bypass is the classic footgun",
+    "severity": "CRITICAL",
+    "line": 72,
+    "norm": "dockerufw bypass is the classic footgun",
+    "raw": "1. **Docker+UFW bypass is the classic footgun** \u2014 Grafana (`0.0.0.0:9001`) and Prometheus (`0.0.0.0:9004`) bind to all interfaces. Docker publishes ports via iptables nat chains, bypassing UFW INPUT rules entirely. UFW `deny 9001` does NOT prevent external access. The audit script checks UFW status but this is false confidence. Severity: **CRITICAL**. Reference: [chaifeng/ufw-docker](https://github.com/chaifeng/ufw-docker), [Docker docs on packet filtering](https://docs.docker.com/engine/network/packet-filtering-firewalls/)."
+  },
+  {
+    "adr": 10,
+    "title": "Grafana 11.1.0 is EOL",
+    "severity": "CRITICAL",
+    "line": 137,
+    "norm": "grafana 1110 is eol",
+    "raw": "1. **Grafana 11.1.0 is EOL** \u2014 Only the latest minor and previous minor of the latest major receive patches. 11.1.0 receives zero security fixes. Severity: **CRITICAL**."
+  },
+  {
+    "adr": 56,
+    "title": "Contradiction with Alloy metrics:",
+    "severity": "CRITICAL",
+    "line": 1473,
+    "norm": "contradiction with alloy metrics",
+    "raw": "2. **Contradiction with Alloy metrics:** Alloy `loki_write_sent_bytes_total=15.2 MiB` and `loki_source_*_total` counters show active ingestion. But the Grafana alert query uses `{log_source=~\".+\"}` against Loki \u2014 this query may fail if Grafana's Loki datasource connection is broken, or if the Grafana managed alerting evaluation path differs from dashboard queries. Severity: **CRITICAL** (investigate: is Grafana alerting actually querying Loki successfully?)."
+  },
+  {
+    "adr": 60,
+    "title": "iptables DNAT rule exists:",
+    "severity": "CRITICAL",
+    "line": 1515,
+    "norm": "iptables dnat rule exists",
+    "raw": "1. **iptables DNAT rule exists:** `tcp dpt:3200 \u2192 172.20.0.4:3100`. This is how Docker publishes the port, completely bypassing UFW INPUT chain. Severity: **CRITICAL** (hard confirmation of ADR-006 and ADR-052 #2)."
+  },
+  {
+    "adr": 60,
+    "title": "Source is `0.0.0.0/0`",
+    "severity": "CRITICAL",
+    "line": 1516,
+    "norm": "source is 00000",
+    "raw": "2. **Source is `0.0.0.0/0`** \u2014 Any IP can reach Loki port 3200. No source restriction in the DNAT rule. Docker's `-p` flag does not support source filtering; that must be done in DOCKER-USER chain or via `--iptables=false`. Severity: **CRITICAL**."
+  },
+  {
+    "adr": 65,
+    "title": "Loki returns 4370 log lines in the last 5m",
+    "severity": "CRITICAL",
+    "line": 1582,
+    "norm": "loki returns 4370 log lines in the last 5m",
+    "raw": "1. **Loki returns 4370 log lines in the last 5m** \u2014 `sum(count_over_time({log_source=~\".+\"}[5m]))` returns a valid result. Data IS flowing. The alert should NOT be firing. Severity: **CRITICAL** (false positive alert)."
+  },
+  {
+    "adr": 5,
+    "title": "No alert for Alloy pipeline failures",
+    "severity": "HIGH",
+    "line": 60,
+    "norm": "no alert for alloy pipeline failures",
+    "raw": "3. **No alert for Alloy pipeline failures** \u2014 No rule monitors `alloy_*` metrics for dropped logs, failed writes, or pipeline errors. If Alloy silently drops logs, nobody is alerted. Severity: **HIGH**."
+  },
+  {
+    "adr": 5,
+    "title": "No alert receiver/routing configured",
+    "severity": "HIGH",
+    "line": 63,
+    "norm": "no alert receiverrouting configured",
+    "raw": "6. **No alert receiver/routing configured** \u2014 Prometheus `alertmanager_config` is absent from `prometheus.yml`. Alerts fire but are only visible in Prometheus UI. No email, Slack, or webhook delivery. Severity: **HIGH** for production, acceptable for POC."
+  },
+  {
+    "adr": 6,
+    "title": "Prometheus has zero authentication",
+    "severity": "HIGH",
+    "line": 73,
+    "norm": "prometheus has zero authentication",
+    "raw": "2. **Prometheus has zero authentication** \u2014 Exposed on `0.0.0.0:9004` with no auth. Anyone on LAN can query all metrics, execute PromQL, and read scrape targets. Combined with UFW bypass, this is internet-accessible if the host has a public IP. Severity: **HIGH**."
+  },
+  {
+    "adr": 7,
+    "title": "`logging_stack_down.sh` always uses `-v` (remove volumes)",
+    "severity": "HIGH",
+    "line": 88,
+    "norm": "loggingstackdownsh always uses v remove volumes",
+    "raw": "3. **`logging_stack_down.sh` always uses `-v` (remove volumes)** \u2014 No option for graceful stop without data loss. A typo or habit of running \"down\" destroys all Loki/Prometheus/Grafana data. Should offer a `--keep-volumes` default with `--purge` for destructive mode. Severity: **HIGH**."
+  },
+  {
+    "adr": 11,
+    "title": "Template engine uses `eval` with user-controlled input",
+    "severity": "HIGH",
+    "line": 149,
+    "norm": "template engine uses eval with usercontrolled input",
+    "raw": "1. **Template engine uses `eval` with user-controlled input** \u2014 `template-engine.sh:20-23`: `eval \"cat <<EOF\\n$processed\\nEOF\"`. Values from `retention.conf` are substituted into a bash eval. A malicious or malformed config value (e.g., `$(rm -rf /)`) would execute. Severity: **HIGH** (mitigated by single-user + controlled config, but a real injection vector)."
+  },
+  {
+    "adr": 11,
+    "title": "`render_template_pure` also uses eval",
+    "severity": "HIGH",
+    "line": 150,
+    "norm": "rendertemplatepure also uses eval",
+    "raw": "2. **`render_template_pure` also uses eval** \u2014 Line 38: `eval \"echo \\\"$template_content\\\"\"`. Same vulnerability. Severity: **HIGH**."
+  },
+  {
+    "adr": 13,
+    "title": "Loki is a single point of failure for all log data",
+    "severity": "HIGH",
+    "line": 179,
+    "norm": "loki is a single point of failure for all log data",
+    "raw": "1. **Loki is a single point of failure for all log data** \u2014 Single-node, no replication, in-memory ring store. If the Loki container crashes, all in-flight logs from Alloy are lost (Alloy does buffer, but limited). If the volume corrupts, 30 days of logs are gone. Severity: **HIGH** for production, acceptable for POC."
+  },
+  {
+    "adr": 14,
+    "title": "No `.github/` directory",
+    "severity": "HIGH",
+    "line": 227,
+    "norm": "no github directory",
+    "raw": "1. **No `.github/` directory** \u2014 No GitHub Actions, no CODEOWNERS, no issue/PR templates, no dependabot.yml. The repo has zero CI/CD. All validation is manual via scripts. For production POC: at minimum a health-check workflow on push and a CODEOWNERS file. Severity: **HIGH**."
+  },
+  {
+    "adr": 19,
+    "title": "Alloy snippet is massively out of date",
+    "severity": "HIGH",
+    "line": 292,
+    "norm": "alloy snippet is massively out of date",
+    "raw": "1. **Alloy snippet is massively out of date** \u2014 `docs/snippets/alloy-config.alloy` (76 lines) vs canonical `infra/logging/alloy-config.alloy` (393 lines). Missing: Docker filtering/relabeling, rsyslog, nvidia_telem, vscode_server, all per-pipeline processors, all redaction rules. The snippet shows the original minimal config from early sprint. Severity: **HIGH**."
+  },
+  {
+    "adr": 21,
+    "title": "References non-existent playbook directory",
+    "severity": "HIGH",
+    "line": 326,
+    "norm": "references nonexistent playbook directory",
+    "raw": "3. **References non-existent playbook directory** \u2014 `.claude/prompts/` does not exist in tracked files. Only `.claude/commands/` exists. The script will fail at line 25. Severity: **HIGH**."
+  },
+  {
+    "adr": 22,
+    "title": "Claims \"UFW-protected\" for ports",
+    "severity": "HIGH",
+    "line": 334,
+    "norm": "claims ufwprotected for ports",
+    "raw": "1. **Claims \"UFW-protected\" for ports** \u2014 Line 8: \"Grafana port is 0.0.0.0:9001 (all interfaces, UFW-protected)\". This is false confidence given Docker+UFW bypass (ADR-006). Severity: **HIGH** (misleading documentation)."
+  },
+  {
+    "adr": 24,
+    "title": "No automated test suite",
+    "severity": "HIGH",
+    "line": 361,
+    "norm": "no automated test suite",
+    "raw": "1. **No automated test suite** \u2014 No `make test`, no `./test.sh`, no CI pipeline. All validation is manual invocation of audit scripts. Severity: **HIGH**."
+  },
+  {
+    "adr": 30,
+    "title": "Loki is bound to `0.0.0.0:3200\u21923100/tcp`",
+    "severity": "HIGH",
+    "line": 1080,
+    "norm": "loki is bound to 000032003100tcp",
+    "raw": "1. **Loki is bound to `0.0.0.0:3200\u21923100/tcp`** \u2014 The compose config currently shows NO published ports for Loki, and CLAUDE.md says \"Loki is internal-only.\" But `docker port logging-loki-1` shows `3100/tcp -> 0.0.0.0:3200`, and `ss -tlnp` confirms `0.0.0.0:3200` is listening. The Loki container was created from a previous compose config that published the port, and was never recreated after the port was removed from compose. **The running state does not match the declared config.** Severity: **HIGH** (Loki has no auth, same UFW bypass applies)."
+  },
+  {
+    "adr": 35,
+    "title": "Clean slate with dry-run",
+    "severity": "HIGH",
+    "line": 1182,
+    "norm": "clean slate with dryrun",
+    "raw": "5. **Clean slate with dry-run** \u2014 `_dev-tools/projects/Logging-Bootstrap/bin/clean_slate.sh`: Default dry-run, requires `--force` to execute. Layered deletion with audit trail. Directly applicable to WD-06 `down.sh` rewrite. Severity: **HIGH**."
+  }
+]

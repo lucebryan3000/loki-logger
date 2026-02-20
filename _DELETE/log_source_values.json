@@ -1,0 +1,10 @@
+{
+  "count": 5,
+  "values": [
+    "codeswarm_mcp",
+    "docker",
+    "rsyslog_syslog",
+    "telemetry",
+    "vscode_server"
+  ]
+}

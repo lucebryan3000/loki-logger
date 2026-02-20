@@ -1,0 +1,22 @@
+# Generated 2026-02-14T00:19:50-06:00
+alloy_cid=8d23f7e2231015c924f5da1ee179f02f01518d9f931a67e1dd3ee1076a13ffdb
+## /host/home/luce/_logs
+total 12
+drwx------  2 ubuntu ubuntu 4096 Feb 12 11:38 .
+drwxr-xr-x 66 ubuntu ubuntu 4096 Feb 14 06:19 ..
+-rw-r--r--  1 ubuntu ubuntu  457 Feb 14 06:18 loki-logging-smoke.log
+
+## /host/home/luce/_telemetry
+total 2052
+drwx------  2 ubuntu ubuntu    4096 Feb 12 18:04 .
+drwxr-xr-x 66 ubuntu ubuntu    4096 Feb 14 06:19 ..
+-rw-r--r--  1 ubuntu ubuntu 2087169 Feb 14 06:19 telemetry.jsonl
+
+## /host/home/luce/apps/vLLM/_data/mcp-logs
+total 20
+drwx------ 2 ubuntu ubuntu 4096 Feb 14 03:50 .
+drwxr-xr-x 4 ubuntu ubuntu 4096 Feb 12 21:21 ..
+-rw-r--r-- 1 ubuntu ubuntu    0 Feb 13 02:54 mcp-2026-02-12.log
+-rw-r--r-- 1 root   root   2841 Feb 13 22:03 mcp-2026-02-13.log
+-rw-r--r-- 1 root   root   1443 Feb 14 06:13 mcp-2026-02-14.log
+-rw-r--r-- 1 ubuntu ubuntu 1970 Feb 14 06:17 mcp-test.log

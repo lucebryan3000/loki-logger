@@ -1,0 +1,17 @@
+{
+  "ts": "20260217T114958Z",
+  "grafana_ok": "yes",
+  "loki_ok": "yes",
+  "prom_ok": "yes",
+  "dashboards_present": "yes",
+  "rules_present": "yes",
+  "provisioning_evidence": "api",
+  "timer_enabled": "yes",
+  "evidence": {
+    "grafana": "curl -u admin:*** /api/health => ok",
+    "loki": "curl -fsS http://127.0.0.1:3200/ready",
+    "prom": "curl -fsS http://127.0.0.1:9004/-/healthy",
+    "dashboards": "curl -u admin:*** /api/search => pipeline-health, host-container-overview",
+    "rules": "curl -u admin:*** /api/ruler/grafana/api/v1/rules => required UIDs present"
+  }
+}

@@ -1,0 +1,29 @@
+ts=2026-02-14T13:08:45.609Z caller=main.go:617 level=info msg="Starting Prometheus Server" mode=server version="(version=2.52.0, branch=HEAD, revision=879d80922a227c37df502e7315fad8ceb10a986d)"
+ts=2026-02-14T13:08:45.609Z caller=main.go:622 level=info build_context="(go=go1.22.3, platform=linux/amd64, user=root@1b4f4c206e41, date=20240508-21:56:43, tags=netgo,builtinassets,stringlabels)"
+ts=2026-02-14T13:08:45.609Z caller=main.go:623 level=info host_details="(Linux 6.14.0-37-generic #37-Ubuntu SMP PREEMPT_DYNAMIC Fri Nov 14 22:10:32 UTC 2025 x86_64 95a50b5e40d9 (none))"
+ts=2026-02-14T13:08:45.609Z caller=main.go:624 level=info fd_limits="(soft=524288, hard=524288)"
+ts=2026-02-14T13:08:45.609Z caller=main.go:625 level=info vm_limits="(soft=unlimited, hard=unlimited)"
+ts=2026-02-14T13:08:45.610Z caller=web.go:568 level=info component=web msg="Start listening for connections" address=0.0.0.0:9090
+ts=2026-02-14T13:08:45.611Z caller=main.go:1129 level=info msg="Starting TSDB ..."
+ts=2026-02-14T13:08:45.611Z caller=repair.go:56 level=info component=tsdb msg="Found healthy block" mint=1770964102506 maxt=1770984000000 ulid=01KHBZ414FCAQP8VZRF8MYTE75
+ts=2026-02-14T13:08:45.611Z caller=repair.go:56 level=info component=tsdb msg="Found healthy block" mint=1771048801525 maxt=1771056000000 ulid=01KHDP1Y50H034QAXBN2F6REF4
+ts=2026-02-14T13:08:45.611Z caller=repair.go:56 level=info component=tsdb msg="Found healthy block" mint=1771056002019 maxt=1771063200000 ulid=01KHDWXND49H9BJYX597WXK3MW
+ts=2026-02-14T13:08:45.611Z caller=repair.go:56 level=info component=tsdb msg="Found healthy block" mint=1770984001062 maxt=1771048800000 ulid=01KHDWXPAWQZ52BZ2W50GWS88V
+ts=2026-02-14T13:08:45.611Z caller=repair.go:56 level=info component=tsdb msg="Found healthy block" mint=1771063201542 maxt=1771070400000 ulid=01KHE3SCN1CEX91K404SMSF674
+ts=2026-02-14T13:08:45.611Z caller=tls_config.go:313 level=info component=web msg="Listening on" address=[::]:9090
+ts=2026-02-14T13:08:45.611Z caller=tls_config.go:316 level=info component=web msg="TLS is disabled." http2=false address=[::]:9090
+ts=2026-02-14T13:08:45.614Z caller=head.go:616 level=info component=tsdb msg="Replaying on-disk memory mappable chunks if any"
+ts=2026-02-14T13:08:45.618Z caller=head.go:703 level=info component=tsdb msg="On-disk memory mappable chunks replay completed" duration=3.668942ms
+ts=2026-02-14T13:08:45.618Z caller=head.go:711 level=info component=tsdb msg="Replaying WAL, this may take a while"
+ts=2026-02-14T13:08:45.629Z caller=head.go:748 level=info component=tsdb msg="WAL checkpoint loaded"
+ts=2026-02-14T13:08:45.687Z caller=head.go:783 level=info component=tsdb msg="WAL segment loaded" segment=14 maxSegment=17
+ts=2026-02-14T13:08:45.749Z caller=head.go:783 level=info component=tsdb msg="WAL segment loaded" segment=15 maxSegment=17
+ts=2026-02-14T13:08:45.756Z caller=head.go:783 level=info component=tsdb msg="WAL segment loaded" segment=16 maxSegment=17
+ts=2026-02-14T13:08:45.757Z caller=head.go:783 level=info component=tsdb msg="WAL segment loaded" segment=17 maxSegment=17
+ts=2026-02-14T13:08:45.757Z caller=head.go:820 level=info component=tsdb msg="WAL replay completed" checkpoint_replay_duration=10.491364ms wal_replay_duration=128.109888ms wbl_replay_duration=139ns chunk_snapshot_load_duration=0s mmap_chunk_replay_duration=3.668942ms total_replay_duration=142.290061ms
+ts=2026-02-14T13:08:45.761Z caller=main.go:1150 level=info fs_type=EXT4_SUPER_MAGIC
+ts=2026-02-14T13:08:45.761Z caller=main.go:1153 level=info msg="TSDB started"
+ts=2026-02-14T13:08:45.761Z caller=main.go:1335 level=info msg="Loading configuration file" filename=/etc/prometheus/prometheus.yml
+ts=2026-02-14T13:08:45.762Z caller=main.go:1372 level=info msg="Completed loading of configuration file" filename=/etc/prometheus/prometheus.yml totalDuration=933.202µs db_storage=907ns remote_storage=1.041µs web_handler=492ns query_engine=809ns scrape=106.29µs scrape_sd=29.664µs notify=603ns notify_sd=602ns rules=644.235µs tracing=2.335µs
+ts=2026-02-14T13:08:45.762Z caller=main.go:1114 level=info msg="Server is ready to receive web requests."
+ts=2026-02-14T13:08:45.762Z caller=manager.go:163 level=info component="rule manager" msg="Starting rule manager..."

@@ -1,0 +1,5 @@
+{"ts": "2026-02-14T06:17:06Z", "kind": "telemetry", "source": "telemetry_writer", "host": "codeswarm", "seq": 1771049826, "value": 37, "msg": "telemetry tick"}
+{"ts": "2026-02-14T06:17:16Z", "kind": "telemetry", "source": "telemetry_writer", "host": "codeswarm", "seq": 1771049836, "value": 56, "msg": "telemetry tick"}
+{"ts": "2026-02-14T06:17:26Z", "kind": "telemetry", "source": "telemetry_writer", "host": "codeswarm", "seq": 1771049846, "value": 8, "msg": "telemetry tick"}
+{"ts": "2026-02-14T06:17:36Z", "kind": "telemetry", "source": "telemetry_writer", "host": "codeswarm", "seq": 1771049856, "value": 8, "msg": "telemetry tick"}
+{"ts": "2026-02-14T06:17:46Z", "kind": "telemetry", "source": "telemetry_writer", "host": "codeswarm", "seq": 1771049866, "value": 81, "msg": "telemetry tick"}

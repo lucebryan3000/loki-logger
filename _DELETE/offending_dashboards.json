@@ -1,0 +1,40 @@
+[
+  {
+    "uid": "dfdgpdf22b9q8c",
+    "title": ".Ubuntu Host",
+    "folderTitle": "1-Ubuntu",
+    "tags": [],
+    "provisioned": false,
+    "provisionedExternalId": "",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "dfdgqba65adj4b",
+    "title": "Loki Health",
+    "folderTitle": "Logging",
+    "tags": [],
+    "provisioned": false,
+    "provisionedExternalId": "",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  },
+  {
+    "uid": "UDdpyzz7z",
+    "title": "Prometheus 2.0 Stats",
+    "folderTitle": null,
+    "tags": [
+      "prometheus"
+    ],
+    "provisioned": false,
+    "provisionedExternalId": "",
+    "pluginId": null,
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true
+  }
+]

@@ -1,0 +1,300 @@
+logger=migrator t=2026-02-14T13:17:51.107735052Z level=info msg="Migration successfully executed" id="add permission identifier index" duration=425.915µs
+logger=migrator t=2026-02-14T13:17:51.119358018Z level=info msg="Executing migration" id="add permission action scope role_id index"
+logger=migrator t=2026-02-14T13:17:51.119803104Z level=info msg="Migration successfully executed" id="add permission action scope role_id index" duration=444.977µs
+logger=migrator t=2026-02-14T13:17:51.131767094Z level=info msg="Executing migration" id="remove permission role_id action scope index"
+logger=migrator t=2026-02-14T13:17:51.132198495Z level=info msg="Migration successfully executed" id="remove permission role_id action scope index" duration=431.576µs
+logger=migrator t=2026-02-14T13:17:51.143804201Z level=info msg="Executing migration" id="create query_history table v1"
+logger=migrator t=2026-02-14T13:17:51.144178581Z level=info msg="Migration successfully executed" id="create query_history table v1" duration=374.568µs
+logger=migrator t=2026-02-14T13:17:51.155811832Z level=info msg="Executing migration" id="add index query_history.org_id-created_by-datasource_uid"
+logger=migrator t=2026-02-14T13:17:51.156233795Z level=info msg="Migration successfully executed" id="add index query_history.org_id-created_by-datasource_uid" duration=421.667µs
+logger=migrator t=2026-02-14T13:17:51.16821278Z level=info msg="Executing migration" id="alter table query_history alter column created_by type to bigint"
+logger=migrator t=2026-02-14T13:17:51.168272122Z level=info msg="Migration successfully executed" id="alter table query_history alter column created_by type to bigint" duration=29.396µs
+logger=migrator t=2026-02-14T13:17:51.179487424Z level=info msg="Executing migration" id="rbac disabled migrator"
+logger=migrator t=2026-02-14T13:17:51.179507186Z level=info msg="Migration successfully executed" id="rbac disabled migrator" duration=20.373µs
+logger=migrator t=2026-02-14T13:17:51.19064394Z level=info msg="Executing migration" id="teams permissions migration"
+logger=migrator t=2026-02-14T13:17:51.190849689Z level=info msg="Migration successfully executed" id="teams permissions migration" duration=205.887µs
+logger=migrator t=2026-02-14T13:17:51.201742334Z level=info msg="Executing migration" id="dashboard permissions"
+logger=migrator t=2026-02-14T13:17:51.201949074Z level=info msg="Migration successfully executed" id="dashboard permissions" duration=207.252µs
+logger=migrator t=2026-02-14T13:17:51.213302852Z level=info msg="Executing migration" id="dashboard permissions uid scopes"
+logger=migrator t=2026-02-14T13:17:51.213559951Z level=info msg="Migration successfully executed" id="dashboard permissions uid scopes" duration=256.989µs
+logger=migrator t=2026-02-14T13:17:51.22470108Z level=info msg="Executing migration" id="drop managed folder create actions"
+logger=migrator t=2026-02-14T13:17:51.22479963Z level=info msg="Migration successfully executed" id="drop managed folder create actions" duration=98.758µs
+logger=migrator t=2026-02-14T13:17:51.235719584Z level=info msg="Executing migration" id="alerting notification permissions"
+logger=migrator t=2026-02-14T13:17:51.23593563Z level=info msg="Migration successfully executed" id="alerting notification permissions" duration=215.905µs
+logger=migrator t=2026-02-14T13:17:51.247166708Z level=info msg="Executing migration" id="create query_history_star table v1"
+logger=migrator t=2026-02-14T13:17:51.247598714Z level=info msg="Migration successfully executed" id="create query_history_star table v1" duration=434.501µs
+logger=migrator t=2026-02-14T13:17:51.259604496Z level=info msg="Executing migration" id="add index query_history.user_id-query_uid"
+logger=migrator t=2026-02-14T13:17:51.260052677Z level=info msg="Migration successfully executed" id="add index query_history.user_id-query_uid" duration=448.037µs
+logger=migrator t=2026-02-14T13:17:51.272810229Z level=info msg="Executing migration" id="add column org_id in query_history_star"
+logger=migrator t=2026-02-14T13:17:51.275125038Z level=info msg="Migration successfully executed" id="add column org_id in query_history_star" duration=2.314406ms
+logger=migrator t=2026-02-14T13:17:51.286677884Z level=info msg="Executing migration" id="alter table query_history_star_mig column user_id type to bigint"
+logger=migrator t=2026-02-14T13:17:51.286707308Z level=info msg="Migration successfully executed" id="alter table query_history_star_mig column user_id type to bigint" duration=29.078µs
+logger=migrator t=2026-02-14T13:17:51.297823831Z level=info msg="Executing migration" id="create correlation table v1"
+logger=migrator t=2026-02-14T13:17:51.298237166Z level=info msg="Migration successfully executed" id="create correlation table v1" duration=413.042µs
+logger=migrator t=2026-02-14T13:17:51.310353698Z level=info msg="Executing migration" id="add index correlations.uid"
+logger=migrator t=2026-02-14T13:17:51.310819525Z level=info msg="Migration successfully executed" id="add index correlations.uid" duration=465.599µs
+logger=migrator t=2026-02-14T13:17:51.323664132Z level=info msg="Executing migration" id="add index correlations.source_uid"
+logger=migrator t=2026-02-14T13:17:51.324089868Z level=info msg="Migration successfully executed" id="add index correlations.source_uid" duration=425.634µs
+logger=migrator t=2026-02-14T13:17:51.33609977Z level=info msg="Executing migration" id="add correlation config column"
+logger=migrator t=2026-02-14T13:17:51.338492205Z level=info msg="Migration successfully executed" id="add correlation config column" duration=2.392278ms
+logger=migrator t=2026-02-14T13:17:51.350250175Z level=info msg="Executing migration" id="drop index IDX_correlation_uid - v1"
+logger=migrator t=2026-02-14T13:17:51.35068865Z level=info msg="Migration successfully executed" id="drop index IDX_correlation_uid - v1" duration=438.311µs
+logger=migrator t=2026-02-14T13:17:51.362073236Z level=info msg="Executing migration" id="drop index IDX_correlation_source_uid - v1"
+logger=migrator t=2026-02-14T13:17:51.362487571Z level=info msg="Migration successfully executed" id="drop index IDX_correlation_source_uid - v1" duration=414.183µs
+logger=migrator t=2026-02-14T13:17:51.374340614Z level=info msg="Executing migration" id="Rename table correlation to correlation_tmp_qwerty - v1"
+logger=migrator t=2026-02-14T13:17:51.380906419Z level=info msg="Migration successfully executed" id="Rename table correlation to correlation_tmp_qwerty - v1" duration=6.565889ms
+logger=migrator t=2026-02-14T13:17:51.392176591Z level=info msg="Executing migration" id="create correlation v2"
+logger=migrator t=2026-02-14T13:17:51.392641947Z level=info msg="Migration successfully executed" id="create correlation v2" duration=465.047µs
+logger=migrator t=2026-02-14T13:17:51.405590248Z level=info msg="Executing migration" id="create index IDX_correlation_uid - v2"
+logger=migrator t=2026-02-14T13:17:51.406032245Z level=info msg="Migration successfully executed" id="create index IDX_correlation_uid - v2" duration=441.954µs
+logger=migrator t=2026-02-14T13:17:51.418135957Z level=info msg="Executing migration" id="create index IDX_correlation_source_uid - v2"
+logger=migrator t=2026-02-14T13:17:51.41857998Z level=info msg="Migration successfully executed" id="create index IDX_correlation_source_uid - v2" duration=444.145µs
+logger=migrator t=2026-02-14T13:17:51.430712763Z level=info msg="Executing migration" id="create index IDX_correlation_org_id - v2"
+logger=migrator t=2026-02-14T13:17:51.4311398Z level=info msg="Migration successfully executed" id="create index IDX_correlation_org_id - v2" duration=426.927µs
+logger=migrator t=2026-02-14T13:17:51.442776771Z level=info msg="Executing migration" id="copy correlation v1 to v2"
+logger=migrator t=2026-02-14T13:17:51.44290237Z level=info msg="Migration successfully executed" id="copy correlation v1 to v2" duration=125.914µs
+logger=migrator t=2026-02-14T13:17:51.454005558Z level=info msg="Executing migration" id="drop correlation_tmp_qwerty"
+logger=migrator t=2026-02-14T13:17:51.454343348Z level=info msg="Migration successfully executed" id="drop correlation_tmp_qwerty" duration=337.517µs
+logger=migrator t=2026-02-14T13:17:51.465975008Z level=info msg="Executing migration" id="add provisioning column"
+logger=migrator t=2026-02-14T13:17:51.468349517Z level=info msg="Migration successfully executed" id="add provisioning column" duration=2.375015ms
+logger=migrator t=2026-02-14T13:17:51.479719122Z level=info msg="Executing migration" id="create entity_events table"
+logger=migrator t=2026-02-14T13:17:51.480042632Z level=info msg="Migration successfully executed" id="create entity_events table" duration=323.276µs
+logger=migrator t=2026-02-14T13:17:51.491458058Z level=info msg="Executing migration" id="create dashboard public config v1"
+logger=migrator t=2026-02-14T13:17:51.49185401Z level=info msg="Migration successfully executed" id="create dashboard public config v1" duration=395.003µs
+logger=migrator t=2026-02-14T13:17:51.503751988Z level=info msg="Executing migration" id="drop index UQE_dashboard_public_config_uid - v1"
+logger=migrator t=2026-02-14T13:17:51.503925263Z level=warn msg="Skipping migration: Already executed, but not recorded in migration log" id="drop index UQE_dashboard_public_config_uid - v1"
+logger=migrator t=2026-02-14T13:17:51.515235277Z level=info msg="Executing migration" id="drop index IDX_dashboard_public_config_org_id_dashboard_uid - v1"
+logger=migrator t=2026-02-14T13:17:51.515393989Z level=warn msg="Skipping migration: Already executed, but not recorded in migration log" id="drop index IDX_dashboard_public_config_org_id_dashboard_uid - v1"
+logger=migrator t=2026-02-14T13:17:51.526987833Z level=info msg="Executing migration" id="Drop old dashboard public config table"
+logger=migrator t=2026-02-14T13:17:51.527402627Z level=info msg="Migration successfully executed" id="Drop old dashboard public config table" duration=414.495µs
+logger=migrator t=2026-02-14T13:17:51.538980457Z level=info msg="Executing migration" id="recreate dashboard public config v1"
+logger=migrator t=2026-02-14T13:17:51.5394095Z level=info msg="Migration successfully executed" id="recreate dashboard public config v1" duration=428.24µs
+logger=migrator t=2026-02-14T13:17:51.550893436Z level=info msg="Executing migration" id="create index UQE_dashboard_public_config_uid - v1"
+logger=migrator t=2026-02-14T13:17:51.551306986Z level=info msg="Migration successfully executed" id="create index UQE_dashboard_public_config_uid - v1" duration=412.818µs
+logger=migrator t=2026-02-14T13:17:51.563193282Z level=info msg="Executing migration" id="create index IDX_dashboard_public_config_org_id_dashboard_uid - v1"
+logger=migrator t=2026-02-14T13:17:51.563656881Z level=info msg="Migration successfully executed" id="create index IDX_dashboard_public_config_org_id_dashboard_uid - v1" duration=462.944µs
+logger=migrator t=2026-02-14T13:17:51.57541368Z level=info msg="Executing migration" id="drop index UQE_dashboard_public_config_uid - v2"
+logger=migrator t=2026-02-14T13:17:51.575827284Z level=info msg="Migration successfully executed" id="drop index UQE_dashboard_public_config_uid - v2" duration=412.485µs
+logger=migrator t=2026-02-14T13:17:51.587294217Z level=info msg="Executing migration" id="drop index IDX_dashboard_public_config_org_id_dashboard_uid - v2"
+logger=migrator t=2026-02-14T13:17:51.587718018Z level=info msg="Migration successfully executed" id="drop index IDX_dashboard_public_config_org_id_dashboard_uid - v2" duration=424.123µs
+logger=migrator t=2026-02-14T13:17:51.599526931Z level=info msg="Executing migration" id="Drop public config table"
+logger=migrator t=2026-02-14T13:17:51.599856639Z level=info msg="Migration successfully executed" id="Drop public config table" duration=329.658µs
+logger=migrator t=2026-02-14T13:17:51.612153873Z level=info msg="Executing migration" id="Recreate dashboard public config v2"
+logger=migrator t=2026-02-14T13:17:51.612629699Z level=info msg="Migration successfully executed" id="Recreate dashboard public config v2" duration=475.341µs
+logger=migrator t=2026-02-14T13:17:51.624187292Z level=info msg="Executing migration" id="create index UQE_dashboard_public_config_uid - v2"
+logger=migrator t=2026-02-14T13:17:51.624697323Z level=info msg="Migration successfully executed" id="create index UQE_dashboard_public_config_uid - v2" duration=510.203µs
+logger=migrator t=2026-02-14T13:17:51.640868087Z level=info msg="Executing migration" id="create index IDX_dashboard_public_config_org_id_dashboard_uid - v2"
+logger=migrator t=2026-02-14T13:17:51.641333773Z level=info msg="Migration successfully executed" id="create index IDX_dashboard_public_config_org_id_dashboard_uid - v2" duration=466.051µs
+logger=migrator t=2026-02-14T13:17:51.65284213Z level=info msg="Executing migration" id="create index UQE_dashboard_public_config_access_token - v2"
+logger=migrator t=2026-02-14T13:17:51.65324884Z level=info msg="Migration successfully executed" id="create index UQE_dashboard_public_config_access_token - v2" duration=406.883µs
+logger=migrator t=2026-02-14T13:17:51.668995002Z level=info msg="Executing migration" id="Rename table dashboard_public_config to dashboard_public - v2"
+logger=migrator t=2026-02-14T13:17:51.67632177Z level=info msg="Migration successfully executed" id="Rename table dashboard_public_config to dashboard_public - v2" duration=7.325947ms
+logger=migrator t=2026-02-14T13:17:51.687736113Z level=info msg="Executing migration" id="add annotations_enabled column"
+logger=migrator t=2026-02-14T13:17:51.690285021Z level=info msg="Migration successfully executed" id="add annotations_enabled column" duration=2.548845ms
+logger=migrator t=2026-02-14T13:17:51.702030413Z level=info msg="Executing migration" id="add time_selection_enabled column"
+logger=migrator t=2026-02-14T13:17:51.704628889Z level=info msg="Migration successfully executed" id="add time_selection_enabled column" duration=2.597926ms
+logger=migrator t=2026-02-14T13:17:51.715717117Z level=info msg="Executing migration" id="delete orphaned public dashboards"
+logger=migrator t=2026-02-14T13:17:51.715838663Z level=info msg="Migration successfully executed" id="delete orphaned public dashboards" duration=122.126µs
+logger=migrator t=2026-02-14T13:17:51.726967071Z level=info msg="Executing migration" id="add share column"
+logger=migrator t=2026-02-14T13:17:51.729585888Z level=info msg="Migration successfully executed" id="add share column" duration=2.618547ms
+logger=migrator t=2026-02-14T13:17:51.740765906Z level=info msg="Executing migration" id="backfill empty share column fields with default of public"
+logger=migrator t=2026-02-14T13:17:51.740847531Z level=info msg="Migration successfully executed" id="backfill empty share column fields with default of public" duration=82.13µs
+logger=migrator t=2026-02-14T13:17:51.751649168Z level=info msg="Executing migration" id="create file table"
+logger=migrator t=2026-02-14T13:17:51.752059304Z level=info msg="Migration successfully executed" id="create file table" duration=409.877µs
+logger=migrator t=2026-02-14T13:17:51.76362453Z level=info msg="Executing migration" id="file table idx: path natural pk"
+logger=migrator t=2026-02-14T13:17:51.764068051Z level=info msg="Migration successfully executed" id="file table idx: path natural pk" duration=443.229µs
+logger=migrator t=2026-02-14T13:17:51.776014915Z level=info msg="Executing migration" id="file table idx: parent_folder_path_hash fast folder retrieval"
+logger=migrator t=2026-02-14T13:17:51.776487247Z level=info msg="Migration successfully executed" id="file table idx: parent_folder_path_hash fast folder retrieval" duration=472.253µs
+logger=migrator t=2026-02-14T13:17:51.788450461Z level=info msg="Executing migration" id="create file_meta table"
+logger=migrator t=2026-02-14T13:17:51.788829454Z level=info msg="Migration successfully executed" id="create file_meta table" duration=378.681µs
+logger=migrator t=2026-02-14T13:17:51.80122122Z level=info msg="Executing migration" id="file table idx: path key"
+logger=migrator t=2026-02-14T13:17:51.80164344Z level=info msg="Migration successfully executed" id="file table idx: path key" duration=421.928µs
+logger=migrator t=2026-02-14T13:17:51.813296397Z level=info msg="Executing migration" id="set path collation in file table"
+logger=migrator t=2026-02-14T13:17:51.813324657Z level=info msg="Migration successfully executed" id="set path collation in file table" duration=28.687µs
+logger=migrator t=2026-02-14T13:17:51.824273733Z level=info msg="Executing migration" id="migrate contents column to mediumblob for MySQL"
+logger=migrator t=2026-02-14T13:17:51.824299036Z level=info msg="Migration successfully executed" id="migrate contents column to mediumblob for MySQL" duration=25.583µs
+logger=migrator t=2026-02-14T13:17:51.835349456Z level=info msg="Executing migration" id="managed permissions migration"
+logger=migrator t=2026-02-14T13:17:51.835625161Z level=info msg="Migration successfully executed" id="managed permissions migration" duration=275.571µs
+logger=migrator t=2026-02-14T13:17:51.846752908Z level=info msg="Executing migration" id="managed folder permissions alert actions migration"
+logger=migrator t=2026-02-14T13:17:51.84686608Z level=info msg="Migration successfully executed" id="managed folder permissions alert actions migration" duration=114.61µs
+logger=migrator t=2026-02-14T13:17:51.857723636Z level=info msg="Executing migration" id="RBAC action name migrator"
+logger=migrator t=2026-02-14T13:17:51.858266137Z level=info msg="Migration successfully executed" id="RBAC action name migrator" duration=542.053µs
+logger=migrator t=2026-02-14T13:17:51.869262902Z level=info msg="Executing migration" id="Add UID column to playlist"
+logger=migrator t=2026-02-14T13:17:51.871936796Z level=info msg="Migration successfully executed" id="Add UID column to playlist" duration=2.672811ms
+logger=migrator t=2026-02-14T13:17:51.883149358Z level=info msg="Executing migration" id="Update uid column values in playlist"
+logger=migrator t=2026-02-14T13:17:51.883231966Z level=info msg="Migration successfully executed" id="Update uid column values in playlist" duration=82.221µs
+logger=migrator t=2026-02-14T13:17:51.894175154Z level=info msg="Executing migration" id="Add index for uid in playlist"
+logger=migrator t=2026-02-14T13:17:51.89460852Z level=info msg="Migration successfully executed" id="Add index for uid in playlist" duration=432.439µs
+logger=migrator t=2026-02-14T13:17:51.906295568Z level=info msg="Executing migration" id="update group index for alert rules"
+logger=migrator t=2026-02-14T13:17:51.906480109Z level=info msg="Migration successfully executed" id="update group index for alert rules" duration=184.734µs
+logger=migrator t=2026-02-14T13:17:51.917351095Z level=info msg="Executing migration" id="managed folder permissions alert actions repeated migration"
+logger=migrator t=2026-02-14T13:17:51.917454573Z level=info msg="Migration successfully executed" id="managed folder permissions alert actions repeated migration" duration=103.622µs
+logger=migrator t=2026-02-14T13:17:51.928636877Z level=info msg="Executing migration" id="admin only folder/dashboard permission"
+logger=migrator t=2026-02-14T13:17:51.928838955Z level=info msg="Migration successfully executed" id="admin only folder/dashboard permission" duration=219.71µs
+logger=migrator t=2026-02-14T13:17:51.939825974Z level=info msg="Executing migration" id="add action column to seed_assignment"
+logger=migrator t=2026-02-14T13:17:51.942386733Z level=info msg="Migration successfully executed" id="add action column to seed_assignment" duration=2.56059ms
+logger=migrator t=2026-02-14T13:17:51.95379637Z level=info msg="Executing migration" id="add scope column to seed_assignment"
+logger=migrator t=2026-02-14T13:17:51.956323652Z level=info msg="Migration successfully executed" id="add scope column to seed_assignment" duration=2.526895ms
+logger=migrator t=2026-02-14T13:17:51.967787217Z level=info msg="Executing migration" id="remove unique index builtin_role_role_name before nullable update"
+logger=migrator t=2026-02-14T13:17:51.968208699Z level=info msg="Migration successfully executed" id="remove unique index builtin_role_role_name before nullable update" duration=421.469µs
+logger=migrator t=2026-02-14T13:17:51.97968697Z level=info msg="Executing migration" id="update seed_assignment role_name column to nullable"
+logger=migrator t=2026-02-14T13:17:52.005217067Z level=info msg="Migration successfully executed" id="update seed_assignment role_name column to nullable" duration=25.529418ms
+logger=migrator t=2026-02-14T13:17:52.017155765Z level=info msg="Executing migration" id="add unique index builtin_role_name back"
+logger=migrator t=2026-02-14T13:17:52.017650144Z level=info msg="Migration successfully executed" id="add unique index builtin_role_name back" duration=494.105µs
+logger=migrator t=2026-02-14T13:17:52.028818428Z level=info msg="Executing migration" id="add unique index builtin_role_action_scope"
+logger=migrator t=2026-02-14T13:17:52.029274462Z level=info msg="Migration successfully executed" id="add unique index builtin_role_action_scope" duration=454.57µs
+logger=migrator t=2026-02-14T13:17:52.045626377Z level=info msg="Executing migration" id="add primary key to seed_assigment"
+logger=migrator t=2026-02-14T13:17:52.054044997Z level=info msg="Migration successfully executed" id="add primary key to seed_assigment" duration=8.417163ms
+logger=migrator t=2026-02-14T13:17:52.068102139Z level=info msg="Executing migration" id="add origin column to seed_assignment"
+logger=migrator t=2026-02-14T13:17:52.070644082Z level=info msg="Migration successfully executed" id="add origin column to seed_assignment" duration=2.53958ms
+logger=migrator t=2026-02-14T13:17:52.082015377Z level=info msg="Executing migration" id="add origin to plugin seed_assignment"
+logger=migrator t=2026-02-14T13:17:52.082178116Z level=info msg="Migration successfully executed" id="add origin to plugin seed_assignment" duration=162.965µs
+logger=migrator t=2026-02-14T13:17:52.093564472Z level=info msg="Executing migration" id="prevent seeding OnCall access"
+logger=migrator t=2026-02-14T13:17:52.093632003Z level=info msg="Migration successfully executed" id="prevent seeding OnCall access" duration=81.304µs
+logger=migrator t=2026-02-14T13:17:52.104617022Z level=info msg="Executing migration" id="managed folder permissions alert actions repeated fixed migration"
+logger=migrator t=2026-02-14T13:17:52.104739902Z level=info msg="Migration successfully executed" id="managed folder permissions alert actions repeated fixed migration" duration=124.48µs
+logger=migrator t=2026-02-14T13:17:52.116176985Z level=info msg="Executing migration" id="managed folder permissions library panel actions migration"
+logger=migrator t=2026-02-14T13:17:52.116262495Z level=info msg="Migration successfully executed" id="managed folder permissions library panel actions migration" duration=85.649µs
+logger=migrator t=2026-02-14T13:17:52.127326614Z level=info msg="Executing migration" id="migrate external alertmanagers to datsourcse"
+logger=migrator t=2026-02-14T13:17:52.127433307Z level=info msg="Migration successfully executed" id="migrate external alertmanagers to datsourcse" duration=107.512µs
+logger=migrator t=2026-02-14T13:17:52.138399531Z level=info msg="Executing migration" id="create folder table"
+logger=migrator t=2026-02-14T13:17:52.138848717Z level=info msg="Migration successfully executed" id="create folder table" duration=448.575µs
+logger=migrator t=2026-02-14T13:17:52.151310808Z level=info msg="Executing migration" id="Add index for parent_uid"
+logger=migrator t=2026-02-14T13:17:52.15176083Z level=info msg="Migration successfully executed" id="Add index for parent_uid" duration=449.213µs
+logger=migrator t=2026-02-14T13:17:52.163472156Z level=info msg="Executing migration" id="Add unique index for folder.uid and folder.org_id"
+logger=migrator t=2026-02-14T13:17:52.163921865Z level=info msg="Migration successfully executed" id="Add unique index for folder.uid and folder.org_id" duration=449.62µs
+logger=migrator t=2026-02-14T13:17:52.17567268Z level=info msg="Executing migration" id="Update folder title length"
+logger=migrator t=2026-02-14T13:17:52.175682705Z level=info msg="Migration successfully executed" id="Update folder title length" duration=10.377µs
+logger=migrator t=2026-02-14T13:17:52.186717366Z level=info msg="Executing migration" id="Add unique index for folder.title and folder.parent_uid"
+logger=migrator t=2026-02-14T13:17:52.187165777Z level=info msg="Migration successfully executed" id="Add unique index for folder.title and folder.parent_uid" duration=448.912µs
+logger=migrator t=2026-02-14T13:17:52.203658092Z level=info msg="Executing migration" id="Remove unique index for folder.title and folder.parent_uid"
+logger=migrator t=2026-02-14T13:17:52.20410099Z level=info msg="Migration successfully executed" id="Remove unique index for folder.title and folder.parent_uid" duration=442.733µs
+logger=migrator t=2026-02-14T13:17:52.215759554Z level=info msg="Executing migration" id="Add unique index for title, parent_uid, and org_id"
+logger=migrator t=2026-02-14T13:17:52.216178871Z level=info msg="Migration successfully executed" id="Add unique index for title, parent_uid, and org_id" duration=419.073µs
+logger=migrator t=2026-02-14T13:17:52.227783278Z level=info msg="Executing migration" id="Sync dashboard and folder table"
+logger=migrator t=2026-02-14T13:17:52.227978826Z level=info msg="Migration successfully executed" id="Sync dashboard and folder table" duration=196.585µs
+logger=migrator t=2026-02-14T13:17:52.238719633Z level=info msg="Executing migration" id="Remove ghost folders from the folder table"
+logger=migrator t=2026-02-14T13:17:52.238841256Z level=info msg="Migration successfully executed" id="Remove ghost folders from the folder table" duration=122.595µs
+logger=migrator t=2026-02-14T13:17:52.24971447Z level=info msg="Executing migration" id="Remove unique index UQE_folder_uid_org_id"
+logger=migrator t=2026-02-14T13:17:52.250100722Z level=info msg="Migration successfully executed" id="Remove unique index UQE_folder_uid_org_id" duration=385.895µs
+logger=migrator t=2026-02-14T13:17:52.261709517Z level=info msg="Executing migration" id="Add unique index UQE_folder_org_id_uid"
+logger=migrator t=2026-02-14T13:17:52.26214001Z level=info msg="Migration successfully executed" id="Add unique index UQE_folder_org_id_uid" duration=430.216µs
+logger=migrator t=2026-02-14T13:17:52.273624046Z level=info msg="Executing migration" id="Remove unique index UQE_folder_title_parent_uid_org_id"
+logger=migrator t=2026-02-14T13:17:52.274025159Z level=info msg="Migration successfully executed" id="Remove unique index UQE_folder_title_parent_uid_org_id" duration=402.005µs
+logger=migrator t=2026-02-14T13:17:52.285522746Z level=info msg="Executing migration" id="Add unique index UQE_folder_org_id_parent_uid_title"
+logger=migrator t=2026-02-14T13:17:52.285950125Z level=info msg="Migration successfully executed" id="Add unique index UQE_folder_org_id_parent_uid_title" duration=428.026µs
+logger=migrator t=2026-02-14T13:17:52.297677698Z level=info msg="Executing migration" id="Remove index IDX_folder_parent_uid_org_id"
+logger=migrator t=2026-02-14T13:17:52.298082041Z level=info msg="Migration successfully executed" id="Remove index IDX_folder_parent_uid_org_id" duration=404.175µs
+logger=migrator t=2026-02-14T13:17:52.309341187Z level=info msg="Executing migration" id="create anon_device table"
+logger=migrator t=2026-02-14T13:17:52.309722687Z level=info msg="Migration successfully executed" id="create anon_device table" duration=381.409µs
+logger=migrator t=2026-02-14T13:17:52.321283637Z level=info msg="Executing migration" id="add unique index anon_device.device_id"
+logger=migrator t=2026-02-14T13:17:52.321730176Z level=info msg="Migration successfully executed" id="add unique index anon_device.device_id" duration=446.521µs
+logger=migrator t=2026-02-14T13:17:52.334284696Z level=info msg="Executing migration" id="add index anon_device.updated_at"
+logger=migrator t=2026-02-14T13:17:52.334695277Z level=info msg="Migration successfully executed" id="add index anon_device.updated_at" duration=410.807µs
+logger=migrator t=2026-02-14T13:17:52.346770527Z level=info msg="Executing migration" id="create signing_key table"
+logger=migrator t=2026-02-14T13:17:52.347116167Z level=info msg="Migration successfully executed" id="create signing_key table" duration=344.462µs
+logger=migrator t=2026-02-14T13:17:52.358806043Z level=info msg="Executing migration" id="add unique index signing_key.key_id"
+logger=migrator t=2026-02-14T13:17:52.359226425Z level=info msg="Migration successfully executed" id="add unique index signing_key.key_id" duration=420.287µs
+logger=migrator t=2026-02-14T13:17:52.371183218Z level=info msg="Executing migration" id="set legacy alert migration status in kvstore"
+logger=migrator t=2026-02-14T13:17:52.371638031Z level=info msg="Migration successfully executed" id="set legacy alert migration status in kvstore" duration=454.733µs
+logger=migrator t=2026-02-14T13:17:52.383442119Z level=info msg="Executing migration" id="migrate record of created folders during legacy migration to kvstore"
+logger=migrator t=2026-02-14T13:17:52.383581746Z level=info msg="Migration successfully executed" id="migrate record of created folders during legacy migration to kvstore" duration=139.906µs
+logger=migrator t=2026-02-14T13:17:52.394767025Z level=info msg="Executing migration" id="Add folder_uid for dashboard"
+logger=migrator t=2026-02-14T13:17:52.397369699Z level=info msg="Migration successfully executed" id="Add folder_uid for dashboard" duration=2.602289ms
+logger=migrator t=2026-02-14T13:17:52.408787841Z level=info msg="Executing migration" id="Populate dashboard folder_uid column"
+logger=migrator t=2026-02-14T13:17:52.409120506Z level=info msg="Migration successfully executed" id="Populate dashboard folder_uid column" duration=333.082µs
+logger=migrator t=2026-02-14T13:17:52.420103767Z level=info msg="Executing migration" id="Add unique index for dashboard_org_id_folder_uid_title"
+logger=migrator t=2026-02-14T13:17:52.420111807Z level=info msg="Migration successfully executed" id="Add unique index for dashboard_org_id_folder_uid_title" duration=7.751µs
+logger=migrator t=2026-02-14T13:17:52.430999408Z level=info msg="Executing migration" id="Delete unique index for dashboard_org_id_folder_id_title"
+logger=migrator t=2026-02-14T13:17:52.431390043Z level=info msg="Migration successfully executed" id="Delete unique index for dashboard_org_id_folder_id_title" duration=390.105µs
+logger=migrator t=2026-02-14T13:17:52.442932434Z level=info msg="Executing migration" id="Delete unique index for dashboard_org_id_folder_uid_title"
+logger=migrator t=2026-02-14T13:17:52.442938525Z level=info msg="Migration successfully executed" id="Delete unique index for dashboard_org_id_folder_uid_title" duration=6.536µs
+logger=migrator t=2026-02-14T13:17:52.453830307Z level=info msg="Executing migration" id="Add unique index for dashboard_org_id_folder_uid_title_is_folder"
+logger=migrator t=2026-02-14T13:17:52.454317346Z level=info msg="Migration successfully executed" id="Add unique index for dashboard_org_id_folder_uid_title_is_folder" duration=486.674µs
+logger=migrator t=2026-02-14T13:17:52.465655432Z level=info msg="Executing migration" id="Restore index for dashboard_org_id_folder_id_title"
+logger=migrator t=2026-02-14T13:17:52.466102846Z level=info msg="Migration successfully executed" id="Restore index for dashboard_org_id_folder_id_title" duration=447.465µs
+logger=migrator t=2026-02-14T13:17:52.477683523Z level=info msg="Executing migration" id="create sso_setting table"
+logger=migrator t=2026-02-14T13:17:52.478109204Z level=info msg="Migration successfully executed" id="create sso_setting table" duration=425.449µs
+logger=migrator t=2026-02-14T13:17:52.489971235Z level=info msg="Executing migration" id="copy kvstore migration status to each org"
+logger=migrator t=2026-02-14T13:17:52.49029181Z level=info msg="Migration successfully executed" id="copy kvstore migration status to each org" duration=320.921µs
+logger=migrator t=2026-02-14T13:17:52.501778182Z level=info msg="Executing migration" id="add back entry for orgid=0 migrated status"
+logger=migrator t=2026-02-14T13:17:52.501886888Z level=info msg="Migration successfully executed" id="add back entry for orgid=0 migrated status" duration=109.138µs
+logger=migrator t=2026-02-14T13:17:52.512840015Z level=info msg="Executing migration" id="managed dashboard permissions annotation actions migration"
+logger=migrator t=2026-02-14T13:17:52.513106588Z level=info msg="Migration successfully executed" id="managed dashboard permissions annotation actions migration" duration=266.377µs
+logger=migrator t=2026-02-14T13:17:52.524263988Z level=info msg="Executing migration" id="create cloud_migration table v1"
+logger=migrator t=2026-02-14T13:17:52.524637035Z level=info msg="Migration successfully executed" id="create cloud_migration table v1" duration=372.714µs
+logger=migrator t=2026-02-14T13:17:52.536305521Z level=info msg="Executing migration" id="create cloud_migration_run table v1"
+logger=migrator t=2026-02-14T13:17:52.536853863Z level=info msg="Migration successfully executed" id="create cloud_migration_run table v1" duration=547.789µs
+logger=migrator t=2026-02-14T13:17:52.548913486Z level=info msg="Executing migration" id="add stack_id column"
+logger=migrator t=2026-02-14T13:17:52.551644806Z level=info msg="Migration successfully executed" id="add stack_id column" duration=2.730384ms
+logger=migrator t=2026-02-14T13:17:52.563103586Z level=info msg="Executing migration" id="add region_slug column"
+logger=migrator t=2026-02-14T13:17:52.565924245Z level=info msg="Migration successfully executed" id="add region_slug column" duration=2.820318ms
+logger=migrator t=2026-02-14T13:17:52.577441975Z level=info msg="Executing migration" id="add cluster_slug column"
+logger=migrator t=2026-02-14T13:17:52.580116108Z level=info msg="Migration successfully executed" id="add cluster_slug column" duration=2.674881ms
+logger=migrator t=2026-02-14T13:17:52.591366278Z level=info msg="Executing migration" id="add migration uid column"
+logger=migrator t=2026-02-14T13:17:52.594020453Z level=info msg="Migration successfully executed" id="add migration uid column" duration=2.653982ms
+logger=migrator t=2026-02-14T13:17:52.605408411Z level=info msg="Executing migration" id="Update uid column values for migration"
+logger=migrator t=2026-02-14T13:17:52.605505317Z level=info msg="Migration successfully executed" id="Update uid column values for migration" duration=97.198µs
+logger=migrator t=2026-02-14T13:17:52.616815919Z level=info msg="Executing migration" id="Add unique index migration_uid"
+logger=migrator t=2026-02-14T13:17:52.617282231Z level=info msg="Migration successfully executed" id="Add unique index migration_uid" duration=466.762µs
+logger=migrator t=2026-02-14T13:17:52.629385145Z level=info msg="Executing migration" id="add migration run uid column"
+logger=migrator t=2026-02-14T13:17:52.632129239Z level=info msg="Migration successfully executed" id="add migration run uid column" duration=2.74375ms
+logger=migrator t=2026-02-14T13:17:52.643655445Z level=info msg="Executing migration" id="Update uid column values for migration run"
+logger=migrator t=2026-02-14T13:17:52.643728065Z level=info msg="Migration successfully executed" id="Update uid column values for migration run" duration=72.83µs
+logger=migrator t=2026-02-14T13:17:52.654602916Z level=info msg="Executing migration" id="Add unique index migration_run_uid"
+logger=migrator t=2026-02-14T13:17:52.655100461Z level=info msg="Migration successfully executed" id="Add unique index migration_run_uid" duration=497.605µs
+logger=migrator t=2026-02-14T13:17:52.667525203Z level=info msg="Executing migration" id="alter kv_store.value to longtext"
+logger=migrator t=2026-02-14T13:17:52.66757855Z level=info msg="Migration successfully executed" id="alter kv_store.value to longtext" duration=52.787µs
+logger=migrator t=2026-02-14T13:17:52.678784973Z level=info msg="Executing migration" id="add notification_settings column to alert_rule table"
+logger=migrator t=2026-02-14T13:17:52.681536619Z level=info msg="Migration successfully executed" id="add notification_settings column to alert_rule table" duration=2.751619ms
+logger=migrator t=2026-02-14T13:17:52.692817509Z level=info msg="Executing migration" id="add notification_settings column to alert_rule_version table"
+logger=migrator t=2026-02-14T13:17:52.695700037Z level=info msg="Migration successfully executed" id="add notification_settings column to alert_rule_version table" duration=2.881595ms
+logger=migrator t=2026-02-14T13:17:52.7073901Z level=info msg="Executing migration" id="removing scope from alert.instances:read action migration"
+logger=migrator t=2026-02-14T13:17:52.707547589Z level=info msg="Migration successfully executed" id="removing scope from alert.instances:read action migration" duration=157.875µs
+logger=migrator t=2026-02-14T13:17:52.718663348Z level=info msg="Executing migration" id="managed folder permissions alerting silences actions migration"
+logger=migrator t=2026-02-14T13:17:52.718754355Z level=info msg="Migration successfully executed" id="managed folder permissions alerting silences actions migration" duration=91.223µs
+logger=migrator t=2026-02-14T13:17:52.729793924Z level=info msg="Executing migration" id="add record column to alert_rule table"
+logger=migrator t=2026-02-14T13:17:52.732498116Z level=info msg="Migration successfully executed" id="add record column to alert_rule table" duration=2.702558ms
+logger=migrator t=2026-02-14T13:17:52.744291219Z level=info msg="Executing migration" id="add record column to alert_rule_version table"
+logger=migrator t=2026-02-14T13:17:52.746985517Z level=info msg="Migration successfully executed" id="add record column to alert_rule_version table" duration=2.694141ms
+logger=migrator t=2026-02-14T13:17:52.758391545Z level=info msg="migrations completed" performed=572 skipped=0 duration=7.226379104s
+logger=migrator t=2026-02-14T13:17:52.758617473Z level=info msg="Unlocking database"
+logger=sqlstore t=2026-02-14T13:17:52.764151537Z level=info msg="Created default admin" user=admin
+logger=sqlstore t=2026-02-14T13:17:52.764254851Z level=info msg="Created default organization"
+logger=secrets t=2026-02-14T13:17:52.777837644Z level=info msg="Envelope encryption state" enabled=true currentprovider=secretKey.v1
+logger=plugin.angulardetectorsprovider.dynamic t=2026-02-14T13:17:52.796162353Z level=info msg="Restored cache from database" duration=219.635µs
+logger=plugin.store t=2026-02-14T13:17:52.797180121Z level=info msg="Loading plugins..."
+logger=plugins.registration t=2026-02-14T13:17:52.814115979Z level=error msg="Could not register plugin" pluginId=xychart error="plugin xychart is already registered"
+logger=plugins.initialization t=2026-02-14T13:17:52.814124061Z level=error msg="Could not initialize plugin" pluginId=xychart error="plugin xychart is already registered"
+logger=local.finder t=2026-02-14T13:17:52.814148743Z level=warn msg="Skipping finding plugins as directory does not exist" path=/usr/share/grafana/plugins-bundled
+logger=plugin.store t=2026-02-14T13:17:52.814153913Z level=info msg="Plugins loaded" count=54 duration=16.974198ms
+logger=query_data t=2026-02-14T13:17:52.816044216Z level=info msg="Query Service initialization"
+logger=live.push_http t=2026-02-14T13:17:52.817847499Z level=info msg="Live Push Gateway initialization"
+logger=ngalert.notifier.alertmanager org=1 t=2026-02-14T13:17:52.820500285Z level=info msg="Applying new configuration to Alertmanager" configHash=d2c56faca6af2a5772ff4253222f7386
+logger=ngalert.state.manager t=2026-02-14T13:17:52.833847345Z level=info msg="Running in alternative execution of Error/NoData mode"
+logger=infra.usagestats.collector t=2026-02-14T13:17:52.83474131Z level=info msg="registering usage stat providers" usageStatsProvidersLen=2
+logger=provisioning.datasources t=2026-02-14T13:17:52.835526411Z level=info msg="inserting datasource from configuration" name=Loki uid=P8E80F9AEF21F6940
+logger=settings t=2026-02-14T13:17:52.836253335Z level=info msg="Config overridden from Environment variable" var="GF_SECURITY_SECRET_KEY=*********"
+logger=provisioning.datasources t=2026-02-14T13:17:52.857166133Z level=info msg="inserting datasource from configuration" name=Prometheus uid=PBFA97CFB590B2093
+logger=settings t=2026-02-14T13:17:52.857916696Z level=info msg="Config overridden from Environment variable" var="GF_SECURITY_SECRET_KEY=*********"
+logger=provisioning.plugins t=2026-02-14T13:17:52.876086543Z level=error msg="Failed to read plugin provisioning files from directory" path=/etc/grafana/provisioning/plugins error="open /etc/grafana/provisioning/plugins: no such file or directory"
+logger=provisioning.alerting t=2026-02-14T13:17:52.876105463Z level=error msg="can't read alerting provisioning files from directory" path=/etc/grafana/provisioning/alerting error="open /etc/grafana/provisioning/alerting: no such file or directory"
+logger=provisioning.alerting t=2026-02-14T13:17:52.876108078Z level=info msg="starting to provision alerting"
+logger=provisioning.alerting t=2026-02-14T13:17:52.876111296Z level=info msg="finished to provision alerting"
+logger=grafanaStorageLogger t=2026-02-14T13:17:52.876351657Z level=info msg="Storage starting"
+logger=ngalert.state.manager t=2026-02-14T13:17:52.876422037Z level=info msg="Warming state cache for startup"
+logger=ngalert.multiorg.alertmanager t=2026-02-14T13:17:52.876521055Z level=info msg="Starting MultiOrg Alertmanager"
+logger=provisioning.dashboard t=2026-02-14T13:17:52.876667211Z level=info msg="starting to provision dashboards"
+logger=http.server t=2026-02-14T13:17:52.877450642Z level=info msg="HTTP Server Listen" address=[::]:3000 protocol=http subUrl= socket=
+logger=settings t=2026-02-14T13:17:52.892971184Z level=info msg="Config overridden from Environment variable" var="GF_SECURITY_SECRET_KEY=*********"
+logger=settings t=2026-02-14T13:17:52.917312643Z level=info msg="Config overridden from Environment variable" var="GF_SECURITY_SECRET_KEY=*********"
+logger=sqlstore.transactions t=2026-02-14T13:17:52.930528981Z level=info msg="Database locked, sleeping then retrying" error="database is locked" retry=0 code="database is locked"
+logger=plugins.update.checker t=2026-02-14T13:17:52.956275377Z level=info msg="Update check succeeded" duration=79.842054ms
+logger=grafana.update.checker t=2026-02-14T13:17:52.956684343Z level=info msg="Update check succeeded" duration=80.241543ms
+logger=ngalert.state.manager t=2026-02-14T13:17:52.956923252Z level=info msg="State cache has been initialized" states=0 duration=80.500024ms
+logger=ngalert.scheduler t=2026-02-14T13:17:52.95694352Z level=info msg="Starting scheduler" tickInterval=10s maxAttempts=1
+logger=ticker t=2026-02-14T13:17:52.956976665Z level=info msg=starting first_tick=2026-02-14T13:18:00Z
+logger=plugin.angulardetectorsprovider.dynamic t=2026-02-14T13:17:53.06167538Z level=info msg="Patterns update finished" duration=141.928236ms
+logger=grafana-apiserver t=2026-02-14T13:17:53.092871944Z level=info msg="Adding GroupVersion playlist.grafana.app v0alpha1 to ResourceManager"
+logger=grafana-apiserver t=2026-02-14T13:17:53.09328926Z level=info msg="Adding GroupVersion featuretoggle.grafana.app v0alpha1 to ResourceManager"
+logger=provisioning.dashboard t=2026-02-14T13:17:53.264779822Z level=info msg="finished to provision dashboards"

@@ -1,0 +1,265 @@
+{
+  "run": "melissa-queue-20260220T022153Z",
+  "total": 28,
+  "continue_on_fail": true,
+  "items": [
+    {
+      "idx": 1,
+      "id": "FIX:alloy_positions_storage",
+      "type": "fix_config",
+      "target": "infra/logging/docker-compose.observability.yml",
+      "status": "done",
+      "attempt": 1,
+      "notes": "alloy_storage_path_set",
+      "started_at": "2026-02-20T02:21:54Z",
+      "ended_at": "2026-02-20T02:21:54Z"
+    },
+    {
+      "idx": 2,
+      "id": "FIX:journald_mounts",
+      "type": "fix_config",
+      "target": "infra/logging/docker-compose.observability.yml",
+      "status": "done",
+      "attempt": 1,
+      "notes": "journald_mounts_added",
+      "started_at": "2026-02-20T02:21:54Z",
+      "ended_at": "2026-02-20T02:21:54Z"
+    },
+    {
+      "idx": 3,
+      "id": "FIX:grafana_alert_timing",
+      "type": "fix_config",
+      "target": "infra/logging/grafana/provisioning/alerting/logging-pipeline-rules.yml",
+      "status": "done",
+      "attempt": 1,
+      "notes": "alert_timing_hardened",
+      "started_at": "2026-02-20T02:21:54Z",
+      "ended_at": "2026-02-20T02:21:54Z"
+    },
+    {
+      "idx": 4,
+      "id": "FIX:prom_dead_rules_replace",
+      "type": "fix_config",
+      "target": "infra/logging/prometheus/rules/loki_logging_rules.yml",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 5,
+      "id": "FIX:loki_port_bind_local",
+      "type": "fix_runtime",
+      "target": "infra/logging/docker-compose.observability.yml",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 6,
+      "id": "FIX:grafana_metrics_scrape",
+      "type": "fix_config",
+      "target": "infra/logging/prometheus/prometheus.yml",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 7,
+      "id": "ADD:backup_script",
+      "type": "script_add",
+      "target": "infra/logging/scripts/backup_volumes.sh",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 8,
+      "id": "ADD:restore_script",
+      "type": "script_add",
+      "target": "infra/logging/scripts/restore_volumes.sh",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 9,
+      "id": "FIX:resource_limits_alloy_health",
+      "type": "fix_config",
+      "target": "infra/logging/docker-compose.observability.yml",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 10,
+      "id": "SRC:codeswarm_mcp",
+      "type": "dashboard_tune",
+      "target": "infra/logging/grafana/dashboards/sources/codeswarm-src-codeswarm_mcp.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 11,
+      "id": "SRC:codex_tui",
+      "type": "dashboard_tune",
+      "target": "infra/logging/grafana/dashboards/sources/codeswarm-src-codex_tui.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 12,
+      "id": "SRC:docker",
+      "type": "dashboard_tune",
+      "target": "infra/logging/grafana/dashboards/sources/codeswarm-src-docker.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 13,
+      "id": "SRC:gpu_telemetry",
+      "type": "dashboard_tune",
+      "target": "infra/logging/grafana/dashboards/sources/codeswarm-src-gpu_telemetry.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 14,
+      "id": "SRC:rsyslog_syslog",
+      "type": "dashboard_tune",
+      "target": "infra/logging/grafana/dashboards/sources/codeswarm-src-rsyslog_syslog.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 15,
+      "id": "SRC:telemetry",
+      "type": "dashboard_tune",
+      "target": "infra/logging/grafana/dashboards/sources/codeswarm-src-telemetry.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 16,
+      "id": "SRC:vscode_server",
+      "type": "dashboard_tune",
+      "target": "infra/logging/grafana/dashboards/sources/codeswarm-src-vscode_server.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 17,
+      "id": "AUDIT:per_dashboard_breakdown",
+      "type": "audit_verify",
+      "target": "infra/logging/scripts/dashboard_query_audit.sh",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 18,
+      "id": "VERIFY:parity_checks",
+      "type": "audit_verify",
+      "target": "infra/logging/scripts/verify_grafana_authority.sh",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 19,
+      "id": "VERIFY:adoption_checks",
+      "type": "audit_verify",
+      "target": "infra/logging/scripts/verify_grafana_authority.sh",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 20,
+      "id": "DOC:editing_policy",
+      "type": "doc_update",
+      "target": "infra/logging/RUNBOOK.md",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 21,
+      "id": "DOC:adoption_policy",
+      "type": "doc_update",
+      "target": "infra/logging/RUNBOOK.md",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 22,
+      "id": "DOC:label_contract_expected_empty",
+      "type": "doc_update",
+      "target": "infra/logging/RUNBOOK.md",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 23,
+      "id": "VERIFY:loki_binding_local",
+      "type": "verify",
+      "target": "infra/logging/docker-compose.observability.yml",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 24,
+      "id": "VERIFY:prom_rule_metric_live",
+      "type": "verify",
+      "target": "infra/logging/prometheus/rules/loki_logging_rules.yml",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 25,
+      "id": "VERIFY:queue_state_integrity",
+      "type": "verify",
+      "target": "_build/melissa/queue.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 26,
+      "id": "VERIFY:endpoint_health_snapshot",
+      "type": "verify",
+      "target": "_build/melissa/runtime.log",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 27,
+      "id": "VERIFY:audit_gate_snapshot",
+      "type": "verify",
+      "target": "_build/logging/dashboard_audit_latest.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    },
+    {
+      "idx": 28,
+      "id": "VERIFY:verifier_gate_snapshot",
+      "type": "verify",
+      "target": "_build/logging/verify_grafana_authority_latest.json",
+      "status": "pending",
+      "attempt": 0,
+      "notes": ""
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+total 12
+drwxr-xr-x    2 1000     1000          4096 Feb 12 11:32 .
+drwxr-xr-x    4 1000     1000          4096 Feb 12 11:32 ..
+-rw-r--r--    1 1000     1000           159 Feb 12 11:32 dashboards.yml
+total 16
+drwxr-xr-x    2 1000     1000          4096 Feb 12 11:32 .
+drwxr-xr-x    4 1000     1000          4096 Feb 12 11:32 ..
+-rw-r--r--    1 1000     1000           121 Feb 12 11:32 loki.yml
+-rw-r--r--    1 1000     1000           119 Feb 12 11:32 prometheus.yml
