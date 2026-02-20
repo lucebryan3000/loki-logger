@@ -1,0 +1,8 @@
+# State Report — Grafana as Authority (20260217T114958Z)
+- grafana_ok: yes (evidence: curl -u admin:*** /api/health => ok)
+- loki_ok: yes (evidence: curl -fsS http://127.0.0.1:3200/ready => yes)
+- prom_ok: yes (evidence: curl -fsS http://127.0.0.1:9004/-/healthy => yes)
+- dashboards_present: yes (evidence: curl -u admin:*** /api/search => pipeline-health, host-container-overview)
+- rules_present: yes (evidence: curl -u admin:*** /api/ruler/grafana/api/v1/rules => required UIDs present)
+- provisioning_evidence: api (evidence: curl -u admin:*** /api/ruler/grafana/api/v1/rules => provenance=file check)
+- timer_enabled: yes (evidence: systemctl is-enabled logging-e2e-check.timer => yes)
