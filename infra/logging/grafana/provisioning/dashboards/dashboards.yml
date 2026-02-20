@@ -3,7 +3,7 @@ providers:
   - name: 'default'
     type: file
     updateIntervalSeconds: 30
-    disableDeletion: false
+    disableDeletion: true
     allowUiUpdates: true
     editable: true
     folder: CodeSwarm

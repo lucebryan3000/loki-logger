@@ -40,7 +40,7 @@ groups:
                   reducer:
                     type: last
                   type: query
-        noDataState: Alerting
+        noDataState: OK
         execErrState: Alerting
         for: 2m
         labels:
