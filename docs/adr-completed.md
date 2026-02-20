@@ -3611,3 +3611,23 @@ The following early ADR entries were written as "Open" but have since been resol
     - completion_basis: `melissa_queue_consolidated`
     - evidence_note: Consolidated all 28 tasks into /docs/adr.md with 4-tier priority; archived artifacts to /_DELETE/melissa-artifacts-archived/; Commit 3ee31de
 
+
+---
+
+## Phase 4: Melissa Queue Execution — Completed Items (2026-02-20)
+
+36. `Melissa Item 1: FIX:alloy_positions_storage` — **Alloy storage path configuration** (severity: `MEDIUM`)
+    - completion_basis: `alloy_storage_path_set`
+    - evidence_note: Volume mount and storage.path aligned in docker-compose.observability.yml
+    - target: infra/logging/docker-compose.observability.yml
+
+37. `Melissa Item 2: FIX:journald_mounts` — **Journald mount configuration** (severity: `MEDIUM`)
+    - completion_basis: `journald_mounts_added`
+    - evidence_note: Journal mounts added to Alloy container in compose
+    - target: infra/logging/docker-compose.observability.yml
+
+38. `Melissa Item 3: FIX:grafana_alert_timing` — **Grafana alert timing hardening** (severity: `MEDIUM`)
+    - completion_basis: `alert_timing_hardened`
+    - evidence_note: Alert `for:` and `noDataState` configuration updated in provisioning rules
+    - target: infra/logging/grafana/provisioning/alerting/logging-pipeline-rules.yml
+
