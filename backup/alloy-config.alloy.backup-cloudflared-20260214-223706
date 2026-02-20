@@ -1,0 +1,355 @@
+logging {
+  level = "info"
+}
+
+discovery.docker "all" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_filtered" {
+  targets = discovery.docker.all.targets
+
+  // Keep only selected compose projects (bounded allowlist):
+  // - vllm (includes codeswarm-mcp)
+  // - hex  (includes hex-atlas-*)
+  rule {
+    action        = "keep"
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    regex         = "^(vllm|hex)$"
+  }
+
+  // Explicitly drop the logging stack even if keep rules are expanded later.
+  rule {
+    action        = "drop"
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    regex         = "^logging$"
+  }
+
+  // --- label schema (Sprint-3 Phase 2) ---
+  // Stable low-cardinality labels derived from compose metadata.
+  // stack = compose project (vllm|hex)
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    target_label  = "stack"
+  }
+
+  // service = compose service (bounded by compose)
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+
+  // source_type = docker (constant)
+  rule {
+    action        = "replace"
+    source_labels = ["__address__"]
+    target_label  = "source_type"
+    regex         = ".*"
+    replacement   = "docker"
+  }
+  // --- end label schema ---
+
+}
+
+
+loki.source.docker "dockerlogs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.docker_filtered.output
+  forward_to = [loki.process.main.receiver]
+}
+
+// journald -> Loki (optional)
+loki.source.journal "journald" {
+  forward_to = [loki.process.main.receiver]
+}
+
+// tool sink
+local.file_match "tool_sink" {
+  path_targets = [{ "__path__" = "/host/home/luce/_logs/*.log" }]
+}
+loki.source.file "tool_sink" {
+  targets       = local.file_match.tool_sink.targets
+  tail_from_end = true
+  forward_to    = [loki.process.main.receiver]
+}
+
+// telemetry
+local.file_match "telemetry" {
+  path_targets = [{ "__path__" = "/host/home/luce/_telemetry/*.jsonl" }]
+}
+loki.source.file "telemetry" {
+  targets       = local.file_match.telemetry.targets
+  tail_from_end = true
+  forward_to    = [loki.process.main.receiver]
+}
+
+// --- NVIDIA telemetry-as-logs (Sprint-3 Phase 4a) ---
+local.file_match "nvidia_telem" {
+  path_targets = [
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/raw-30s.jsonl" },
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/raw-60s.jsonl" },
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/proc-5m.jsonl" },
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/health-15m.jsonl" },
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/alerts.jsonl" },
+    { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/burst/*.jsonl" },
+  ]
+}
+
+loki.source.file "nvidia_telem" {
+  targets       = local.file_match.nvidia_telem.targets
+  tail_from_end = true
+  forward_to    = [loki.process.nvidia_telem.receiver]
+}
+
+loki.process "nvidia_telem" {
+  stage.static_labels {
+    values = {
+      env         = "sandbox",
+      stack       = "vllm",
+      service     = "vllm",
+      source_type = "file",
+      log_source  = "nvidia_telem",
+      telemetry_tier = "raw30",
+    }
+  }
+
+  // --- redaction (phase 7b remediation) ---
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+  // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end NVIDIA telemetry-as-logs ---
+
+
+// CodeSwarm MCP logs (vLLM host bind)
+local.file_match "codeswarm_mcp" {
+  path_targets = [{ "__path__" = "/host/home/luce/apps/vLLM/_data/mcp-logs/*.log" }]
+}
+
+
+loki.source.file "codeswarm_mcp" {
+  targets       = local.file_match.codeswarm_mcp.targets
+  tail_from_end = true
+  forward_to    = [loki.process.codeswarm.receiver]
+}
+
+// --- VS Code Server logs ---
+local.file_match "vscode_server" {
+  path_targets = [
+    { "__path__" = "/host/home/luce/.vscode-server/**/*.log" },
+    { "__path__" = "/host/home/luce/.vscode-server/**/log.txt" },
+  ]
+}
+
+loki.source.file "vscode_server" {
+  targets       = local.file_match.vscode_server.targets
+  tail_from_end = true
+  forward_to    = [loki.process.vscode.receiver]
+}
+// --- end VS Code Server logs ---
+
+// --- Homebrew package manager logs ---
+local.file_match "homebrew" {
+  path_targets = [{ "__path__" = "/host/home/luce/.cache/Homebrew/Logs/**/*.{log,out}" }]
+}
+
+loki.source.file "homebrew" {
+  targets        = local.file_match.homebrew.targets
+  tail_from_end  = true
+  forward_to     = [loki.process.homebrew.receiver]
+}
+// --- end Homebrew package manager logs ---
+
+// --- Samba SMB/CIFS logs ---
+local.file_match "samba" {
+  path_targets = [
+    { "__path__" = "/host/var/log/samba/log.smbd" },
+    { "__path__" = "/host/var/log/samba/log.nmbd" },
+    { "__path__" = "/host/var/log/samba/log.rpcd_*" },
+    { "__path__" = "/host/var/log/samba/log.samba-dcerpcd" },
+  ]
+}
+
+loki.source.file "samba" {
+  targets       = local.file_match.samba.targets
+  tail_from_end = true
+  forward_to    = [loki.process.samba.receiver]
+}
+// --- end Samba SMB/CIFS logs ---
+
+ loki.process "main" {
+  stage.static_labels {
+    values = {
+      env = "sandbox",
+    }
+  }
+
+  // --- redaction (Sprint-3 Phase 1) ---
+  // Fake-secret patterns only; prevent credentials from being stored in Loki.
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+  // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
+
+}
+
+loki.process "codeswarm" {
+  stage.static_labels {
+    values = {
+      env        = "sandbox",
+      log_source = "codeswarm_mcp",
+    }
+  }
+
+  // --- safe JSON parsing (Sprint-3 Phase 3) ---
+  // Parse JSON lines; do not drop malformed lines.
+  stage.json {
+    expressions = {
+      mcp_kind  = "kind",
+      mcp_tool  = "tool",
+      mcp_level = "level",
+    }
+  }
+
+  // Promote only bounded fields to labels (selected via live probe; <=20 unique values).
+  stage.labels {
+    values = {
+      mcp_kind  = "mcp_kind",
+      mcp_tool  = "mcp_tool",
+      mcp_level = "mcp_level",
+    }
+  }
+  // --- end safe JSON parsing ---
+
+  // --- redaction (Sprint-3 Phase 1) ---
+  // Fake-secret patterns only; prevent credentials from being stored in Loki.
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+  // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
+}
+
+// --- Homebrew processor ---
+loki.process "homebrew" {
+  stage.static_labels {
+    values = {
+      env        = "sandbox",
+      log_source = "homebrew",
+    }
+  }
+
+  // Redaction — canonical patterns
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end Homebrew processor ---
+
+// --- VS Code Server processor ---
+loki.process "vscode" {
+  stage.static_labels {
+    values = {
+      env        = "sandbox",
+      log_source = "vscode_server",
+    }
+  }
+
+  // Redaction — same patterns as main/codeswarm processors
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end VS Code Server processor ---
+
+// --- Samba SMB/CIFS processor ---
+loki.process "samba" {
+  stage.static_labels {
+    values = {
+      env        = "sandbox",
+      log_source = "samba",
+    }
+  }
+
+  // --- redaction (Sprint-3 Phase 1) ---
+  // Fake-secret patterns only; prevent credentials from being stored in Loki.
+  stage.replace {
+    expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bcookie\\s*[:=]\\s*([^;\\s\\r\\n]+)"
+    replace    = "[REDACTED]"
+  }
+  stage.replace {
+    expression = "(?i)\\bapi[_-]?key\\s*[:=]\\s*([A-Za-z0-9._~-]+)"
+    replace    = "[REDACTED]"
+  }
+  // --- end redaction ---
+
+  forward_to = [loki.write.default.receiver]
+}
+// --- end Samba SMB/CIFS processor ---
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
