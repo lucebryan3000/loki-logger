@@ -330,16 +330,42 @@ loki.source.file "host_apt_history" {
       values = {
         syslog_channel  = "ufw",
         security_domain = "firewall",
+        service_name    = "ufw",
+      }
+    }
+  }
+
+  // PAM authentication events (sudo and cron)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"pam_unix.*sudo\""
+    stage.static_labels {
+      values = {
+        syslog_channel  = "auth",
+        security_domain = "auth",
+        service_name    = "sudo",
       }
     }
   }
 
   stage.match {
-    selector = "{source_type=\"syslog\"} |~ \"(?i)(pam_unix|sshd|sudo:|authentication failure|session opened for user|session closed for user)\""
+    selector = "{source_type=\"syslog\"} |~ \"pam_unix.*cron\""
     stage.static_labels {
       values = {
         syslog_channel  = "auth",
         security_domain = "auth",
+        service_name    = "cron",
+      }
+    }
+  }
+
+  // SSH authentication and generic auth
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(sshd|authentication failure|session opened for user|session closed for user)\""
+    stage.static_labels {
+      values = {
+        syslog_channel  = "auth",
+        security_domain = "auth",
+        service_name    = "sshd",
       }
     }
   }
@@ -405,6 +431,16 @@ loki.source.file "host_apt_history" {
 
   // --- Service name attribution (Sprint-4 Phase 1) ---
   // Extract service names from syslog to reduce unknown_service volume.
+
+  // Internal daemon cycle markers (loki_ops orchestration)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"DAEMON_CYCLE\""
+    stage.static_labels {
+      values = {
+        service_name = "loki_ops",
+      }
+    }
+  }
 
   // Kernel and core system processes
   stage.match {
