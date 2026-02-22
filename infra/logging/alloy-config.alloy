@@ -309,6 +309,20 @@ loki.source.file "host_apt_history" {
     }
   }
 
+  // Drop package manager noise (apt, dpkg, update-notifier, unattended-upgrades).
+  // These are low-value automated events that clutter error dashboards.
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(apt:|dpkg:|packagekit:|unattended-upgrade|update-notifier|apt-get|Unpacking |Setting up |Processing triggers|^Finished update-notifier)\""
+    stage.static_labels {
+      values = {
+        noise_class = "package_manager",
+      }
+    }
+    stage.drop {
+      expression = ".*"
+    }
+  }
+
   // syslog channel tagging for better security triage in Grafana/Loki.
   stage.match {
     selector = "{source_type=\"syslog\"} |~ \"(?i)ufw\""
@@ -389,7 +403,47 @@ loki.source.file "host_apt_history" {
     }
   }
 
+  // --- Service name attribution (Sprint-4 Phase 1) ---
+  // Extract service names from syslog to reduce unknown_service volume.
+
+  // Kernel and core system processes
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)^(kernel|systemd|init|systemd-logind)\""
+    stage.regex {
+      expression = "^(?P<core_service>kernel|systemd|init|systemd-logind)"
+    }
+    stage.labels {
+      values = {
+        service_name = "core_service",
+      }
+    }
+  }
+
+  // System daemons (process[PID]: pattern)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"[a-z0-9_-]+\\\\[\\\\d+\\\\]:\""
+    stage.regex {
+      expression = "^(?P<daemon_service>[a-z0-9_-]+)\\[\\d+\\]:"
+    }
+    stage.labels {
+      values = {
+        service_name = "daemon_service",
+      }
+    }
+  }
+
+  // Cron scheduler jobs
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"CRON\\\\[\" "
+    stage.static_labels {
+      values = {
+        service_name = "cron",
+      }
+    }
+  }
+
   // Improve service attribution for syslog lines that include systemd unit names.
+  // (This runs last, so .service extraction takes precedence over generic daemon match)
   stage.match {
     selector = "{source_type=\"syslog\"} |~ \"[A-Za-z0-9_.@-]+[.]service\""
     stage.regex {
