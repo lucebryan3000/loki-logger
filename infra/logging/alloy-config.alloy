@@ -408,9 +408,9 @@ loki.source.file "host_apt_history" {
 
   // Kernel and core system processes
   stage.match {
-    selector = "{source_type=\"syslog\"} |~ \"(?i)^(kernel|systemd|init|systemd-logind)\""
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(kernel|systemd|init|systemd-logind)\""
     stage.regex {
-      expression = "^(?P<core_service>kernel|systemd|init|systemd-logind)"
+      expression = "(?P<core_service>kernel|systemd|init|systemd-logind)"
     }
     stage.labels {
       values = {
@@ -423,7 +423,7 @@ loki.source.file "host_apt_history" {
   stage.match {
     selector = "{source_type=\"syslog\"} |~ \"[a-z0-9_-]+\\\\[\\\\d+\\\\]:\""
     stage.regex {
-      expression = "^(?P<daemon_service>[a-z0-9_-]+)\\[\\d+\\]:"
+      expression = "(?P<daemon_service>[a-z0-9_-]+)\\[\\d+\\]:"
     }
     stage.labels {
       values = {
