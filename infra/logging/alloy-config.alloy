@@ -370,6 +370,26 @@ loki.source.file "host_apt_history" {
     }
   }
 
+  // rsyslog daemon action messages
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"action.*omfwd\""
+    stage.static_labels {
+      values = {
+        service_name = "rsyslog",
+      }
+    }
+  }
+
+  // Network interface state changes (kernel networking)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(renamed from|entered.*state|device|interface)\""
+    stage.static_labels {
+      values = {
+        service_name = "kernel",
+      }
+    }
+  }
+
   stage.match {
     selector = "{source_type=\"syslog\"} |~ \"(?i)(warn|warning|degraded|retry|backoff|throttl)\""
     stage.static_labels {
