@@ -588,6 +588,43 @@ loki.source.file "host_apt_history" {
   }
   // --- end redaction ---
 
+  // --- noise suppression (Sprint-4 Phase 2B) ---
+  // Drop low-value operational noise to improve dashboard signal-to-noise ratio.
+
+  // Suppress VSCode DEBUG/INFO messages (verbose extension logs not actionable)
+  stage.match {
+    selector = "{log_source=\"vscode_server\", level=~\"debug|info\"} "
+    stage.drop {
+      expression = ".*"
+    }
+  }
+
+  // Suppress DNS degraded feature warnings (systemd-resolved operational, expected)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"Using degraded feature set UDP\" "
+    stage.drop {
+      expression = ".*"
+    }
+  }
+
+  // Suppress Node.js trace-warnings (development noise, not production errors)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"trace-warnings\" "
+    stage.drop {
+      expression = ".*"
+    }
+  }
+
+  // Suppress package manager noise (apt auto-refresh, dpkg database operations)
+  stage.match {
+    selector = "{service_name=~\"apt|dpkg\"} |~ \"(?i)(auto-refresh|database lock|rebuilding|rebuilding database)\" "
+    stage.drop {
+      expression = ".*"
+    }
+  }
+
+  // --- end noise suppression ---
+
   forward_to = [loki.write.default.receiver]
 
 }
