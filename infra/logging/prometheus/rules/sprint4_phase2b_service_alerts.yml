@@ -1,0 +1,79 @@
+groups:
+  - name: sprint4_phase2b_service_alerts_v1
+    interval: 30s
+    rules:
+      # Service-specific alert rules for actionable errors identified in Phase 2B
+      # These complement generic infrastructure alerts with service-specific visibility
+
+      # --- Critical Service Failures ---
+      - alert: MCPServerRepeatedFailures
+        expr: >
+          sum(increase(loki_write_dropped_entries_total[10m])) > 0
+          or (count(count_over_time({service_name="mcp-server.service", level="error"}[5m])) > 5)
+        for: 2m
+        labels:
+          severity: critical
+          service: mcp-server
+          phase: 2b
+        annotations:
+          runbook_url: "docs/troubleshooting.md#mcp-server-failures"
+          summary: "MCP Server repeated failures detected"
+          description: "mcp-server.service has shown {{ $value }} failure events in the last 5 minutes"
+
+      - alert: E2ECheckServiceFailure
+        expr: count(count_over_time({service_name="logging-e2e-check.service", level="error"}[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+          service: logging-e2e-check
+          phase: 2b
+        annotations:
+          runbook_url: "docs/operations.md#e2e-checks"
+          summary: "Logging E2E check service failure"
+          description: "logging-e2e-check.service is reporting errors. Monitoring validation may be impacted."
+
+      # --- Security Event Monitoring ---
+      - alert: UnusualUFWBlockActivity
+        expr: >
+          sum(rate(loki_write_failures_discarded_total[5m])) > 0
+          or (sum(count_over_time({service_name="ufw", level="error"}[5m])) > 100)
+        for: 5m
+        labels:
+          severity: info
+          service: ufw
+          category: security
+          phase: 2b
+        annotations:
+          runbook_url: "docs/security.md#firewall-events"
+          summary: "Unusual firewall (UFW) block activity"
+          description: "UFW has blocked {{ $value }} connections in the last 5 minutes"
+
+      # --- Unknown Service Error Spike ---
+      - alert: UnknownServiceErrorSpike
+        expr: >
+          (sum(count_over_time({service_name="unknown_service", level="error"}[5m]))
+           / (sum(count_over_time({service_name="unknown_service"}[30m])) / 6 + 1)) > 2
+        for: 3m
+        labels:
+          severity: info
+          service: unknown_service
+          phase: 2b
+        annotations:
+          runbook_url: "docs/troubleshooting.md#unknown-service-errors"
+          summary: "Error rate spike in unknown_service entries"
+          description: "unknown_service error rate has more than doubled in the last 5 minutes. Investigate service_name extraction coverage."
+
+      # --- Recording Rules for Dashboard Queries ---
+      - record: sprint4:mcp_server_errors:rate5m
+        expr: rate(count_over_time({service_name="mcp-server.service", level="error"}[5m])[5m:1m])
+
+      - record: sprint4:e2e_check_errors:rate5m
+        expr: rate(count_over_time({service_name="logging-e2e-check.service", level="error"}[5m])[5m:1m])
+
+      - record: sprint4:security_events:total_5m
+        expr: sum(count_over_time({service_name=~"ufw|sudo|sshd|cron"}[5m]))
+
+      - record: sprint4:unknown_service_error_ratio:5m
+        expr: >
+          sum(count_over_time({service_name="unknown_service", level="error"}[5m]))
+          / (sum(count_over_time({service_name="unknown_service"}[5m])) + 1)
