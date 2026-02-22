@@ -454,10 +454,60 @@ loki.source.file "host_apt_history" {
 
   // Internal daemon cycle markers (loki_ops orchestration)
   stage.match {
-    selector = "{source_type=\"syslog\"} |~ \"DAEMON_CYCLE\""
+    selector = "{source_type=\"syslog\"} |~ \"DAEMON_CYCLE\" "
     stage.static_labels {
       values = {
         service_name = "loki_ops",
+      }
+    }
+  }
+
+  // Daemon startup/shutdown events (loki_ops lifecycle)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"DAEMON_START\" "
+    stage.static_labels {
+      values = {
+        service_name = "loki_ops",
+      }
+    }
+  }
+
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"DAEMON_STOP\" "
+    stage.static_labels {
+      values = {
+        service_name = "loki_ops",
+      }
+    }
+  }
+
+  // MCP server startup/runtime (codeswarm-mcp)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)\\\\[MCP\\\\]|mcp.*server\" "
+    stage.static_labels {
+      values = {
+        service_name = "codeswarm-mcp",
+      }
+    }
+  }
+
+  // Cron job executions (root CMD - cron.hourly/daily/weekly/monthly)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"\\\\(root\\\\) CMD\" "
+    stage.static_labels {
+      values = {
+        service_name = "cron",
+      }
+    }
+  }
+
+  // Node.js errors (SyntaxError, Error:, stack traces)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)SyntaxError|Error:|at .*nodejs\" "
+    stage.static_labels {
+      values = {
+        service_name = "nodejs",
+        level        = "error",
       }
     }
   }
