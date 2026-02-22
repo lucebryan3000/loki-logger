@@ -442,6 +442,16 @@ loki.source.file "host_apt_history" {
     }
   }
 
+  // systemd-resolved DNS messages (no [PID] prefix)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)Using degraded feature set\""
+    stage.static_labels {
+      values = {
+        service_name = "systemd-resolved",
+      }
+    }
+  }
+
   // Improve service attribution for syslog lines that include systemd unit names.
   // (This runs last, so .service extraction takes precedence over generic daemon match)
   stage.match {
