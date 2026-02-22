@@ -164,24 +164,24 @@ Items worth doing now, ordered by value:
 
 ---
 
-### ADR-034: New Commits — Melissa Longrun Scripts
+### ADR-034: New Commits — Loki-Ops Longrun Scripts
 
-- **Context:** 3 new commits since session start (d185099, 4f97c2c, f205027) adding melissa runner scripts.
+- **Context:** 3 new commits since session start (d185099, 4f97c2c, f205027) adding loki-ops runner scripts.
 - **Files added:**
-  - `infra/logging/scripts/melissa_longrun.sh` (213 lines) — Orchestration loop for batch dashboard generation
-  - `infra/logging/scripts/melissa_batchlib.sh` (140 lines) — Shared library (logging, health gates, checkpoints)
-  - `_build/melissa/TRACKING.md` (26 lines) — Progress tracking
-  - `_build/melissa/batch_manifest.json` (15 lines) — Run configuration
+  - `infra/logging/scripts/loki_ops_longrun.sh` (213 lines) — Orchestration loop for batch dashboard generation
+  - `infra/logging/scripts/loki_ops_batchlib.sh` (140 lines) — Shared library (logging, health gates, checkpoints)
+  - `_build/loki-ops/TRACKING.md` (26 lines) — Progress tracking
+  - `_build/loki-ops/batch_manifest.json` (15 lines) — Run configuration
 - **Findings:**
   1. **Hardcoded `ROOT="/home/luce/apps/loki-logging"`** — Both scripts, line 4. Same issue as `add-log-source.sh` (ADR-021 §1). Severity: **MEDIUM**.
-  2. **Auto-commits to git** — `melissa_batchlib.sh:135`: `git commit -m "ops: melissa checkpoint..."`. Automated commits from a batch script without user confirmation. The allowlist filter (line 123) only permits `infra/logging/grafana/dashboards/sources/codeswarm-src-*.json` which is safe scoping, but automated commits are still a pattern worth noting. Severity: **LOW** (well-scoped).
-  3. **Loki queried on port 3200** — `melissa_longrun.sh:51`: `LOKIQR="http://127.0.0.1:3200/loki/api/v1/query_range"`. This confirms the Loki port 3200 exposure is actively relied upon by these scripts. Removing the port binding will break this script. Severity: **MEDIUM** (dependency on the config drift).
+  2. **Auto-commits to git** — `loki_ops_batchlib.sh:135`: `git commit -m "ops: loki-ops checkpoint..."`. Automated commits from a batch script without user confirmation. The allowlist filter (line 123) only permits `infra/logging/grafana/dashboards/sources/codeswarm-src-*.json` which is safe scoping, but automated commits are still a pattern worth noting. Severity: **LOW** (well-scoped).
+  3. **Loki queried on port 3200** — `loki_ops_longrun.sh:51`: `LOKIQR="http://127.0.0.1:3200/loki/api/v1/query_range"`. This confirms the Loki port 3200 exposure is actively relied upon by these scripts. Removing the port binding will break this script. Severity: **MEDIUM** (dependency on the config drift).
   4. **Scripts in `infra/logging/scripts/`** — Adds 2 more scripts to the already-fragmented script location. Now 7 scripts in `infra/logging/scripts/` (WD-09 §6 scope increased). Severity: **LOW**.
   5. **Drift detection pattern** — `scan_file_for_drift()` and `DRIFT_RE` regex are a good defensive pattern. Exit code 99 for drift. Severity: **PASS** (good practice).
   6. **`derive_grafana_pass()` reads password from container env** — Uses `docker inspect` to extract `GF_SECURITY_ADMIN_PASSWORD`. This is a correct approach for scripts that need to authenticate. Severity: **PASS**.
 
-- **Decision:** The Loki port 3200 dependency needs resolution before WD-01 can remove it. Either: (a) update melissa scripts to use the internal Docker network, or (b) keep a `127.0.0.1:3200` binding intentionally.
-- **Evidence:** `infra/logging/scripts/melissa_longrun.sh`, `infra/logging/scripts/melissa_batchlib.sh`
+- **Decision:** The Loki port 3200 dependency needs resolution before WD-01 can remove it. Either: (a) update loki-ops scripts to use the internal Docker network, or (b) keep a `127.0.0.1:3200` binding intentionally.
+- **Evidence:** `infra/logging/scripts/loki_ops_longrun.sh`, `infra/logging/scripts/loki_ops_batchlib.sh`
 
 ---
 
@@ -1968,9 +1968,9 @@ Observed count from 24h warn/error logs:
 
 **Window**: last 24h plus active 30m/5m slices  
 **Sources**:
-- `/tmp/melissa-logscan/logging-grafana-1.log`
-- `/tmp/melissa-logscan/logging-loki-1.log`
-- `/tmp/melissa-logscan/logging-alloy-1.log`
+- `/tmp/loki-ops-logscan/logging-grafana-1.log`
+- `/tmp/loki-ops-logscan/logging-loki-1.log`
+- `/tmp/loki-ops-logscan/logging-alloy-1.log`
 
 **Evidence counts**
 - Grafana 5m: `Error received from Loki=30`, `syntax error: unexpected IDENTIFIER=10`, `$__rate_interval=20`, `SMTP not configured=2`
@@ -2000,7 +2000,7 @@ This pass adds additional unique findings not previously captured as standalone 
    - `docker run --rm -v ... grafana/loki:<tag> -config.file=/etc/loki/loki-config.yml -verify-config=true` (or equivalent validation for this image)
    - `alloy validate` (or containerized config validation command) before restarting Alloy.
 2. Fail closed in automation: block restart if validation fails.
-3. Record validation output artifact in `_build/melissa/`.
+3. Record validation output artifact in `_build/loki-ops/`.
 
 ---
 

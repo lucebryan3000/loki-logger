@@ -1,7 +1,7 @@
 # ADR failure re-evaluation and remediation scope
 
 - generated_utc: 2026-02-18T18:11:14Z
-- source_run: melissa-candidates-20260218T180548Z
+- source_run: loki-ops-candidates-20260218T180548Z
 - failed_items: 18
 
 ## Decision legend

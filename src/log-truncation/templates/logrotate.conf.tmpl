@@ -62,6 +62,47 @@
     su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
 }
 
+# GPU telemetry CSV (nvidia-smi live polling)
+{{GPU_CSV_PATH}} {
+    {{GPU_CSV_FREQUENCY}}
+    rotate {{GPU_CSV_ROTATE_COUNT}}
+    maxsize {{GPU_CSV_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    dateext
+    dateformat -%Y%m%d
+    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+}
+
+# Codex TUI log
+{{CODEX_TUI_PATH}} {
+    {{CODEX_TUI_FREQUENCY}}
+    rotate {{CODEX_TUI_ROTATE_COUNT}}
+    maxsize {{CODEX_TUI_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+}
+
+# Model downloader logs
+{{DOWNLOADER_PATH}} {
+    {{DOWNLOADER_FREQUENCY}}
+    rotate {{DOWNLOADER_ROTATE_COUNT}}
+    maxsize {{DOWNLOADER_MAX_SIZE}}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+}
+
 # VSCode Server
 {{VSCODE_PATH}} {
     {{VSCODE_FREQUENCY}}

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 cmd="${1:-status}"
-svc="melissa-longrun.service"
-timer="melissa-longrun.timer"
+svc="loki-ops.service"
+timer="loki-ops.timer"
 
 case "$cmd" in
   start)
@@ -24,7 +24,7 @@ case "$cmd" in
     journalctl -u "$svc" --since "2 hours ago" --no-pager | tail -n 200
     ;;
   tail)
-    tail -n 200 /home/luce/apps/loki-logging/_build/melissa/runtime.log
+    tail -n 200 /home/luce/apps/loki-logging/_build/loki-ops/runtime.log
     ;;
   timer-start)
     sudo systemctl daemon-reload

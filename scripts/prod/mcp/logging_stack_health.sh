@@ -58,7 +58,21 @@ docker compose -p "$PROJECT" -f "$OBS" ps
 
 ok=1
 
-if curl -sf --connect-timeout 5 --max-time 20 "${GRAFANA_URL}/api/health" \
+retry_cmd() {
+  local attempts="$1"
+  shift
+  local i=1
+  while (( i <= attempts )); do
+    if "$@"; then
+      return 0
+    fi
+    sleep 2
+    i=$((i+1))
+  done
+  return 1
+}
+
+if retry_cmd 5 curl -sf --connect-timeout 5 --max-time 20 "${GRAFANA_URL}/api/health" \
   | python3 -c 'import json,sys; obj=json.load(sys.stdin); raise SystemExit(0 if str(obj.get("database","")).lower()=="ok" else 1)'; then
   echo "grafana_ok=1"
 else
@@ -66,14 +80,14 @@ else
   ok=0
 fi
 
-if curl -sf --connect-timeout 5 --max-time 20 "${PROM_URL}/-/ready" | grep -q "Ready"; then
+if retry_cmd 5 curl -sf --connect-timeout 5 --max-time 20 "${PROM_URL}/-/ready" | grep -q "Ready"; then
   echo "prometheus_ready_ok=1"
 else
   echo "prometheus_ready_ok=0"
   ok=0
 fi
 
-if curl -sf --connect-timeout 5 --max-time 20 "${PROM_URL}/api/v1/targets" \
+if retry_cmd 5 curl -sf --connect-timeout 5 --max-time 20 "${PROM_URL}/api/v1/targets" \
   | python3 -c 'import json,sys; obj=json.load(sys.stdin); data=obj.get("data",{}).get("activeTargets",[]); bad=[t for t in data if t.get("health")!="up"]; raise SystemExit(0 if obj.get("status")=="success" and len(data)>0 and not bad else 1)'; then
   echo "prometheus_targets_ok=1"
 else
@@ -82,7 +96,7 @@ else
 fi
 
 LOKI_CID="$(docker compose -p "$PROJECT" -f "$OBS" ps -q loki)"
-if [[ -n "$LOKI_CID" ]] && docker exec "$LOKI_CID" sh -lc 'wget -qO- http://127.0.0.1:3100/ready' | grep -Eiq '^ready$'; then
+if [[ -n "$LOKI_CID" ]] && retry_cmd 5 docker exec "$LOKI_CID" sh -lc 'wget -qO- http://127.0.0.1:3100/ready' | grep -Eiq '^ready$'; then
   echo "loki_ready_ok=1"
 else
   echo "loki_ready_ok=0"

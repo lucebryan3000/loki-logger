@@ -48,4 +48,4 @@ Source: `_build/Sprint-4/claude/`
 - `CLAUDE.md`, `docs/reference.md`: corrected label/source documentation drift.
 
 ## Traceability
-- Full parsed inventory: `_build/melissa/sprint4_findings_inventory.json`
+- Full parsed inventory: `_build/loki-ops/sprint4_findings_inventory.json`

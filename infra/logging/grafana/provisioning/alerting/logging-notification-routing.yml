@@ -2,7 +2,7 @@ apiVersion: 1
 
 contactPoints:
   - orgId: 1
-    name: logging-ops
+    name: logging-ops-webhook
     receivers:
       - uid: logging-ops-webhook
         type: webhook
@@ -13,13 +13,13 @@ contactPoints:
 
 policies:
   - orgId: 1
-    receiver: logging-ops
+    receiver: logging-ops-webhook
     group_by: [grafana_folder, alertname, severity]
     group_wait: 30s
     group_interval: 5m
     repeat_interval: 4h
     routes:
-      - receiver: logging-ops
+      - receiver: logging-ops-webhook
         object_matchers:
           - [severity, "=", critical]
         group_wait: 10s

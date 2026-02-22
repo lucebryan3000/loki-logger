@@ -133,7 +133,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "expr": "last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[30m])",
           "legendFormat": "GPU utilization % (current)"
         }
       ],
@@ -178,7 +178,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<vram_pct>,<_>,<_>,<_>,<_>\" | unwrap vram_pct | __error__=\"\")[$__range])",
+          "expr": "last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<vram_pct>,<_>,<_>,<_>,<_>\" | unwrap vram_pct | __error__=\"\")[30m])",
           "legendFormat": "VRAM usage % (current)"
         }
       ],
@@ -223,7 +223,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "expr": "(last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[30m]) * 9 / 5) + 32",
           "legendFormat": "GPU temperature (F, current)"
         }
       ],
@@ -284,7 +284,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "expr": "last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[30m])",
           "legendFormat": "GPU power draw (W, current)"
         }
       ],
@@ -345,7 +345,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "expr": "avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[30m])",
           "legendFormat": "util"
         }
       ],
@@ -418,7 +418,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<vram_pct>,<_>,<_>,<_>,<_>\" | unwrap vram_pct | __error__=\"\")[$__range])",
+          "expr": "avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<vram_pct>,<_>,<_>,<_>,<_>\" | unwrap vram_pct | __error__=\"\")[30m])",
           "legendFormat": "vram"
         }
       ],
@@ -491,7 +491,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "expr": "(avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[30m]) * 9 / 5) + 32",
           "legendFormat": "tempF"
         }
       ],
@@ -564,7 +564,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "expr": "avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[30m])",
           "legendFormat": "powerW"
         }
       ],
@@ -637,7 +637,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "((last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<mem_total>,<_>,<_>\" | unwrap mem_total | __error__=\"\")[$__range]) - last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<mem_used>,<_>,<_>,<_>\" | unwrap mem_used | __error__=\"\")[$__range])) / 1024)",
+          "expr": "((last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<mem_total>,<_>,<_>\" | unwrap mem_total | __error__=\"\")[30m]) - last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<mem_used>,<_>,<_>,<_>\" | unwrap mem_used | __error__=\"\")[30m])) / 1024)",
           "legendFormat": "VRAM free (MiB, current)"
         }
       ],
@@ -681,7 +681,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "185 - ((last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32)",
+          "expr": "185 - ((last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[30m]) * 9 / 5) + 32)",
           "legendFormat": "Thermal headroom (F)"
         }
       ],
@@ -724,7 +724,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(avg_over_time(({log_source=\"telemetry\"} |~ \"$run_id\" |~ \"$model_name\" | json | unwrap value | __error__=\"\")[$__range])) / sum(avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range]))",
+          "expr": "sum(avg_over_time(({log_source=\"telemetry\"} |~ \"$run_id\" |~ \"$model_name\" | json | unwrap value | __error__=\"\")[30m])) / sum(avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[30m]))",
           "legendFormat": "Perf proxy per watt"
         }
       ],
@@ -768,7 +768,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(8[3-9]|9[0-9]),\" [$__range])) + sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(29[0-9]|3[0-9][0-9])[.][0-9]+$\" [$__range]))",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(8[3-9]|9[0-9]),\" [30m])) + sum(count_over_time({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" |~ \",(29[0-9]|3[0-9][0-9])[.][0-9]+$\" [30m]))",
           "legendFormat": "Throttling risk events (5m)"
         }
       ],
@@ -812,12 +812,12 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "expr": "quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[30m])",
           "legendFormat": "P50 util%"
         },
         {
           "refId": "B",
-          "expr": "quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "expr": "quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[30m])",
           "legendFormat": "P95 util%"
         }
       ],
@@ -870,12 +870,12 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "expr": "(quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[30m]) * 9 / 5) + 32",
           "legendFormat": "P50 temp F"
         },
         {
           "refId": "B",
-          "expr": "(quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "expr": "(quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[30m]) * 9 / 5) + 32",
           "legendFormat": "P95 temp F"
         }
       ],
@@ -1165,7 +1165,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=~\"rsyslog_syslog|gpu_telemetry\"} |~ \"(?i)(NVRM|Xid|CUDA error|out of memory|OOM|GPU has fallen off the bus|throttl|overheat|power limit)\" [$__range]))",
+          "expr": "sum(count_over_time({log_source=~\"rsyslog_syslog|gpu_telemetry\"} |~ \"(?i)(NVRM|Xid|CUDA error|out of memory|OOM|GPU has fallen off the bus|throttl|overheat|power limit)\" [30m]))",
           "legendFormat": "fault signals"
         }
       ],
@@ -1209,7 +1209,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\"}[$__range]))",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\"}[30m]))",
           "legendFormat": "samples"
         }
       ],
@@ -1253,22 +1253,22 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\",filename=~\".*gpu-(live|proc).*csv\"} |~ \"$gpu_match\" [$__range]))",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\",filename=~\".*gpu-(live|proc).*csv\"} |~ \"$gpu_match\" [30m]))",
           "legendFormat": "gpu-live samples"
         },
         {
           "refId": "B",
-          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\",filename=~\".*gpu-proc.*csv\"} |~ \"$gpu_match\" [$__range]))",
+          "expr": "sum(count_over_time({log_source=\"gpu_telemetry\",host=~\"$host\",filename=~\".*gpu-proc.*csv\"} |~ \"$gpu_match\" [30m]))",
           "legendFormat": "gpu-proc samples"
         },
         {
           "refId": "C",
-          "expr": "sum(count_over_time({log_source=~\"telemetry|gpu_telemetry\"} |~ \"(?i)(benchmark|run|model|prefill|decode|throughput|latency|token|prompt)\" |~ \"$run_id\" |~ \"$model_name\" [$__range]))",
+          "expr": "sum(count_over_time({log_source=~\"telemetry|gpu_telemetry\"} |~ \"(?i)(benchmark|run|model|prefill|decode|throughput|latency|token|prompt)\" |~ \"$run_id\" |~ \"$model_name\" [30m]))",
           "legendFormat": "benchmark events"
         },
         {
           "refId": "D",
-          "expr": "sum(count_over_time({log_source=~\"rsyslog_syslog|gpu_telemetry\"} |~ \"(?i)(NVRM|Xid|CUDA error|out of memory|OOM|GPU has fallen off the bus|throttl|overheat|power limit|failed|error|panic)\" [$__range]))",
+          "expr": "sum(count_over_time({log_source=~\"rsyslog_syslog|gpu_telemetry\"} |~ \"(?i)(NVRM|Xid|CUDA error|out of memory|OOM|GPU has fallen off the bus|throttl|overheat|power limit|failed|error|panic)\" [30m]))",
           "legendFormat": "fault events"
         }
       ],
@@ -1452,17 +1452,17 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "expr": "quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[30m])",
           "legendFormat": "P50"
         },
         {
           "refId": "B",
-          "expr": "quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "expr": "quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[30m])",
           "legendFormat": "P95"
         },
         {
           "refId": "C",
-          "expr": "quantile_over_time(0.99, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range])",
+          "expr": "quantile_over_time(0.99, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[30m])",
           "legendFormat": "P99"
         }
       ],
@@ -1515,17 +1515,17 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "expr": "(quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[30m]) * 9 / 5) + 32",
           "legendFormat": "P50 F"
         },
         {
           "refId": "B",
-          "expr": "(quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "expr": "(quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[30m]) * 9 / 5) + 32",
           "legendFormat": "P95 F"
         },
         {
           "refId": "C",
-          "expr": "(quantile_over_time(0.99, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range]) * 9 / 5) + 32",
+          "expr": "(quantile_over_time(0.99, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[30m]) * 9 / 5) + 32",
           "legendFormat": "P99 F"
         }
       ],
@@ -1576,17 +1576,17 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "expr": "quantile_over_time(0.50, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[30m])",
           "legendFormat": "P50 W"
         },
         {
           "refId": "B",
-          "expr": "quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "expr": "quantile_over_time(0.95, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[30m])",
           "legendFormat": "P95 W"
         },
         {
           "refId": "C",
-          "expr": "quantile_over_time(0.99, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range])",
+          "expr": "quantile_over_time(0.99, ({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[30m])",
           "legendFormat": "P99 W"
         }
       ],
@@ -1638,7 +1638,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(8, last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<gpu_name>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[$__range]))",
+          "expr": "topk(8, last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<gpu_name>,<gpu_util>,<_>,<_>,<_>,<_>,<_>\" | unwrap gpu_util | __error__=\"\")[30m]))",
           "legendFormat": "{{gpu_name}}"
         }
       ],
@@ -1682,7 +1682,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(topk(8, last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<gpu_name>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[$__range])) * 9 / 5) + 32",
+          "expr": "(topk(8, last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<gpu_name>,<_>,<_>,<_>,<_>,<temp_c>,<_>\" | unwrap temp_c | __error__=\"\")[30m])) * 9 / 5) + 32",
           "legendFormat": "{{gpu_name}}"
         }
       ],
@@ -1724,7 +1724,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(8, last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<gpu_name>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range]))",
+          "expr": "topk(8, last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<gpu_name>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[30m]))",
           "legendFormat": "{{gpu_name}}"
         }
       ],
@@ -1767,7 +1767,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(avg_over_time(({log_source=\"telemetry\"} |~ \"$run_id\" |~ \"$model_name\" | json | unwrap value | __error__=\"\")[$__range])) / sum(avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range]))",
+          "expr": "sum(avg_over_time(({log_source=\"telemetry\"} |~ \"$run_id\" |~ \"$model_name\" | json | unwrap value | __error__=\"\")[30m])) / sum(avg_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[30m]))",
           "legendFormat": "value/W"
         }
       ],
@@ -1818,7 +1818,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(last_over_time(({log_source=\"telemetry\"} |~ \"$run_id\" |~ \"$model_name\" | json | unwrap value | __error__=\"\")[$__range])) / sum(last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[$__range]))",
+          "expr": "sum(last_over_time(({log_source=\"telemetry\"} |~ \"$run_id\" |~ \"$model_name\" | json | unwrap value | __error__=\"\")[30m])) / sum(last_over_time(({log_source=\"gpu_telemetry\",filename=~\".*gpu-live.*csv\",host=~\"$host\"} |~ \"$gpu_match\" | pattern \"<_>,<_>,<_>,<_>,<_>,<_>,<_>,<power_w>\" | unwrap power_w | __error__=\"\")[30m]))",
           "legendFormat": "value/W current"
         }
       ],

@@ -168,6 +168,16 @@ loki.process "nvidia_telem" {
   }
   // --- end redaction ---
 
+  // Normalize NVIDIA failure semantics for cross-source error dashboards.
+  stage.match {
+    selector = "{log_source=\"nvidia_telem\"} |~ \"(?i)(error|fail|failed|critical|panic|xid|nvrm|oom|overheat|throttl|power limit)\""
+    stage.static_labels {
+      values = {
+        level = "error",
+      }
+    }
+  }
+
   forward_to = [loki.write.default.receiver]
 }
 // --- end NVIDIA telemetry-as-logs ---
@@ -278,6 +288,20 @@ loki.source.file "host_apt_history" {
     stage.static_labels {
       values = {
         noise_class = "atlas_mcp_flap",
+      }
+    }
+    stage.drop {
+      expression = ".*"
+    }
+  }
+
+  // Drop low-value docker daemon healthcheck/shutdown chatter that can dominate
+  // error-like dashboards without representing actionable stack failures.
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(Health check for container .* OCI runtime exec failed|copy stream failed.*reading from a closed fifo|ShouldRestart failed, container will not be restarted|restart canceled|hasBeenManuallyStopped=true|Container failed to exit within 10s of signal 15 - using the force)\""
+    stage.static_labels {
+      values = {
+        noise_class = "docker_runtime_chatter",
       }
     }
     stage.drop {
@@ -441,9 +465,20 @@ loki.process "codeswarm" {
       mcp_kind  = "mcp_kind",
       mcp_tool  = "mcp_tool",
       mcp_level = "mcp_level",
+      level     = "mcp_level",
     }
   }
   // --- end safe JSON parsing ---
+
+  // Normalize failure semantics so dashboards can rely on level labels.
+  stage.match {
+    selector = "{log_source=\"codeswarm_mcp\"} |~ \"(?i)(Failed with result|Main process exited|Failed to start|Operation not permitted|exit-code)\""
+    stage.static_labels {
+      values = {
+        level = "error",
+      }
+    }
+  }
 
   // --- redaction (Sprint-3 Phase 1) ---
   // Fake-secret patterns only; prevent credentials from being stored in Loki.
@@ -490,6 +525,34 @@ loki.process "vscode" {
     firstline     = "^([0-9]{4}-[0-9]{2}-[0-9]{2}|\\[[0-9]{2}:[0-9]{2}:[0-9]{2}\\]|\\{)"
     max_wait_time = "3s"
     max_lines     = 256
+  }
+
+  // Suppress known benign editor/plugin churn that produces false-positive
+  // "error-like" hits in aggregated dashboards.
+  stage.match {
+    selector = "{log_source=\"vscode_server\"} |~ \"(?i)(npm warn Unknown project config|Melissa[.]ai:.*state: exec-error)\""
+    stage.static_labels {
+      values = {
+        noise_class = "editor_plugin_chatter",
+      }
+    }
+    stage.drop {
+      expression = ".*"
+    }
+  }
+
+  // Suppress noisy VS Code extension probe failures that are non-actionable in
+  // this sandbox and repeatedly pollute error dashboards.
+  stage.match {
+    selector = "{log_source=\"vscode_server\"} |~ \"(?i)(Failed to load config error=.*AgentRoleToml|Failed to load apps list error=.*object Object|git config failed: Failed to execute git)\""
+    stage.static_labels {
+      values = {
+        noise_class = "vscode_extension_probe",
+      }
+    }
+    stage.drop {
+      expression = ".*"
+    }
   }
 
   // Normalize recurring opencode-local failures for alerting and dashboards.
@@ -640,6 +703,16 @@ loki.process "telemetry" {
   }
   // --- end redaction ---
 
+  // Keep failure-semantics normalization active for telemetry stream.
+  stage.match {
+    selector = "{log_source=\"telemetry\"} |~ \"(?i)(error|fail|failed|critical|panic|timeout|exception)\""
+    stage.static_labels {
+      values = {
+        level = "error",
+      }
+    }
+  }
+
   forward_to = [loki.write.default.receiver]
 }
 
@@ -693,6 +766,20 @@ loki.process "codex_tui" {
       values = {
         level = "error",
       }
+    }
+  }
+
+  // Codex execution trace lines are high-volume and non-actionable for ops
+  // dashboards in this sandbox.
+  stage.match {
+    selector = "{log_source=\"codex_tui\"} |~ \"(?i)(Ran set -euo pipefail|ToolCall: (exec_command|apply_patch|write_stdin|list_mcp_resources|list_mcp_resource_templates|read_mcp_resource|update_plan|multi_tool_use[.]parallel))\""
+    stage.static_labels {
+      values = {
+        noise_class = "codex_exec_trace",
+      }
+    }
+    stage.drop {
+      expression = ".*"
     }
   }
 

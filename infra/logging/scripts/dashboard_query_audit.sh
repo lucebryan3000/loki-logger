@@ -3,9 +3,24 @@ set -euo pipefail
 
 ROOT="/home/luce/apps/loki-logging"
 OUTDIR="$ROOT/_build/logging"
-mkdir -p "$OUTDIR"
+mkdir -p "$OUTDIR" 2>/dev/null || true
+if ! touch "$OUTDIR/.dashboard_audit_write_test" 2>/dev/null; then
+  OUTDIR="/tmp/logging-artifacts"
+  mkdir -p "$OUTDIR"
+else
+  rm -f "$OUTDIR/.dashboard_audit_write_test"
+fi
 MD="$OUTDIR/dashboard_audit_latest.md"
 JS="$OUTDIR/dashboard_audit_latest.json"
+
+AUDIT_MODE="${1:-${AUDIT_MODE:-strict}}"
+case "$AUDIT_MODE" in
+  strict|accuracy|soft) ;;
+  *)
+    echo "Usage: $0 [strict|accuracy|soft]" >&2
+    exit 2
+    ;;
+esac
 
 GRAFANA_URL="${GRAFANA_URL:-http://127.0.0.1:9001}"
 PROM_URL="${PROM_URL:-http://127.0.0.1:9004/api/v1/query}"
@@ -25,7 +40,7 @@ end_ns=$((($(date +%s)+60)*1000000000))
 
 idx_json=$(curl -fsS -u "$GRAFANA_USER:$GRAFANA_PASS" "$GRAFANA_URL/api/search?type=dash-db&limit=500")
 
-python3 - "$idx_json" "$GRAFANA_URL" "$GRAFANA_USER" "$GRAFANA_PASS" "$PROM_URL" "$LOKI_URL" "$start_ns" "$end_ns" "$MD" "$JS" <<'PY'
+python3 - "$idx_json" "$GRAFANA_URL" "$GRAFANA_USER" "$GRAFANA_PASS" "$PROM_URL" "$LOKI_URL" "$start_ns" "$end_ns" "$MD" "$JS" "$AUDIT_MODE" <<'PY'
 import base64
 import json
 import re
@@ -34,7 +49,7 @@ import time
 import urllib.parse
 import urllib.request
 
-idx_json, grafana_url, g_user, g_pass, prom_url, loki_url, start_ns, end_ns, md_path, js_path = sys.argv[1:]
+idx_json, grafana_url, g_user, g_pass, prom_url, loki_url, start_ns, end_ns, md_path, js_path, audit_mode = sys.argv[1:]
 idx = json.loads(idx_json)
 
 headers = {
@@ -129,6 +144,7 @@ def substitute_vars(expr: str, vmap: dict):
 
 rows = []
 empty = []
+errors = []
 expected_empty = []
 per_dashboard = {}
 checked = 0
@@ -243,6 +259,7 @@ for d in idx:
                 "error": str(exc),
             }
             rows.append(rec)
+            errors.append(rec)
             dkey = uid
             if dkey not in per_dashboard:
                 per_dashboard[dkey] = {
@@ -254,23 +271,24 @@ for d in idx:
                 }
             per_dashboard[dkey]["checked"] += 1
             per_dashboard[dkey]["errors"] += 1
-            per_dashboard[dkey]["unexpected_empty"] += 1
-            empty.append(rec)
 
-pass_flag = len(empty) == 0
+strict_mode = audit_mode == "strict"
+pass_flag = (len(errors) == 0) and ((len(empty) == 0) or not strict_mode)
 summary = {
     "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "mode": audit_mode,
     "pass": pass_flag,
     "dashboards_total": len(idx),
     "dashboards_provisioned_scanned": provisioned_scanned,
     "queries_checked": checked,
     "empty_panels": len(empty),
+    "error_panels": len(errors),
     "expected_empty_panels": len(expected_empty),
     "unexpected_empty_panels": len(empty),
 }
 
 with open(js_path, "w") as f:
-    json.dump({"summary": summary, "per_dashboard": per_dashboard, "empty": empty, "expected_empty": expected_empty, "checked": rows[:400]}, f, indent=2)
+    json.dump({"summary": summary, "per_dashboard": per_dashboard, "empty": empty, "errors": errors, "expected_empty": expected_empty, "checked": rows[:400]}, f, indent=2)
 
 with open(md_path, "w") as f:
     f.write(f"# Dashboard Query Audit ({summary['ts']})\n\n")
@@ -278,6 +296,7 @@ with open(md_path, "w") as f:
     f.write(f"- dashboards_provisioned_scanned: {summary['dashboards_provisioned_scanned']}\n")
     f.write(f"- queries_checked: {summary['queries_checked']}\n")
     f.write(f"- empty_panels: {summary['empty_panels']}\n")
+    f.write(f"- error_panels: {summary['error_panels']}\n")
     f.write(f"- expected_empty_panels: {summary['expected_empty_panels']}\n")
     f.write(f"- unexpected_empty_panels: {summary['unexpected_empty_panels']}\n")
     f.write(f"- pass: {'yes' if pass_flag else 'no'}\n\n")
@@ -298,8 +317,20 @@ with open(md_path, "w") as f:
                 + "\n"
             )
 
+    f.write("\n## Query errors\n")
+    if not errors:
+        f.write("- none\n")
+    else:
+        for e in errors[:100]:
+            f.write(
+                f"- {e['dashboard_uid']} | {e['panel']} | {e['datasource_uid']} | {e['expr']} | error={e['error']}\n"
+            )
+
 print(f"WROTE_MD={md_path}")
 print(f"WROTE_JSON={js_path}")
 print(f"AUDIT_PASS={'yes' if pass_flag else 'no'}")
 print(f"EMPTY_PANELS={len(empty)}")
+print(f"ERROR_PANELS={len(errors)}")
+if not strict_mode and len(empty) > 0:
+    print(f"AUDIT_WARN_UNEXPECTED_EMPTY={len(empty)}")
 PY

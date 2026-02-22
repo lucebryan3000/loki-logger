@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="/home/luce/apps/loki-logging"
-STATE="$ROOT/_build/melissa"
+STATE="$ROOT/_build/loki-ops"
 LOG="$STATE/runtime.log"
 TRACKING="$STATE/TRACKING.md"
 NODRIFT_HELPER="$ROOT/infra/logging/scripts/no_drift_print.sh"
@@ -158,7 +158,7 @@ import json,sys
 q=json.load(open(sys.argv[1]))
 out=sys.argv[2]
 lines=[]
-lines.append(f"# Melissa Queue — {q.get('run','run')}")
+lines.append(f"# Loki-Ops Queue — {q.get('run','run')}")
 lines.append("")
 lines.append(f"- total: {q.get('total',0)}")
 lines.append(f"- continue_on_fail: {str(q.get('continue_on_fail', True)).lower()}")

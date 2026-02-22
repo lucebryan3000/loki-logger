@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="/home/luce/apps/loki-logging"
-STATE="$ROOT/_build/melissa"
+STATE="$ROOT/_build/loki-ops"
 LOG="$STATE/runtime.log"
 ERR="$STATE/daemon.stderr.log"
 MANIFEST="$STATE/batch_manifest.json"
@@ -17,7 +17,7 @@ mkdir -p "$STATE"
 
 stamp(){ date -u +%Y-%m-%dT%H:%M:%SZ; }
 log_file(){ printf "%s %s\n" "$(stamp)" "$*" >> "$LOG"; }
-log_journal(){ logger -t melissa-longrun "$*"; }
+log_journal(){ logger -t loki-ops "$*"; }
 
 has_drift(){
   local file
@@ -38,7 +38,7 @@ while true; do
   log_journal "DAEMON_CYCLE_START"
 
   rc=0
-  if ! /bin/bash "$ROOT/infra/logging/scripts/melissa_longrun.sh" >> "$LOG" 2>> "$ERR"; then
+  if ! /bin/bash "$ROOT/infra/logging/scripts/loki_ops_longrun.sh" >> "$LOG" 2>> "$ERR"; then
     rc=$?
   fi
 

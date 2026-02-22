@@ -94,6 +94,50 @@ groups:
           description: "Total log volume dropped below threshold for 5m."
           runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#authoritative-checks-run-in-order"
 
+      - uid: logging-opencode-sse-reconnect
+        title: opencode-local SSE reconnect storm (10m)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: P8E80F9AEF21F6940
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: sum(count_over_time({log_source="vscode_server",service_name="opencode-local",failure_class="mcp_sse_reconnect"}[10m]))
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: "B"
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [5]
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: OK
+        execErrState: Alerting
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "opencode-local reconnect errors are elevated"
+          description: "Detected more than 5 opencode-local SSE reconnect errors in 10 minutes."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#authoritative-checks-run-in-order"
+
       - uid: logging-gpu-fault-signals
         title: GPU fault signals detected (5m)
         condition: C
@@ -138,6 +182,50 @@ groups:
           description: "Fault keywords detected in rsyslog_syslog or gpu_telemetry streams."
           runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#when-loki-is-unavailable"
 
+      - uid: logging-loki-volume-high
+        title: Loki container storage usage high (>20GiB)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: PBFA97CFB590B2093
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: sum(container_fs_usage_bytes{container_label_com_docker_compose_service="loki"})
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: "B"
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [21474836480]
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Loki container storage usage exceeded 20GiB"
+          description: "Loki container filesystem usage has been above 20GiB for 10m. Check retention settings and compactor health."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#alert-posture-authoritative"
+
       - uid: logging-gpu-temp-high
         title: GPU temperature high (avg 5m > 82C)
         condition: C
@@ -181,3 +269,271 @@ groups:
           summary: "GPU temperature sustained above threshold"
           description: "Average parsed GPU temperature exceeds 82C for 5m."
           runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#when-loki-is-unavailable"
+
+      # --- Per-source freshness alerts (always-active sources) ---
+
+      - uid: logging-source-syslog-stale
+        title: Syslog source stale (10m)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: P8E80F9AEF21F6940
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: sum(count_over_time({log_source="rsyslog_syslog"}[10m]))
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: "B"
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "rsyslog_syslog source has not produced logs for 10m"
+          description: "The rsyslog to Alloy to Loki pipeline may be broken. Check Alloy syslog listener (TCP:1514) and rsyslog forwarding."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#authoritative-checks-run-in-order"
+
+      - uid: logging-source-docker-stale
+        title: Docker source stale (10m)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: P8E80F9AEF21F6940
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: sum(count_over_time({log_source="docker"}[10m]))
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: "B"
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Docker log source has not produced logs for 10m"
+          description: "Alloy Docker discovery may have stopped finding containers. Check Alloy health and Docker socket access."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#authoritative-checks-run-in-order"
+
+      - uid: logging-source-journald-stale
+        title: Journald source stale (10m)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: P8E80F9AEF21F6940
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: sum(count_over_time({log_source="journald"}[10m]))
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: "B"
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Journald log source has not produced logs for 10m"
+          description: "Alloy journal reader may have stopped. Check Alloy health and journal volume mount."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#authoritative-checks-run-in-order"
+
+      # --- Infrastructure alerts (Prometheus-sourced) ---
+
+      - uid: logging-alloy-pipeline-drops
+        title: Alloy pipeline dropping log entries (10m)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: PBFA97CFB590B2093
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: sum(increase(loki_write_dropped_entries_total[10m])) or vector(0)
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: "B"
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alloy/Loki dropped log entries detected"
+          description: "Dropped entries observed over 10m window. Check Loki ingestion rate limits and Alloy pipeline health."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#authoritative-checks-run-in-order"
+
+      - uid: logging-prometheus-target-down
+        title: Prometheus scrape target down (5m)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: PBFA97CFB590B2093
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: count(up == 0)
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: "B"
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "One or more Prometheus scrape targets are down"
+          description: "A scrape target is returning up=0. Check container health and network connectivity."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#authoritative-checks-run-in-order"
+
+      - uid: logging-host-disk-space-low
+        title: Host disk space low (<10% free)
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: PBFA97CFB590B2093
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay",mountpoint="/"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay",mountpoint="/"}) * 100
+              queryType: range
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: "B"
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [90]
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Host root filesystem above 90% usage"
+          description: "Root filesystem is critically low on space. Check Docker volumes, log files, and model cache."
+          runbook_url: "file:///home/luce/apps/loki-logging/infra/logging/RUNBOOK.md#alert-posture-authoritative"

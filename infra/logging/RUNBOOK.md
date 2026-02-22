@@ -53,6 +53,8 @@ journald -> rsyslog -> Alloy (syslog TCP 1514 localhost) -> Loki -> Grafana
   - chosen values file: `_build/logging/dimension_values.txt`
   - dimension index UID pattern: `codeswarm-dim-index-<dimension>`
   - per-value UID pattern: `codeswarm-dim-<dimension>-<slug>`
+- Generate/update governance artifacts before strict verifier runs:
+  - `infra/logging/scripts/generate_verifier_artifacts.sh`
 
 ## Expected-empty semantics (deterministic)
 - Empty error-signature panels are not failures when they use regex:
@@ -67,6 +69,21 @@ Dashboards that are plugin-owned or otherwise non-editable in Grafana UI are ado
 - Discoverability: Grafana search API with `tag=adopted`
 - Edit path: change JSON in repo, then let provisioning reload (or single Grafana restart if needed)
 - Guardrail: do not edit/delete plugin-owned originals in place; maintain CodeSwarm copies only
+
+## Canonical reconciliation loop
+Use this loop whenever dashboard queries are changed:
+
+1. Edit dashboard JSON in repo (`infra/logging/grafana/dashboards/*.json`).
+2. Run mutation preflight (fail closed on panel-ID drift + query parse errors):
+   - `infra/logging/scripts/dashboard_mutation_preflight.sh --strict`
+3. Reload file-provisioned dashboards:
+   - `curl -fsS -u admin:$GRAFANA_PASS -X POST http://127.0.0.1:9001/api/admin/provisioning/dashboards/reload`
+4. Run reconciliation check:
+   - `infra/logging/scripts/reconcile_dashboards.sh`
+5. Review artifacts:
+   - `_build/logging/dashboard_reconciliation_latest.json`
+   - `_build/logging/dashboard_reconciliation_latest.md`
+6. If drift is reported, treat file dashboards as canonical, re-apply JSON changes, and reload again before further validation.
 
 
 ## Adoption policy

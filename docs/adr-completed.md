@@ -42,7 +42,7 @@
 12. `ADR-013 — D12 — Resilience & Failure Modes` — **No backup strategy for volumes** (severity: `HIGH`)
    - completion_basis: `backup_restore_added`
    - evidence_note: backup/restore scripts added
-13. `ADR-034 — New Commits — Melissa Longrun Scripts` — **Loki queried on port 3200** (severity: `MEDIUM`)
+13. `ADR-034 — New Commits — Loki-Ops Longrun Scripts` — **Loki queried on port 3200** (severity: `MEDIUM`)
    - completion_basis: `loki_port_local_runtime`
    - evidence_note: loki now bound local at runtime
 14. `ADR-035 — _dev-tools Deep Pattern Catalog` — **Checkpoint/restore pattern** (severity: `HIGH`)
@@ -51,7 +51,7 @@
 15. `ADR-043 — Log Truncation Config vs Alloy Mount Alignment` — **Alloy positions volume `alloy-positions:/tmp`** (severity: `PASS`)
    - completion_basis: `alloy_positions_fixed`
    - evidence_note: alloy storage path and positions volume aligned
-16. `ADR-044 — Bash-Basher Audit Baseline` — **`melissa_longrun.sh` specific:** (severity: `MEDIUM`)
+16. `ADR-044 — Bash-Basher Audit Baseline` — **`loki_ops_longrun.sh` specific:** (severity: `MEDIUM`)
    - completion_basis: `alert_timing_fixed`
    - evidence_note: alert timing/noData state hardened
 17. `ADR-045 — Grafana Alerting Rules Audit` — **Both rules set `for: 0m`** (severity: `LOW`)
@@ -1373,19 +1373,19 @@ WD-10  Docs & CI/CD             ───── Last (uses WD-11 github-setup-pl
 - `ADR-044` moved from adr.md
   - evidence: (stateful queue evidence => preserved_done)
 ### ADR-044: Bash-Basher Audit Baseline
-- **Context:** Ran `bash-basher.sh` (172-rule linter from `_dev-tools/`) against 5 core scripts: `logging_stack_up.sh`, `logging_stack_health.sh`, `logging_stack_audit.sh`, `melissa_batchlib.sh`, `status.sh`.
+- **Context:** Ran `bash-basher.sh` (172-rule linter from `_dev-tools/`) against 5 core scripts: `logging_stack_up.sh`, `logging_stack_health.sh`, `logging_stack_audit.sh`, `loki_ops_batchlib.sh`, `status.sh`.
 - **Findings:**
   1. **Total findings across 5 scripts:** ~120 findings. Breakdown by severity:
      - BREAK: 7 (source untrusted ×4, env path trust ×4, hardcoded credentials ×1)
      - WARN: ~85 (hardcoded paths, unused vars, deep nesting, unset vars, etc.)
      - AUTO_FIX: ~28 (unquoted vars, noclobber, inherit errexit, subshell masks)
-  2. **BB024 BREAK: Hardcoded credentials in `melissa_batchlib.sh`** — `derive_grafana_pass()` at line 39 extracts `GF_SECURITY_ADMIN_PASSWORD` from running container via `docker inspect`. bash-basher flags this as credential exposure in script output. Severity: **HIGH** (the password transits through shell variables and process table).
+  2. **BB024 BREAK: Hardcoded credentials in `loki_ops_batchlib.sh`** — `derive_grafana_pass()` at line 39 extracts `GF_SECURITY_ADMIN_PASSWORD` from running container via `docker inspect`. bash-basher flags this as credential exposure in script output. Severity: **HIGH** (the password transits through shell variables and process table).
   3. **BB029 BREAK: Source untrusted** — All scripts that `source` other scripts do so without first validating the file exists with `[[ -f "$path" ]]`. Severity: **MEDIUM** (all sources are hardcoded paths, not user-supplied, so real risk is low).
   4. **BB096 BREAK: Env path trust** — Scripts that source `.env` or parse env vars trust the contents without validation. In this project `.env` is user-controlled and mode 600, so risk is contextual. Severity: **LOW**.
   5. **`logging_stack_audit.sh` has highest finding count** — ~80 findings including BB090 deep nesting (30+ lines flagged), BB116 sed injection, BB091 long function, BB112 glob before assignment. This script is the most complex and needs the most hardening. Severity: **HIGH** (cumulative risk).
   6. **`status.sh` has BB135 unset variable warnings** — Multiple variables used without being assigned first (lines 16, 25, 26, 37, 65). Correlates with the SC2168 shellcheck error from ADR-031. Severity: **MEDIUM**.
   7. **Common AUTO_FIX patterns across all scripts:** BB098 noclobber missing, BB100 inherit errexit missing. These are safe to apply project-wide in one PR. Severity: **LOW** (easy batch fix).
-  8. **`melissa_longrun.sh` specific:** BB029 source untrusted (line 22), BB015 hardcoded home path (line 4), BB031 unquoted command substitution in `for` loop (line 162), 4× BB043 unused variable warnings for variables that ARE used via `source`d batchlib (false positives from cross-file analysis limitation). Severity: **MEDIUM**.
+  8. **`loki_ops_longrun.sh` specific:** BB029 source untrusted (line 22), BB015 hardcoded home path (line 4), BB031 unquoted command substitution in `for` loop (line 162), 4× BB043 unused variable warnings for variables that ARE used via `source`d batchlib (false positives from cross-file analysis limitation). Severity: **MEDIUM**.
 - **Evidence:** bash-basher output for 5 scripts. Full findings logged.
 
 ---
@@ -1534,7 +1534,7 @@ WD-10  Docs & CI/CD             ───── Last (uses WD-11 github-setup-pl
      - Running: `4bc12e903a63d7fe63b86b7be30bec3be6c35e91712ba68d2e0d7b45d9cfae80`
      - On disk: `acfc3f2555417720f33ebd9f5b0e5959320f1436cb8817e4672de47e9f35d2b8`
      Loki was started 2.3 days ago. The compose config has changed since (the `LOKI_PUBLISH=0` change). This confirms Loki's port 3200 exposure is from an OLDER compose config where `LOKI_PUBLISH` was non-zero. Severity: **HIGH** (explains the entire Loki port drift saga — deploying `docker compose up -d` with current config would remove port 3200).
-  4. **`LOKI_PUBLISH=0` in current .env** — The environment variable that controls Loki port publishing is set to 0 in the current config. When Loki is recreated, port 3200 will disappear. The melissa longrun scripts that depend on `http://127.0.0.1:3200` will break. Severity: **HIGH** (confirms config drift AND identifies the future breakage risk).
+  4. **`LOKI_PUBLISH=0` in current .env** — The environment variable that controls Loki port publishing is set to 0 in the current config. When Loki is recreated, port 3200 will disappear. The loki-ops longrun scripts that depend on `http://127.0.0.1:3200` will break. Severity: **HIGH** (confirms config drift AND identifies the future breakage risk).
 - **Evidence:** `docker inspect` config-hash labels, `docker compose config --hash '*'`.
 
 ---
@@ -1592,7 +1592,7 @@ WD-10  Docs & CI/CD             ───── Last (uses WD-11 github-setup-pl
 - ~~19. Why is ingest-down alert firing?~~ FALSE POSITIVE. Loki has 4370 lines/5m. Grafana alerting evaluator likely failed on restart and never recovered.
 - ~~20. What is the second Loki?~~ `codeswarm-mcp` container from vllm project.
 - ~~9. Is Loki port 3200 intentional?~~ CONFIG DRIFT. `.env` has `LOKI_PUBLISH=0`. Running container from older deploy. `docker compose up -d` would remove it.
-- ~~10. Should melissa use Docker network?~~ YES. Port 3200 will disappear on next deploy.
+- ~~10. Should loki-ops use Docker network?~~ YES. Port 3200 will disappear on next deploy.
 - ~~11. When did 47K drops happen?~~ BEFORE Alloy restart (Alloy started 12h ago, counter at 15.2 MiB).
 
 **Remaining (11):**
@@ -1606,7 +1606,7 @@ WD-10  Docs & CI/CD             ───── Last (uses WD-11 github-setup-pl
 26. Should `env_file` be replaced with explicit `environment:` entries per service?
 27. What should replace the dead `loki_distributor_*` recording rules for Loki 3.0 monolithic mode?
 28. Should `for: 0m` on Grafana alerts be changed to `for: 2m` to prevent immediate false positives?
-29. Should a `docker compose up -d` be run to reconcile config drift? (Warning: breaks melissa scripts that use port 3200)
+29. Should a `docker compose up -d` be run to reconcile config drift? (Warning: breaks loki-ops scripts that use port 3200)
 
 ---
 ---
@@ -1631,7 +1631,7 @@ WD-10  Docs & CI/CD             ───── Last (uses WD-11 github-setup-pl
 | 2 | iptables DNAT rule for Loki port 3200: `0.0.0.0/0 → 172.20.0.4:3100`. Source unrestricted. UFW has NO rule for 3200. Anyone can reach Loki HTTP API. | CRITICAL | ADR-052 §2, ADR-060 §1-2 | Open |
 | 3 | Loki running with port 3200 published despite `.env` having `LOKI_PUBLISH=0`. Container created from older compose config. `docker compose up -d` would remove the port. | HIGH | ADR-030 §1, ADR-068 §3-4, ADR-040 §3 | Open (Q29) |
 | 4 | Prometheus exposed on 0.0.0.0:9004 with zero authentication. | HIGH | ADR-006 §2 | Open |
-| 5 | Melissa scripts depend on Loki port 3200 (`http://127.0.0.1:3200`). Reconciling config drift will break them. | MEDIUM | ADR-034 §3, ADR-068 §4 | Open (Q29) |
+| 5 | Loki-ops scripts depend on Loki port 3200 (`http://127.0.0.1:3200`). Reconciling config drift will break them. | MEDIUM | ADR-034 §3, ADR-068 §4 | Open (Q29) |
 | 6 | `QUICK-ACCESS.md` contains `192.168.1.150` hardcoded 10+ times and documents "No authentication" for Prometheus. | MEDIUM | ADR-023 §1-2 | Open |
 | 7 | `docs/quality-checklist.md` claims ports are "UFW-protected" — false confidence. | HIGH | ADR-022 §1 | Open |
 | 8 | "Loki is internal-only" stated in 5 doc locations but FALSE at runtime. | HIGH | ADR-063 §1 | Open |
@@ -1643,7 +1643,7 @@ WD-10  Docs & CI/CD             ───── Last (uses WD-11 github-setup-pl
 
 **Resolution path:**
 1. Decide: bind to 127.0.0.1 + reverse proxy, or apply `ufw-docker` iptables patch, or both
-2. Reconcile Loki config drift (`docker compose up -d`) — first update melissa scripts to use Docker network
+2. Reconcile Loki config drift (`docker compose up -d`) — first update loki-ops scripts to use Docker network
 3. Add basic auth to Prometheus if binding stays at 0.0.0.0
 4. Update 5 doc locations that say "Loki internal-only"
 5. Remove hardcoded IP from `QUICK-ACCESS.md`
@@ -1846,11 +1846,11 @@ WD-10  Docs & CI/CD             ───── Last (uses WD-11 github-setup-pl
 |---|---------|----------|--------|--------|
 | 1 | `template-engine.sh` uses `eval` with config-sourced values — command injection vector. | HIGH | ADR-011 §1-2 | Open |
 | 2 | `add-log-source.sh` references non-existent `.claude/prompts/` directory. Script broken. | HIGH | ADR-021 §3 | Open |
-| 3 | `melissa_batchlib.sh` BB024: `derive_grafana_pass()` transits password through shell variables and process table. | HIGH | ADR-044 §2 | Open |
+| 3 | `loki_ops_batchlib.sh` BB024: `derive_grafana_pass()` transits password through shell variables and process table. | HIGH | ADR-044 §2 | Open |
 | 4 | `logging_stack_audit.sh` has ~80 bash-basher findings including deep nesting, sed injection, long functions. Highest-risk script. | HIGH | ADR-044 §5 | Open |
 | 5 | `add-log-source.sh` missing `set -uo pipefail` (only `set -e`). | MEDIUM | ADR-021 §2 | Open |
 | 6 | `add-log-source.sh` uses hardcoded absolute path `/home/luce/apps/loki-logging/`. | MEDIUM | ADR-021 §1 | Open |
-| 7 | `melissa_longrun.sh` and `melissa_batchlib.sh` hardcode `ROOT="/home/luce/apps/loki-logging"`. | MEDIUM | ADR-034 §1 | Open |
+| 7 | `loki_ops_longrun.sh` and `loki_ops_batchlib.sh` hardcode `ROOT="/home/luce/apps/loki-logging"`. | MEDIUM | ADR-034 §1 | Open |
 | 8 | `logging_stack_health.sh` depends on `rg` (ripgrep) without `command -v` check. | MEDIUM | ADR-007 §4 | Open |
 | 9 | `logging_stack_health.sh` hardcodes ports 9001/9004, doesn't read from `.env`. | MEDIUM | ADR-007 §5 | Open |
 | 10 | `status.sh` SC2168 error: `local` used outside function (real bug). | MEDIUM | ADR-031 | Open |
@@ -1867,7 +1867,7 @@ WD-10  Docs & CI/CD             ───── Last (uses WD-11 github-setup-pl
 | 21 | Bash-basher baseline: ~120 findings across 5 scripts (7 BREAK, ~85 WARN, ~28 AUTO_FIX). | PASS | ADR-044 | Baseline |
 | 22 | All scripts have `set -euo pipefail` (except `add-log-source.sh`). | PASS | ADR-007 §1 | Verified |
 | 23 | All scripts have `--help` handlers. | PASS | ADR-007 §2 | Verified |
-| 24 | Melissa drift detection pattern and auto-commit scoping are well-implemented. | PASS | ADR-034 §5-6 | Verified |
+| 24 | Loki-ops drift detection pattern and auto-commit scoping are well-implemented. | PASS | ADR-034 §5-6 | Verified |
 | 25 | `_dev-tools` bash-basher available for CI integration. 172-rule linter with SARIF output. | PASS | WD-11 §1-2 | Adoptable |
 | 26 | `_dev-tools` bash-scripter-playbook available to extract runbook CLIs from docs. | PASS | WD-11 §3 | Adoptable |
 
@@ -2011,7 +2011,7 @@ DC-8  Dashboards, Repo, Docs & CI/CD     ───── Last (depends on all ot
 | Q26 | Should `env_file` be replaced with per-service `environment:`? | DC-4 |
 | Q27 | What replaces dead `loki_distributor_*` rules for monolithic mode? | DC-3 |
 | Q28 | Should `for: 0m` on Grafana alerts be changed to `for: 2m`? | DC-3 |
-| Q29 | Run `docker compose up -d` to reconcile config drift? (Breaks melissa port 3200) | DC-1, DC-4 |
+| Q29 | Run `docker compose up -d` to reconcile config drift? (Breaks loki-ops port 3200) | DC-1, DC-4 |
 
 ---
 ---
@@ -2122,14 +2122,14 @@ DC-8  Dashboards, Repo, Docs & CI/CD     ───── Last (depends on all ot
   - `alloy`: `mem_limit: 1g`, `cpus: "0.75"` ✓
   - `host-monitor`, `docker-metrics`: no resource limits (still missing)
   - Grafana port: `127.0.0.1:${GRAFANA_PORT:-9001}:3000` ✓ (localhost-only)
-  - Loki port: `"127.0.0.1:3200:3100"` ✓ (localhost-only, intentional for melissa scripts)
+  - Loki port: `"127.0.0.1:3200:3100"` ✓ (localhost-only, intentional for loki-ops scripts)
   - Prometheus port: `127.0.0.1:${PROM_PORT:-9004}:9090` ✓ (localhost-only)
   - Alloy syslog: `"127.0.0.1:1514:1514"` ✓
 - **Findings**:
   1. **Resource limits applied to 4 of 6 services.** grafana, loki, prometheus, alloy have limits. Severity: **PASS** (partial fix confirmed).
   2. **`host-monitor` (node-exporter) and `docker-metrics` (cAdvisor) still have no resource limits.** Node Exporter is typically lightweight (<50MB RAM). cAdvisor can spike during metric collection. Neither has CPU/memory cap. Severity: **MEDIUM** — add `mem_limit: 256m` and `cpus: "0.25"` to each.
   3. **All external ports now bind to `127.0.0.1` not `0.0.0.0`.** Docker+UFW bypass risk is eliminated — iptables DNAT rules only forward from loopback, not from external interfaces. Severity: **PASS** (critical fix confirmed).
-  4. **Loki port 3200 is intentionally kept as `127.0.0.1:3200:3100`** for melissa script compatibility. This is loopback-only. Not a security issue. Severity: **PASS**.
+  4. **Loki port 3200 is intentionally kept as `127.0.0.1:3200:3100`** for loki-ops script compatibility. This is loopback-only. Not a security issue. Severity: **PASS**.
   5. **`docker-metrics` still mounts `/var/run:rw`** — not changed to `:ro`. cAdvisor requires write access to `/var/run/docker.sock` for container metadata. Changing to `:ro` would break it. Severity: **LOW** — acceptable as-is; document the requirement.
 - **Codex action**:
   - File: `infra/logging/docker-compose.observability.yml`
@@ -3083,7 +3083,7 @@ The following early ADR entries were written as "Open" but have since been resol
 |------|------|-------|-------------|
 | scripts/prod/mcp/ (5 scripts) | various | SC1090: disable comment on wrong line (before set -a instead of before . sourced) | Moved `# shellcheck disable=SC1090` to immediately before `.` line |
 | infra/logging/scripts/e2e_check_hardened.sh | 34 (both loops) | SC2034: unused `i` | Added `# shellcheck disable=SC2034` before both loops |
-| infra/logging/scripts/melissa_longrun.sh | 43,48,542 | SC2034: unused vars | Added inline disable comments |
+| infra/logging/scripts/loki_ops_longrun.sh | 43,48,542 | SC2034: unused vars | Added inline disable comments |
 | infra/logging/scripts/verify_grafana_authority.sh | 38 | SC2024: sudo redirect | Added `# shellcheck disable=SC2024` |
 | scripts/dev/codex_prompt_state_smoke.sh | 6 | SC2034: unused STORE_ROOT | Added `# shellcheck disable=SC2034` |
 | src/log-truncation/lib/config-parser.sh | 15 | SC1090: non-constant source | Added inline disable |
@@ -3607,26 +3607,26 @@ The following early ADR entries were written as "Open" but have since been resol
     - completion_basis: `metadata_files_deleted`
     - evidence_note: Deleted CHANGELOG_authoritative_logging.md, PR_BUNDLE_logging_visibility.md, RELEASE_NOTES_logging_visibility.md, upstream-references.lock; Commit c1b57c5
 
-35. `ADR-Melissa — Queue Consolidation and Artifact Archiving` — **28 queue items scattered; ephemeral state** (severity: `MEDIUM`)
-    - completion_basis: `melissa_queue_consolidated`
-    - evidence_note: Consolidated all 28 tasks into /docs/adr.md with 4-tier priority; archived artifacts to /_DELETE/melissa-artifacts-archived/; Commit 3ee31de
+35. `ADR-Loki-Ops — Queue Consolidation and Artifact Archiving` — **28 queue items scattered; ephemeral state** (severity: `MEDIUM`)
+    - completion_basis: `loki_ops_queue_consolidated`
+    - evidence_note: Consolidated all 28 tasks into /docs/adr.md with 4-tier priority; archived artifacts to /_DELETE/loki-ops-artifacts-archived/; Commit 3ee31de
 
 
 ---
 
-## Phase 4: Melissa Queue Execution — Completed Items (2026-02-20)
+## Phase 4: Loki-Ops Queue Execution — Completed Items (2026-02-20)
 
-36. `Melissa Item 1: FIX:alloy_positions_storage` — **Alloy storage path configuration** (severity: `MEDIUM`)
+36. `Loki-Ops Item 1: FIX:alloy_positions_storage` — **Alloy storage path configuration** (severity: `MEDIUM`)
     - completion_basis: `alloy_storage_path_set`
     - evidence_note: Volume mount and storage.path aligned in docker-compose.observability.yml
     - target: infra/logging/docker-compose.observability.yml
 
-37. `Melissa Item 2: FIX:journald_mounts` — **Journald mount configuration** (severity: `MEDIUM`)
+37. `Loki-Ops Item 2: FIX:journald_mounts` — **Journald mount configuration** (severity: `MEDIUM`)
     - completion_basis: `journald_mounts_added`
     - evidence_note: Journal mounts added to Alloy container in compose
     - target: infra/logging/docker-compose.observability.yml
 
-38. `Melissa Item 3: FIX:grafana_alert_timing` — **Grafana alert timing hardening** (severity: `MEDIUM`)
+38. `Loki-Ops Item 3: FIX:grafana_alert_timing` — **Grafana alert timing hardening** (severity: `MEDIUM`)
     - completion_basis: `alert_timing_hardened`
     - evidence_note: Alert `for:` and `noDataState` configuration updated in provisioning rules
     - target: infra/logging/grafana/provisioning/alerting/logging-pipeline-rules.yml

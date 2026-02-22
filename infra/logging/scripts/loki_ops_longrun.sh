@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="/home/luce/apps/loki-logging"
-STATE="$ROOT/_build/melissa"
+STATE="$ROOT/_build/loki-ops"
 MANIFEST="$STATE/batch_manifest.json"
 MEM="$STATE/memory.json"
 QUEUE_JSON="$STATE/queue.json"
@@ -22,7 +22,7 @@ stderr_buf="$STATE/longrun.stderr.buffer"
 : > "$stderr_buf"
 exec 1>>"$stdout_buf" 2>>"$stderr_buf"
 
-source "$ROOT/infra/logging/scripts/melissa_batchlib.sh"
+source "$ROOT/infra/logging/scripts/loki_ops_batchlib.sh"
 
 mode="real"
 max_minutes=240
@@ -44,7 +44,7 @@ if [[ -f "$MANIFEST" ]]; then
   max_grafana_restarts=$(jq -r '.max_grafana_restarts_per_run // 1' "$MANIFEST")
 fi
 
-run_name="melissa-queue-$(date -u +%Y%m%dT%H%M%SZ)"
+run_name="loki-ops-queue-$(date -u +%Y%m%dT%H%M%SZ)"
 start_epoch=$(date +%s)
 # shellcheck disable=SC2034
 grafana_restart_count=0
@@ -189,15 +189,15 @@ add("DOC:label_contract_expected_empty","doc_update","infra/logging/RUNBOOK.md")
 # Extra verification items to keep long deterministic backlog
 add("VERIFY:loki_binding_local","verify","infra/logging/docker-compose.observability.yml")
 add("VERIFY:prom_rule_metric_live","verify","infra/logging/prometheus/rules/loki_logging_rules.yml")
-add("VERIFY:queue_state_integrity","verify","_build/melissa/queue.json")
-add("VERIFY:endpoint_health_snapshot","verify","_build/melissa/runtime.log")
+add("VERIFY:queue_state_integrity","verify","_build/loki-ops/queue.json")
+add("VERIFY:endpoint_health_snapshot","verify","_build/loki-ops/runtime.log")
 add("VERIFY:audit_gate_snapshot","verify","_build/logging/dashboard_audit_latest.json")
 add("VERIFY:verifier_gate_snapshot","verify","_build/logging/verify_grafana_authority_latest.json")
 
 # Ensure minimum queue length
 while len(items) < 25:
     n=len(items)+1
-    add(f"VERIFY:filler-{n:02d}","verify","_build/melissa/runtime.log")
+    add(f"VERIFY:filler-{n:02d}","verify","_build/loki-ops/runtime.log")
 
 queue={
   "run": run_name,
@@ -664,7 +664,7 @@ checkpoint_commit(){
   hard_gates || return 90
 
   local changed
-  changed=$(git -C "$ROOT" status --porcelain=v1 | awk '{print $2}' | rg -v '^_build/melissa/' || true)
+  changed=$(git -C "$ROOT" status --porcelain=v1 | awk '{print $2}' | rg -v '^_build/loki-ops/' || true)
   if [[ -z "$changed" ]]; then
     pipe "🧾 EVIDENCE checkpoint | state=noop | summary=no_changes | canonical=allowlist" || true
     return 0
@@ -672,7 +672,7 @@ checkpoint_commit(){
 
   git -C "$ROOT" reset >/dev/null
 
-  local allow='^(infra/logging/(docker-compose\.observability\.yml|prometheus/prometheus\.yml|prometheus/rules/loki_logging_rules\.yml|grafana/provisioning/alerting/logging-pipeline-rules\.yml|scripts/(backup_volumes|restore_volumes|melissa_longrun|melissa_batchlib|melissa_daemon|no_drift_print)\.sh|RUNBOOK\.md|grafana/dashboards/sources/codeswarm-src-.*\.json)|docs/reference\.md|CLAUDE\.md|scripts/prod/mcp/logging_stack_(down|health)\.sh)$'
+  local allow='^(infra/logging/(docker-compose\.observability\.yml|prometheus/prometheus\.yml|prometheus/rules/loki_logging_rules\.yml|grafana/provisioning/alerting/logging-pipeline-rules\.yml|scripts/(backup_volumes|restore_volumes|loki_ops_longrun|loki_ops_batchlib|loki_ops_daemon|no_drift_print)\.sh|RUNBOOK\.md|grafana/dashboards/sources/codeswarm-src-.*\.json)|docs/reference\.md|CLAUDE\.md|scripts/prod/mcp/logging_stack_(down|health)\.sh)$'
 
   while IFS= read -r f; do
     [[ -z "$f" ]] && continue
@@ -830,7 +830,7 @@ run_loop(){
   pipe "🏁 RUN_DONE | result=done | ran=$done_count | fail=$fail_count | total=$total | elapsed=00:00:00 | run=$run_name" || true
 
   cat <<EOF_SUM > "$STATE/session_summary.md"
-# Melissa Session Summary
+# Loki-Ops Session Summary
 
 - run: $run_name
 - total_items: $total

@@ -7,12 +7,15 @@ cd "$(dirname "$0")/../../.."
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   cat <<'EOF'
-Usage: logging_stack_audit.sh [output-path]
+Usage: logging_stack_audit.sh [-o output-path] [output-path]
 
 Deep health audit of the observability stack. Produces a structured
 JSON report with pass/fail/warn results for each check.
 
 Arguments:
+  -o, --output path
+                Where to write JSON report
+                (default: temp/codex/monitoring/health-<timestamp>.json)
   output-path   Where to write JSON report
                 (default: temp/codex/monitoring/health-<timestamp>.json)
 
@@ -46,6 +49,39 @@ export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
 OBS="infra/logging/docker-compose.observability.yml"
 ENV_FILE=".env"
 
+output_arg=""
+positional_output=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -o|--output)
+      if [[ $# -lt 2 ]]; then
+        echo "missing_output_path_for=$1" >&2
+        exit 2
+      fi
+      output_arg="$2"
+      shift 2
+      ;;
+    --help|-h)
+      # handled above; keep branch for robustness when parsed later
+      break
+      ;;
+    -*)
+      echo "unknown_arg=$1" >&2
+      echo "try: logging_stack_audit.sh --help" >&2
+      exit 2
+      ;;
+    *)
+      if [[ -n "$positional_output" ]]; then
+        echo "too_many_output_paths" >&2
+        echo "try: logging_stack_audit.sh --help" >&2
+        exit 2
+      fi
+      positional_output="$1"
+      shift
+      ;;
+  esac
+done
+
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "missing_env_file=$ENV_FILE" >&2
   exit 1
@@ -56,7 +92,12 @@ set -a
 . "$ENV_FILE"
 set +a
 
-OUT="${1:-temp/codex/monitoring/health-$(date -u +%Y%m%dT%H%M%SZ).json}"
+if [[ -n "$output_arg" && -n "$positional_output" ]]; then
+  echo "conflicting_output_args=use_either_flag_or_positional" >&2
+  exit 2
+fi
+
+OUT="${output_arg:-${positional_output:-temp/codex/monitoring/health-$(date -u +%Y%m%dT%H%M%SZ).json}}"
 mkdir -p "$(dirname "$OUT")"
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -72,7 +113,10 @@ targets_up_json=""
 flags_json=""
 rules_json=""
 proof_json=""
-trap 'rm -f "$CHECKS_NDJSON" "$targets_json" "$up_json" "$targets_down_json" "$targets_up_json" "$flags_json" "$rules_json" "$proof_json"' EXIT
+nvidia_loki_json=""
+sem_total_json=""
+sem_level_json=""
+trap 'rm -f "$CHECKS_NDJSON" "$targets_json" "$up_json" "$targets_down_json" "$targets_up_json" "$flags_json" "$rules_json" "$proof_json" "$nvidia_loki_json" "$sem_total_json" "$sem_level_json"' EXIT
 
 add_result() {
   local name="$1" status="$2" severity="$3" detail="$4"
@@ -123,7 +167,7 @@ else
   fail prometheus_ready critical "prometheus ready endpoint failed"
 fi
 
-if docker run --rm --network obs curlimages/curl:8.6.0 -sf 'http://loki:3100/ready' >/dev/null; then
+if docker run --rm --network obs curlimages/curl:8.6.0 -sf --connect-timeout 5 --max-time 20 'http://loki:3100/ready' >/dev/null; then
   pass loki_ready critical "loki ready endpoint ok"
 else
   fail loki_ready critical "loki ready endpoint failed"
@@ -235,7 +279,7 @@ if [[ -w "$proof_file" ]]; then
   now_ns="$(date +%s%N)"
   from_ns="$((now_ns - 15*60*1000000000))"
   proof_json="$(mktemp)"
-  if docker run --rm --network obs curlimages/curl:8.6.0 -sfG \
+  if docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
       --data-urlencode "query={env=~\".+\",log_source=\"codeswarm_mcp\"} |= \"${proof_line}\"" \
       --data-urlencode "start=${from_ns}" \
       --data-urlencode "end=${now_ns}" \
@@ -253,6 +297,197 @@ if [[ -w "$proof_file" ]]; then
   fi
 else
   warn loki_ingest_proof warning "proof file not writable: $proof_file"
+fi
+
+# 6b) Runtime validation: GPU/NVIDIA telemetry source activity vs Loki delivery
+nvidia_dir="${HOST_VLLM:-/home/luce/apps/vLLM}/logs/telemetry/nvidia"
+gpu_dir="${GPU_TELEMETRY_DIR:-/home/luce/_telemetry/gpu}"
+cutoff_epoch="$(( $(date +%s) - 24*60*60 ))"
+nvidia_recent_host=0
+nvidia_host_files=0
+nvidia_host_bytes=0
+gpu_recent_host=0
+gpu_host_files=0
+gpu_host_bytes=0
+
+if [[ -d "$nvidia_dir" ]]; then
+  while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    nvidia_host_files=$((nvidia_host_files + 1))
+    sz="$(stat -c '%s' "$f" 2>/dev/null || echo 0)"
+    mt="$(stat -c '%Y' "$f" 2>/dev/null || echo 0)"
+    if [[ "$sz" =~ ^[0-9]+$ ]]; then
+      nvidia_host_bytes=$((nvidia_host_bytes + sz))
+    fi
+    if [[ "$mt" =~ ^[0-9]+$ ]] && (( mt >= cutoff_epoch )) && [[ "$sz" =~ ^[0-9]+$ ]] && (( sz > 0 )); then
+      nvidia_recent_host=1
+    fi
+  done < <(find "$nvidia_dir" -type f \( -name '*.jsonl' -o -name '*.jsonl-*' \) 2>/dev/null | sort)
+fi
+
+for f in "$gpu_dir/gpu-live.csv" "$gpu_dir/gpu-proc.csv"; do
+  [[ -f "$f" ]] || continue
+  gpu_host_files=$((gpu_host_files + 1))
+  sz="$(stat -c '%s' "$f" 2>/dev/null || echo 0)"
+  mt="$(stat -c '%Y' "$f" 2>/dev/null || echo 0)"
+  if [[ "$sz" =~ ^[0-9]+$ ]]; then
+    gpu_host_bytes=$((gpu_host_bytes + sz))
+  fi
+  if [[ "$mt" =~ ^[0-9]+$ ]] && (( mt >= cutoff_epoch )) && [[ "$sz" =~ ^[0-9]+$ ]] && (( sz > 0 )); then
+    gpu_recent_host=1
+  fi
+done
+
+nvidia_loki_matches=""
+gpu_loki_count_6h="0"
+now_ns="$(date +%s%N)"
+from_ns="$((now_ns - 24*60*60*1000000000))"
+nvidia_loki_json="$(mktemp)"
+if docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query={log_source="nvidia_telem"}' \
+  --data-urlencode "start=${from_ns}" \
+  --data-urlencode "end=${now_ns}" \
+  --data-urlencode 'limit=1' \
+  --data-urlencode 'direction=BACKWARD' \
+      'http://loki:3100/loki/api/v1/query_range' >| "$nvidia_loki_json"; then
+  nvidia_loki_matches="$(jq -r '.data.result | length' "$nvidia_loki_json" 2>/dev/null || echo "")"
+fi
+
+gpu_loki_count_6h="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="gpu_telemetry"}[6h]))' \
+  --data-urlencode "time=${now_ns}" \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "0")"
+
+if [[ "$gpu_recent_host" -eq 1 ]] && awk "BEGIN{exit !(($gpu_loki_count_6h+0) > 0)}"; then
+  pass nvidia_telem_runtime warning "gpu_telemetry active (host_recent=1 loki_6h=${gpu_loki_count_6h})"
+elif [[ "$nvidia_recent_host" -eq 1 ]] && [[ "$nvidia_loki_matches" =~ ^[1-9][0-9]*$ ]]; then
+  pass nvidia_telem_runtime warning "legacy nvidia_telem stream active (host_recent=1 loki_24h_matches=${nvidia_loki_matches})"
+elif awk "BEGIN{exit !(($gpu_loki_count_6h+0) > 0)}"; then
+  pass nvidia_telem_runtime warning "gpu_telemetry stream active in Loki despite no recent host-file mtime (loki_6h=${gpu_loki_count_6h})"
+elif [[ "$nvidia_loki_matches" =~ ^[1-9][0-9]*$ ]]; then
+  pass nvidia_telem_runtime warning "legacy nvidia_telem stream present in Loki (24h_matches=${nvidia_loki_matches})"
+elif [[ "$gpu_recent_host" -eq 1 ]]; then
+  warn nvidia_telem_runtime warning "recent host gpu telemetry files but no Loki gpu_telemetry lines in 6h (files=${gpu_host_files} bytes=${gpu_host_bytes})"
+elif [[ "$nvidia_recent_host" -eq 1 ]]; then
+  warn nvidia_telem_runtime warning "recent host nvidia input but no Loki nvidia_telem matches in 24h (files=${nvidia_host_files} bytes=${nvidia_host_bytes})"
+else
+  warn nvidia_telem_runtime warning "no recent gpu/nvidia telemetry host input detected (gpu_files=${gpu_host_files} gpu_bytes=${gpu_host_bytes} nvidia_files=${nvidia_host_files} nvidia_bytes=${nvidia_host_bytes})"
+fi
+
+# 6c) Runtime validation: failure-semantics severity normalization
+sem_total_json="$(mktemp)"
+sem_level_json="$(mktemp)"
+if docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source=~".+"} |~ "(?i)(Failed with result|Main process exited|Failed to start|Operation not permitted|exit-code)" [24h]))' \
+  'http://loki:3100/loki/api/v1/query' >| "$sem_total_json" && \
+  docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source=~".+",level=~"(?i)(error|warn|warning|info|debug)"} |~ "(?i)(Failed with result|Main process exited|Failed to start|Operation not permitted|exit-code)" [24h]))' \
+  'http://loki:3100/loki/api/v1/query' >| "$sem_level_json"; then
+  sem_total="$(jq -r '.data.result[0].value[1] // "0"' "$sem_total_json" 2>/dev/null || echo "0")"
+  sem_level="$(jq -r '.data.result[0].value[1] // "0"' "$sem_level_json" 2>/dev/null || echo "0")"
+  if awk "BEGIN{exit !($sem_total+0 > 0)}"; then
+    if awk "BEGIN{exit !($sem_level+0 > 0)}"; then
+      pass severity_normalization_runtime warning "normalized failure semantics present (total=${sem_total}, with_level=${sem_level})"
+    else
+      warn severity_normalization_runtime warning "failure semantics present but level-normalized count is zero (total=${sem_total}, with_level=${sem_level})"
+    fi
+  else
+    pass severity_normalization_runtime warning "no failure-semantics events observed in last 24h"
+  fi
+else
+  warn severity_normalization_runtime warning "unable to query Loki for severity normalization runtime validation"
+fi
+
+# 6d) Runtime validation: known-noise suppression effectiveness
+noise_syslog="nan"
+noise_vscode="nan"
+noise_codex="nan"
+noise_syslog_15m="nan"
+noise_vscode_15m="nan"
+noise_codex_15m="nan"
+noise_syslog_24h="nan"
+noise_vscode_24h="nan"
+noise_codex_24h="nan"
+
+noise_syslog="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="rsyslog_syslog"} |~ "(?i)(Health check for container .* OCI runtime exec failed|copy stream failed.*reading from a closed fifo|ShouldRestart failed, container will not be restarted|restart canceled|hasBeenManuallyStopped=true|Container failed to exit within 10s of signal 15 - using the force)" [2m]))' \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "nan")"
+
+noise_vscode="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="vscode_server"} |~ "(?i)(npm warn Unknown project config|Melissa[.]ai:.*state: exec-error|Failed to load config error=.*AgentRoleToml|Failed to load apps list error=.*object Object|git config failed: Failed to execute git)" [2m]))' \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "nan")"
+
+noise_codex="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="codex_tui"} |~ "(?i)(Ran set -euo pipefail|ToolCall: (exec_command|apply_patch|write_stdin|list_mcp_resources|list_mcp_resource_templates|read_mcp_resource|update_plan|multi_tool_use[.]parallel))" [2m]))' \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "nan")"
+
+noise_syslog_15m="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="rsyslog_syslog"} |~ "(?i)(Health check for container .* OCI runtime exec failed|copy stream failed.*reading from a closed fifo|ShouldRestart failed, container will not be restarted|restart canceled|hasBeenManuallyStopped=true|Container failed to exit within 10s of signal 15 - using the force)" [15m]))' \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "nan")"
+
+noise_vscode_15m="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="vscode_server"} |~ "(?i)(npm warn Unknown project config|Melissa[.]ai:.*state: exec-error|Failed to load config error=.*AgentRoleToml|Failed to load apps list error=.*object Object|git config failed: Failed to execute git)" [15m]))' \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "nan")"
+
+noise_codex_15m="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="codex_tui"} |~ "(?i)(Ran set -euo pipefail|ToolCall: (exec_command|apply_patch|write_stdin|list_mcp_resources|list_mcp_resource_templates|read_mcp_resource|update_plan|multi_tool_use[.]parallel))" [15m]))' \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "nan")"
+
+noise_syslog_24h="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="rsyslog_syslog"} |~ "(?i)(Health check for container .* OCI runtime exec failed|copy stream failed.*reading from a closed fifo|ShouldRestart failed, container will not be restarted|restart canceled|hasBeenManuallyStopped=true|Container failed to exit within 10s of signal 15 - using the force)" [24h]))' \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "nan")"
+
+noise_vscode_24h="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="vscode_server"} |~ "(?i)(npm warn Unknown project config|Melissa[.]ai:.*state: exec-error|Failed to load config error=.*AgentRoleToml|Failed to load apps list error=.*object Object|git config failed: Failed to execute git)" [24h]))' \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "nan")"
+
+noise_codex_24h="$(docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+  --data-urlencode 'query=sum(count_over_time({log_source="codex_tui"} |~ "(?i)(Ran set -euo pipefail|ToolCall: (exec_command|apply_patch|write_stdin|list_mcp_resources|list_mcp_resource_templates|read_mcp_resource|update_plan|multi_tool_use[.]parallel))" [24h]))' \
+  'http://loki:3100/loki/api/v1/query' \
+  | jq -r '.data.result[0].value[1] // "0"' 2>/dev/null || echo "nan")"
+
+if [[ "$noise_syslog" =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ "$noise_vscode" =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ "$noise_codex" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+  if awk "BEGIN{exit !(($noise_syslog+0)==0 && ($noise_vscode+0)==0 && ($noise_codex+0)==0)}"; then
+    pass runtime_noise_suppression warning "known-noise signatures suppressed in last 2m (syslog=${noise_syslog}, vscode=${noise_vscode}, codex=${noise_codex})"
+  else
+    warn runtime_noise_suppression warning "known-noise signatures still present in last 2m (syslog=${noise_syslog}, vscode=${noise_vscode}, codex=${noise_codex})"
+  fi
+else
+  warn runtime_noise_suppression warning "unable to query Loki for known-noise suppression validation"
+fi
+
+if [[ "$noise_syslog_15m" =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ "$noise_vscode_15m" =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ "$noise_codex_15m" =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ "$noise_syslog_24h" =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ "$noise_vscode_24h" =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ "$noise_codex_24h" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+  pass runtime_noise_suppression_trend warning "suppression trend: 15m(syslog=${noise_syslog_15m},vscode=${noise_vscode_15m},codex=${noise_codex_15m}) 24h(syslog=${noise_syslog_24h},vscode=${noise_vscode_24h},codex=${noise_codex_24h})"
+else
+  warn runtime_noise_suppression_trend warning "unable to query Loki for suppression trend windows (15m/24h)"
+fi
+
+# 6e) Suppression-decay per-ADR artifact (2m/15m/1h/24h)
+SUPPRESSION_REPORT_SCRIPT="infra/logging/scripts/suppression_decay_report.sh"
+if [[ -x "$SUPPRESSION_REPORT_SCRIPT" ]]; then
+  suppression_out="$("$SUPPRESSION_REPORT_SCRIPT" 2>/tmp/suppression_decay_report.err || true)"
+  sup_json="$(printf '%s\n' "$suppression_out" | awk -F= '/^SUPPRESSION_DECAY_JSON=/{print $2}' | tail -n 1)"
+  sup_2m="$(printf '%s\n' "$suppression_out" | awk -F= '/^SUPPRESSION_DECAY_2M_PASS=/{print $2}' | tail -n 1)"
+  sup_1h="$(printf '%s\n' "$suppression_out" | awk -F= '/^SUPPRESSION_DECAY_1H_PASS=/{print $2}' | tail -n 1)"
+  sup_24h="$(printf '%s\n' "$suppression_out" | awk -F= '/^SUPPRESSION_DECAY_24H_PASS=/{print $2}' | tail -n 1)"
+  if [[ "$sup_2m" == "true" && "$sup_1h" == "true" && "$sup_24h" == "true" ]]; then
+    pass suppression_decay_report warning "per-ADR suppression decay complete through 24h (artifact=${sup_json:-unknown})"
+  elif [[ "$sup_2m" == "true" && "$sup_1h" == "true" ]]; then
+    warn suppression_decay_report warning "per-ADR suppression live windows clean; 24h decay pending (artifact=${sup_json:-unknown})"
+  else
+    warn suppression_decay_report warning "per-ADR suppression still active in live windows (artifact=${sup_json:-unknown})"
+  fi
+else
+  warn suppression_decay_report warning "suppression decay report script missing or not executable"
 fi
 
 # 7) Restart counters + disk
@@ -320,7 +555,7 @@ jq -s \
         fail: ([.[] | select(.status=="fail")] | length)
       },
       checks: .
-    } ' "$CHECKS_NDJSON" > "$OUT"
+    } ' "$CHECKS_NDJSON" >| "$OUT"
 
 echo "audit_output=$OUT"
 echo "audit_overall=$overall"
