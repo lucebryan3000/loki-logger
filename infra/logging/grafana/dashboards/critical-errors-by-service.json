@@ -1,0 +1,197 @@
+{
+  "uid": "critical-errors-by-service",
+  "title": "Critical Errors by Service (Phase 2B)",
+  "timezone": "America/Chicago",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-4h",
+    "to": "now"
+  },
+  "editable": true,
+  "tags": [
+    "phase2b",
+    "critical",
+    "errors",
+    "actionable",
+    "logging"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "mcp-server.service",
+          "value": "mcp-server.service"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "definition": "label_values({level=\"error\"}, service_name)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service_name",
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "Dashboard Purpose",
+      "options": {
+        "mode": "markdown",
+        "content": "# Critical Errors Dashboard (Phase 2B)\n\nThis dashboard focuses on **actionable errors** that require investigation:\n- mcp-server.service failures (repeated exit codes)\n- logging-e2e-check.service startup failures\n- Other service-specific critical events\n\n**Filtered out**: VSCode debug logs, DNS warnings, Node.js trace warnings (low-value noise)\n\n**Goal**: Signal-to-noise ratio improvement from 27% → 90% actionable errors"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Total Critical Errors (4h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({level=\"error\", service_name=~\"$service_name|mcp-server.service|logging-e2e-check.service\"}[4h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Error Services (4h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (service_name) (count_over_time({level=\"error\", service_name=~\"$service_name|mcp-server.service|logging-e2e-check.service\"}[4h])))"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "mcp-server Failures",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"mcp-server.service\", level=\"error\"}[4h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "E2E Check Failures",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"logging-e2e-check.service\", level=\"error\"}[4h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "table",
+      "title": "Critical Errors by Service",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, sum by (service_name) (count_over_time({level=\"error\", service_name=~\"$service_name|mcp-server.service|logging-e2e-check.service\"}[4h])))",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 10
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Recent Critical Errors",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "wrapLogMessage": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{level=\"error\", service_name=~\"$service_name|mcp-server.service|logging-e2e-check.service\"} | json",
+          "format": "logs"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 10
+      }
+    }
+  ]
+}

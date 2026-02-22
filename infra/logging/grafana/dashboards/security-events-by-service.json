@@ -1,0 +1,198 @@
+{
+  "uid": "security-events-by-service",
+  "title": "Security Events by Service (Phase 2B)",
+  "timezone": "America/Chicago",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "editable": true,
+  "tags": [
+    "phase2b",
+    "security",
+    "events",
+    "firewall",
+    "auth",
+    "logging"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": ".+"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "definition": "label_values({log_source=\"rsyslog_syslog\", service_name=~\"ufw|sudo|sshd|cron\"}, service_name)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Security Service",
+        "multi": true,
+        "name": "security_service",
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "Dashboard Purpose",
+      "options": {
+        "mode": "markdown",
+        "content": "# Security Events Dashboard (Phase 2B)\n\nThis dashboard focuses on **security-relevant events**:\n- UFW (firewall) - blocked connections\n- sudo (privilege escalation) - command execution\n- sshd (SSH auth) - login attempts and auth events\n- cron (scheduled tasks) - job execution\n\n**Use case**: Security monitoring, audit trails, and threat detection\n\n**Security domains**: Firewall, Authentication, Privilege Escalation, Task Execution"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Total Security Events (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"ufw|sudo|sshd|cron|$security_service\"}[24h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "UFW Blocked",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\", service_name=\"ufw\"}[24h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "sudo Executions",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\", service_name=\"sudo\"}[24h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "sshd Auth Events",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\", service_name=\"sshd\"}[24h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "table",
+      "title": "Security Events by Service",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"ufw|sudo|sshd|cron|$security_service\"}[24h])))",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 10
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Recent Security Events",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "wrapLogMessage": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=\"rsyslog_syslog\", service_name=~\"ufw|sudo|sshd|cron|$security_service\"}",
+          "format": "logs"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 10
+      }
+    }
+  ]
+}
