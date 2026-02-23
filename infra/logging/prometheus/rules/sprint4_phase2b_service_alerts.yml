@@ -9,7 +9,7 @@ groups:
       - alert: MCPServerRepeatedFailures
         expr: >
           sum(increase(loki_write_dropped_entries_total[10m])) > 0
-          or (count(count_over_time({service_name="mcp-server.service", level="error"}[5m])) > 5)
+          or (count(count_over_time({service_name="mcp-server.service", level="error"}[5m])) > 10)
         for: 2m
         labels:
           severity: critical
@@ -18,10 +18,10 @@ groups:
         annotations:
           runbook_url: "docs/troubleshooting.md#mcp-server-failures"
           summary: "MCP Server repeated failures detected"
-          description: "mcp-server.service has shown {{ $value }} failure events in the last 5 minutes"
+          description: "mcp-server.service has shown {{ $value }} failure events in the last 5 minutes (threshold: >10)"
 
       - alert: E2ECheckServiceFailure
-        expr: count(count_over_time({service_name="logging-e2e-check.service", level="error"}[5m])) > 0
+        expr: count(count_over_time({service_name="logging-e2e-check.service", level="error"}[5m])) > 3
         for: 5m
         labels:
           severity: warning
@@ -30,7 +30,7 @@ groups:
         annotations:
           runbook_url: "docs/operations.md#e2e-checks"
           summary: "Logging E2E check service failure"
-          description: "logging-e2e-check.service is reporting errors. Monitoring validation may be impacted."
+          description: "logging-e2e-check.service has {{ $value }} errors (threshold: >3). Monitoring validation may be impacted."
 
       # --- Security Event Monitoring ---
       - alert: UnusualUFWBlockActivity
