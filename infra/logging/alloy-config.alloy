@@ -925,8 +925,9 @@ loki.process "tool_sink" {
 loki.process "telemetry" {
   stage.static_labels {
     values = {
-      env        = "sandbox",
-      log_source = "telemetry",
+      env         = "sandbox",
+      log_source  = "telemetry",
+      service_name = "telemetry-writer",
     }
   }
 
