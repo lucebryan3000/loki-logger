@@ -1133,6 +1133,7 @@ loki.process "gpu_telemetry_gpu" {
       env         = "sandbox",
       log_source  = "gpu_telemetry",
       source_type = "gpu_csv",
+      service_name = "gpu-telemetry",
       host        = "codeswarm",
       stream      = "gpu",
     }
@@ -1151,6 +1152,7 @@ loki.process "gpu_telemetry_proc" {
       env         = "sandbox",
       log_source  = "gpu_telemetry",
       source_type = "gpu_csv",
+      service_name = "gpu-telemetry",
       host        = "codeswarm",
       stream      = "proc",
     }
