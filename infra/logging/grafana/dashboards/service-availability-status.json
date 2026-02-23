@@ -1,0 +1,212 @@
+{
+  "uid": "service-availability-status",
+  "title": "Service Availability Status (Phase 3B)",
+  "timezone": "America/Chicago",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "editable": true,
+  "tags": [
+    "phase3b",
+    "availability",
+    "health",
+    "services",
+    "uptime"
+  ],
+  "panels": [
+    {
+      "type": "text",
+      "title": "Dashboard Purpose",
+      "options": {
+        "mode": "markdown",
+        "content": "# Service Availability Status (Phase 3B)\n\nTracks real-time service health beyond just error counting:\n- Service availability (is it logging?)\n- Service health score (active + low error rate)\n- Stable vs problematic services\n- Critical service uptime\n\n**Data Sources**:\n- Loki log activity detection\n- Error rate correlation\n- Service health composite metrics\n\n**Use Case**: Quick identification of unhealthy services needing investigation"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Available Services (1h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-uid"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(sprint4:service_log_volume_per_hour:1h > 0)"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "background",
+        "decimals": 0,
+        "unit": "short"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Stable Services (1h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-uid"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(sprint4:stable_services:1h)"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "background",
+        "decimals": 0,
+        "unit": "short"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Services with Errors (1h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-uid"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(sprint4:service_error_count_1h:1h > 0)"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "background",
+        "decimals": 0,
+        "unit": "short"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Critical Service Uptime",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-uid"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(sprint4:critical_service_uptime:1h)"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "background",
+        "decimals": 0,
+        "unit": "short"
+      }
+    },
+    {
+      "type": "table",
+      "title": "Service Health Summary (1h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-uid"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, sprint4:service_log_volume_per_hour:1h)",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "type": "table",
+      "title": "Top Error Services (1h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-uid"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sprint4:service_error_count_1h:1h)",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Service Health Score Trend (24h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-uid"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(5, sprint4:service_health_score:1h)",
+          "legendFormat": "{{ service_name }}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 6
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "placement": "bottom"
+        }
+      }
+    }
+  ]
+}

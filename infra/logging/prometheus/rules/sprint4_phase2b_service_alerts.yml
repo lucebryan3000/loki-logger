@@ -78,45 +78,7 @@ groups:
           sum(count_over_time({service_name="unknown_service", level="error"}[5m]))
           / (sum(count_over_time({service_name="unknown_service"}[5m])) + 1)
 
-      # --- Phase 2C Advanced Metrics ---
-      - record: sprint4:service_log_volume:count1h
-        expr: >
-          sum by (service_name) (
-            count_over_time({log_source="rsyslog_syslog"}[1h])
-          )
-
-      - record: sprint4:service_error_count:1h
-        expr: >
-          sum by (service_name) (
-            count_over_time({level="error"}[1h])
-          )
-
-      - record: sprint4:service_error_ratio:5m
-        expr: >
-          sum by (service_name) (
-            count_over_time({level="error"}[5m])
-          ) / (sum by (service_name) (count_over_time({log_source="rsyslog_syslog"}[5m])) + 1)
-
-      - record: sprint4:service_active_count:5m
-        expr: >
-          count(count by (service_name) (count_over_time({log_source="rsyslog_syslog"}[5m])))
-
-      - record: sprint4:unknown_service_ratio:5m
-        expr: >
-          sum(count_over_time({service_name="unknown_service"}[5m]))
-          / (sum(count_over_time({log_source="rsyslog_syslog"}[5m])) + 1)
-
-      - record: sprint4:critical_errors_count:1m
-        expr: >
-          sum(count_over_time(
-            {service_name=~"mcp-server.service|logging-e2e-check.service", level="error"}[1m]
-          ))
-
-      - record: sprint4:security_events_count:1h
-        expr: >
-          sum by (service_name) (
-            count_over_time({service_name=~"ufw|sudo|sshd|cron"}[1h])
-          )
+      # Note: Phase 2C metrics moved to Phase 3A/3B groups to avoid aggregation conflicts
 
   # --- Phase 3A Service Health Recording Rules ---
   - name: sprint4_phase3a_service_health_v1
@@ -150,3 +112,49 @@ groups:
       - record: sprint4:infra_error_count:5m
         expr: >
           sum(count_over_time({level="error"}[5m]))
+
+  # --- Phase 3B Service Availability & Health Metrics ---
+  - name: sprint4_phase3b_service_availability_v1
+    interval: 60s
+    rules:
+      # Service availability indicator (based on recent log activity)
+      - record: sprint4:service_is_active:5m
+        expr: >
+          count by (service_name) (count_over_time({log_source="rsyslog_syslog"}[5m]) > 0)
+
+      # Service uptime percentage (active hours vs total hours)
+      - record: sprint4:service_availability_pct:1h
+        expr: >
+          (count by (service_name) (count_over_time({log_source="rsyslog_syslog"}[1h]) > 0) / count by (service_name) (vector(1)) * 100)
+
+      # Service error-free indicator (no errors in window)
+      - record: sprint4:service_error_free:1h
+        expr: >
+          (count_over_time({log_source="rsyslog_syslog"}[1h]) > 0) unless (sum by (service_name) (count_over_time({level="error"}[1h])) > 0)
+
+      # Service health score (composite: active + low error rate)
+      - record: sprint4:service_health_score:1h
+        expr: >
+          (count by (service_name) (count_over_time({log_source="rsyslog_syslog"}[1h]) > 0)
+          * (1 - (sum by (service_name) (count_over_time({level="error"}[1h])) / (sum by (service_name) (count_over_time({log_source="rsyslog_syslog"}[1h])) + 1))))
+
+      # Critical service uptime (infrastructure services only)
+      - record: sprint4:critical_service_uptime:1h
+        expr: >
+          count by (service_name) (count_over_time({service_name=~"loki|prometheus|grafana|alloy", log_source="rsyslog_syslog"}[1h]) > 0)
+
+      # Service log volume trend (for detecting quiet services)
+      - record: sprint4:service_log_volume_per_hour:1h
+        expr: >
+          sum by (service_name) (count_over_time({log_source="rsyslog_syslog"}[1h]))
+
+      # Service error trend (for detecting error spikes)
+      - record: sprint4:service_error_count_1h:1h
+        expr: >
+          sum by (service_name) (count_over_time({level="error"}[1h]))
+
+      # Stable service indicator (no errors, consistent volume)
+      - record: sprint4:stable_services:1h
+        expr: >
+          (sum by (service_name) (count_over_time({log_source="rsyslog_syslog"}[1h]) > 0))
+          unless (sum by (service_name) (count_over_time({level="error"}[1h])) > 0)
