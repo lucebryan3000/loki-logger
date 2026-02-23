@@ -625,6 +625,41 @@ loki.source.file "host_apt_history" {
 
   // --- end noise suppression ---
 
+  // --- additional service extraction (Sprint-4 Phase 2C) ---
+  // Remaining unknown_service patterns discovered through sampling
+
+  // Log truncation scheduler (codeswarm/luce automation)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"service=scheduler\" "
+    stage.static_labels {
+      values = {
+        service_name = "scheduler",
+      }
+    }
+  }
+
+  // Docker network interface events (container lifecycle)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"veth.*Link|Gained|promiscuous|allmulticast\" "
+    stage.static_labels {
+      values = {
+        service_name = "docker-network",
+      }
+    }
+  }
+
+  // Docker container lifecycle (started, stopped)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"docker.*scope|Started docker|docker.*Deactivated\" "
+    stage.static_labels {
+      values = {
+        service_name = "docker-container",
+      }
+    }
+  }
+
+  // --- end additional service extraction ---
+
   forward_to = [loki.write.default.receiver]
 
 }
