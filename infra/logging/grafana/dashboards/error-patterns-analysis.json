@@ -1,0 +1,223 @@
+{
+  "uid": "error-patterns-analysis",
+  "title": "Error Patterns Analysis (Phase 2C)",
+  "timezone": "America/Chicago",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "editable": true,
+  "tags": [
+    "phase2c",
+    "errors",
+    "patterns",
+    "analysis",
+    "logging"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "mcp-server.service",
+          "value": "mcp-server.service"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "definition": "label_values({level=\"error\"}, service_name)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Error Service",
+        "multi": false,
+        "name": "error_service",
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "Error Patterns Dashboard",
+      "options": {
+        "mode": "markdown",
+        "content": "# Error Pattern Analysis (Phase 2C)\n\nThis dashboard analyzes error entry patterns by:\n- **Error Type**: Message patterns and categories\n- **Service**: Which service generated the error\n- **Frequency**: How often each pattern occurs\n- **Trend**: Error rate changes over time\n\n**Use Case**: Identify error root causes, detect error spikes, track error remediation"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Total Errors (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({level=\"error\"}[24h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Unique Error Types",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (service_name) (count_over_time({level=\"error\"}[24h])))"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Service Errors (Selected)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({level=\"error\", service_name=\"$error_service\"}[24h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Error Rate (current hour)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(sum_over_time(count_over_time({level=\"error\"}[1m])[1h:1m]))[1h])"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate Trend (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(count_over_time({level=\"error\"}[5m])[5m:1m]))",
+          "legendFormat": "All Services"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(count_over_time({level=\"error\", service_name=\"$error_service\"}[5m])[5m:1m]))",
+          "legendFormat": "$error_service"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Top Error Patterns by Service (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(20, sum by (service_name) (count_over_time({level=\"error\"}[24h])))",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Recent Error Messages (Service: $error_service)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{level=\"error\", service_name=\"$error_service\"}",
+          "format": "logs"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 10
+      }
+    }
+  ]
+}

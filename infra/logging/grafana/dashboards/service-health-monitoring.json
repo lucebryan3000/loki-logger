@@ -1,0 +1,210 @@
+{
+  "uid": "service-health-monitoring",
+  "title": "Service Health Monitoring (Phase 2C)",
+  "timezone": "America/Chicago",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "60s",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "editable": true,
+  "tags": [
+    "phase2c",
+    "health",
+    "monitoring",
+    "uptime",
+    "logging"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": ".+"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "definition": "label_values({log_source=\"rsyslog_syslog\"}, service_name)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "Service Health Monitoring",
+      "options": {
+        "mode": "markdown",
+        "content": "# Service Health Monitoring (Phase 2C)\n\nProactive monitoring dashboard for service health:\n- **Activity**: Which services are producing logs\n- **Errors**: Service error rates and frequencies\n- **Restarts**: Service start/stop patterns\n- **Volume**: Log volume trends per service\n\n**Use Case**: Detect service degradation, track restart patterns, identify unhealthy services before failures occur"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Total Services Active (7d)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[7d])))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Services with Errors (7d)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (service_name) (count_over_time({level=\"error\", service_name=~\"$service\"}[7d])))"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Avg Error Rate",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg(sum by (service_name) (rate(count_over_time({level=\"error\", service_name=~\"$service\"}[5m])[5m:1m])))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Services (current hour)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[1h])))"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Log Volume per Service (7d)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name) (rate(count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[1h])[7d:1h]))",
+          "legendFormat": "{{ service_name }}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate per Service (7d)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name) (rate(count_over_time({level=\"error\", service_name=~\"$service\"}[1h])[7d:1h]))",
+          "legendFormat": "{{ service_name }}"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Service Summary (7d)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(30, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[7d])))",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 10
+      }
+    }
+  ]
+}
