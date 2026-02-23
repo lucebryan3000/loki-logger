@@ -117,3 +117,36 @@ groups:
           sum by (service_name) (
             count_over_time({service_name=~"ufw|sudo|sshd|cron"}[1h])
           )
+
+  # --- Phase 3A Service Health Recording Rules ---
+  - name: sprint4_phase3a_service_health_v1
+    interval: 60s
+    rules:
+      # Service availability (based on log activity in last hour)
+      - record: sprint4:service_log_count:1h
+        expr: >
+          sum by (service_name) (count_over_time({log_source="rsyslog_syslog"}[1h]))
+
+      # Error-to-log ratio (health indicator)
+      - record: sprint4:service_error_ratio:1h
+        expr: >
+          sum by (service_name) (
+            count_over_time({level="error"}[1h])
+          ) / (sum by (service_name) (count_over_time({log_source="rsyslog_syslog"}[1h])) + 1)
+
+      # Critical service error count
+      - record: sprint4:critical_service_errors:1h
+        expr: >
+          sum by (service_name) (
+            count_over_time({service_name=~"loki|prometheus|grafana|alloy", level="error"}[1h])
+          )
+
+      # High error services (more than 10 errors per hour)
+      - record: sprint4:high_error_services:1h
+        expr: >
+          sum by (service_name) (count_over_time({level="error"}[1h])) > 10
+
+      # Total infrastructure error count
+      - record: sprint4:infra_error_count:5m
+        expr: >
+          sum(count_over_time({level="error"}[5m]))

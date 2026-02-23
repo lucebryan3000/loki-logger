@@ -1,0 +1,270 @@
+{
+  "uid": "service-restart-diagnostics",
+  "title": "Service Restart Diagnostics (Phase 3A)",
+  "timezone": "America/Chicago",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "editable": true,
+  "tags": [
+    "phase3a",
+    "diagnostics",
+    "reliability",
+    "restarts",
+    "uptime"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus-uid"
+        },
+        "definition": "label_values(up{job=~\"prometheus|loki|grafana\"}, job)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "Dashboard Purpose",
+      "options": {
+        "mode": "markdown",
+        "content": "# Service Restart Diagnostics (Phase 3A)\n\nTracks service availability and restart patterns to identify reliability issues.\n\n**Key Metrics**:\n- Service uptime timeline\n- Restart frequency and patterns\n- Time-to-healthy recovery\n- Service availability percentage\n\n**Data Sources**:\n- Prometheus `up` metric from service scrapers\n- Container health check status\n- Service-specific error patterns from Loki\n\n**Action**: Use to identify services with high restart rates or prolonged downtime"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Stack Availability (24h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-uid"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(count(up{job=~\"prometheus|loki|grafana\"} == 1) / count(up{job=~\"prometheus|loki|grafana\"})) * 100",
+          "legendFormat": "Availability %"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "graphMode": "area",
+        "textMode": "auto",
+        "colorMode": "background",
+        "decimals": 1,
+        "unit": "percent"
+      },
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "red",
+            "value": null
+          },
+          {
+            "color": "yellow",
+            "value": 95
+          },
+          {
+            "color": "green",
+            "value": 99
+          }
+        ]
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Services Restarted (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (service_name) (count_over_time({service_name=~\"loki|prometheus|grafana|alloy\"}[24h])))"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Critical Errors (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=~\"loki|prometheus|grafana|alloy\", level=\"error\"}[24h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Mean Time Between Failures (hours)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "24 / (count(count by (service_name) (count_over_time({service_name=~\"loki|prometheus|grafana|alloy\", level=\"error\"}[24h])))) + 0.1"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Service Up/Down Timeline (24h)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-uid"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=~\"prometheus|loki|grafana\"}",
+          "legendFormat": "{{ job }}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 6
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Service Error Count by Hour (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (service_name) (count_over_time({level=\"error\"}[24h])))",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      }
+    },
+    {
+      "type": "table",
+      "title": "Top Services by Log Volume (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\"}[24h])))",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 6
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Recent Critical Events (Last 100)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{level=\"error\", service_name=~\"loki|prometheus|grafana|alloy|docker|kernel\"} | json | line_format \"{{.timestamp}} [{{.level}}] {{.service_name}}: {{.message}}\""
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 8
+      }
+    }
+  ]
+}
