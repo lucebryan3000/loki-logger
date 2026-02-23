@@ -23,7 +23,7 @@
       "title": "Dashboard Purpose",
       "options": {
         "mode": "markdown",
-        "content": "# Service Availability Status (Phase 3B)\n\nTracks real-time service health beyond just error counting:\n- Service availability (is it logging?)\n- Service health score (active + low error rate)\n- Stable vs problematic services\n- Critical service uptime\n\n**Data Sources**:\n- Loki log activity detection\n- Error rate correlation\n- Service health composite metrics\n\n**Use Case**: Quick identification of unhealthy services needing investigation"
+        "content": "# Service Availability Status (Phase 3B)\n\nTracks real-time service health based on log activity:\n- Service availability (is it logging?)\n- Error distribution by service\n- Log volume per service\n- Stable vs problematic services\n\n**Data Sources**: Loki log activity and error tracking\n\n**Use Case**: Quick identification of unhealthy services needing investigation"
       },
       "gridPos": {
         "x": 0,
@@ -34,15 +34,15 @@
     },
     {
       "type": "stat",
-      "title": "Available Services (1h)",
+      "title": "Active Services (1h)",
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus-uid"
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "count(sprint4:service_log_volume_per_hour:1h > 0)"
+          "expr": "count(count by (service_name) (count_over_time({log_source=\"rsyslog_syslog\"}[1h]) > 0))"
         }
       ],
       "gridPos": {
@@ -60,15 +60,15 @@
     },
     {
       "type": "stat",
-      "title": "Stable Services (1h)",
+      "title": "Services with Errors (1h)",
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus-uid"
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "count(sprint4:stable_services:1h)"
+          "expr": "count(count by (service_name) (count_over_time({level=\"error\"}[1h]) > 0))"
         }
       ],
       "gridPos": {
@@ -86,15 +86,15 @@
     },
     {
       "type": "stat",
-      "title": "Services with Errors (1h)",
+      "title": "Total Log Volume (1h)",
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus-uid"
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "count(sprint4:service_error_count_1h:1h > 0)"
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\"}[1h]))"
         }
       ],
       "gridPos": {
@@ -112,15 +112,15 @@
     },
     {
       "type": "stat",
-      "title": "Critical Service Uptime",
+      "title": "Error Count (1h)",
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus-uid"
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "count(sprint4:critical_service_uptime:1h)"
+          "expr": "sum(count_over_time({level=\"error\"}[1h]))"
         }
       ],
       "gridPos": {
@@ -138,16 +138,15 @@
     },
     {
       "type": "table",
-      "title": "Service Health Summary (1h)",
+      "title": "Service Log Volume (1h)",
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus-uid"
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(20, sprint4:service_log_volume_per_hour:1h)",
-          "format": "table"
+          "expr": "topk(20, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\"}[1h])))"
         }
       ],
       "gridPos": {
@@ -162,16 +161,15 @@
     },
     {
       "type": "table",
-      "title": "Top Error Services (1h)",
+      "title": "Services by Error Count (1h)",
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus-uid"
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sprint4:service_error_count_1h:1h)",
-          "format": "table"
+          "expr": "topk(10, sum by (service_name) (count_over_time({level=\"error\"}[1h])))"
         }
       ],
       "gridPos": {
@@ -183,22 +181,49 @@
     },
     {
       "type": "timeseries",
-      "title": "Service Health Score Trend (24h)",
+      "title": "Log Volume Trend (24h)",
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus-uid"
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(5, sprint4:service_health_score:1h)",
+          "expr": "topk(5, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\"}[1h])))",
           "legendFormat": "{{ service_name }}"
         }
       ],
       "gridPos": {
         "x": 0,
         "y": 15,
-        "w": 24,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate Trend (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(5, sum by (service_name) (count_over_time({level=\"error\"}[1h])))",
+          "legendFormat": "{{ service_name }}"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 12,
         "h": 6
       },
       "options": {

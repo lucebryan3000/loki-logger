@@ -43,7 +43,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(count by (log_source) (count_over_time({log_source=~\".*\"}[5m]) > 0))"
+          "expr": "count(count_over_time({log_source=~\".+\"}[5m]) > 0)"
         }
       ],
       "gridPos": {
@@ -69,7 +69,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=~\".*\"}[5m]))"
+          "expr": "sum(count_over_time({log_source=~\".+\"}[5m]))"
         }
       ],
       "gridPos": {
@@ -81,7 +81,7 @@
     },
     {
       "type": "stat",
-      "title": "Pipeline Errors (5m)",
+      "title": "Pipeline Errors (1h)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -89,7 +89,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({level=\"error\"}[5m]))"
+          "expr": "sum(count_over_time({level=\"error\"}[1h]))"
         }
       ],
       "gridPos": {
@@ -101,7 +101,7 @@
     },
     {
       "type": "stat",
-      "title": "Unknown Service %",
+      "title": "Unknown Service % (1h)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -109,7 +109,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(sum(count_over_time({service_name=\"unknown_service\"}[5m])) / sum(count_over_time({log_source=~\".*\"}[5m])) * 100)"
+          "expr": "sum(count_over_time({service_name=\"unknown_service\"}[1h])) / sum(count_over_time({env=~\".+\"}[1h])) * 100"
         }
       ],
       "gridPos": {
@@ -129,7 +129,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (log_source) (count_over_time({log_source=~\".*\"}[1h])))",
+          "expr": "topk(10, sum by (log_source) (count_over_time({log_source=~\".+\"}[1h])))",
           "format": "table"
         }
       ],
@@ -167,7 +167,7 @@
     },
     {
       "type": "timeseries",
-      "title": "Log Volume Trend by Source (6h)",
+      "title": "Top Log Sources by Volume (6h)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -175,7 +175,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (log_source) (rate(count_over_time({log_source=~\".*\"}[5m])[5m:1m]))",
+          "expr": "topk(5, sum by (log_source) (count_over_time({log_source=~\".+\"}[5m])))",
           "legendFormat": "{{ log_source }}"
         }
       ],
@@ -193,8 +193,8 @@
       }
     },
     {
-      "type": "timeseries",
-      "title": "Error Rate by Source (6h)",
+      "type": "table",
+      "title": "Error Count by Source (1h windows)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -202,8 +202,9 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (log_source) (rate(count_over_time({level=\"error\"}[5m])[5m:1m]))",
-          "legendFormat": "{{ log_source }}"
+          "expr": "topk(10, sum by (log_source) (count_over_time({level=\"error\"}[1h])))",
+          "format": "table",
+          "instant": true
         }
       ],
       "gridPos": {

@@ -105,7 +105,7 @@
     },
     {
       "type": "stat",
-      "title": "sudo Executions",
+      "title": "sudo+sshd Auth Events",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -113,7 +113,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\", service_name=\"sudo\"}[24h]))"
+          "expr": "sum(count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"sudo|sshd\"}[24h]))"
         }
       ],
       "gridPos": {

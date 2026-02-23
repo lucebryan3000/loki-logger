@@ -112,7 +112,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "avg(sum by (service_name) (rate(count_over_time({level=\"error\", service_name=~\"$service\"}[5m])[5m:1m])))"
+          "expr": "avg(sum by (service_name) (count_over_time({level=\"error\", service_name=~\"$service\"}[5m]))) / 300"
         }
       ],
       "gridPos": {
@@ -152,7 +152,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (service_name) (rate(count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[1h])[7d:1h]))",
+          "expr": "sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[1h]))",
           "legendFormat": "{{ service_name }}"
         }
       ],
@@ -173,7 +173,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (service_name) (rate(count_over_time({level=\"error\", service_name=~\"$service\"}[1h])[7d:1h]))",
+          "expr": "sum by (service_name) (count_over_time({level=\"error\", service_name=~\"$service\"}[1h]))",
           "legendFormat": "{{ service_name }}"
         }
       ],

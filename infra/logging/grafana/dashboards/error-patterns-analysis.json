@@ -132,7 +132,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(sum_over_time(count_over_time({level=\"error\"}[1m])[1h:1m]))[1h])"
+          "expr": "sum(count_over_time({level=\"error\"}[1h])) / 3600"
         }
       ],
       "gridPos": {
@@ -143,8 +143,8 @@
       }
     },
     {
-      "type": "timeseries",
-      "title": "Error Rate Trend (24h)",
+      "type": "table",
+      "title": "Error Timeline (1h windows)",
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -152,13 +152,9 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(count_over_time({level=\"error\"}[5m])[5m:1m]))",
-          "legendFormat": "All Services"
-        },
-        {
-          "refId": "B",
-          "expr": "sum(rate(count_over_time({level=\"error\", service_name=\"$error_service\"}[5m])[5m:1m]))",
-          "legendFormat": "$error_service"
+          "expr": "topk(20, sum by (service_name) (count_over_time({level=\"error\"}[1h])))",
+          "format": "table",
+          "instant": true
         }
       ],
       "gridPos": {

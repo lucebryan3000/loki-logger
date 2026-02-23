@@ -119,7 +119,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(count by (service_name) (count_over_time({service_name=~\"loki|prometheus|grafana|alloy\"}[24h])))"
+          "expr": "count(count_over_time({service_name=~\"mcp-server.*|logging-e2e.*|vllm\"}[24h]) > 0)"
         }
       ],
       "gridPos": {
@@ -139,7 +139,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=~\"loki|prometheus|grafana|alloy\", level=\"error\"}[24h]))"
+          "expr": "sum(count_over_time({level=\"error\"}[24h]))"
         }
       ],
       "gridPos": {
@@ -159,7 +159,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "24 / (count(count by (service_name) (count_over_time({service_name=~\"loki|prometheus|grafana|alloy\", level=\"error\"}[24h])))) + 0.1"
+          "expr": "24"
         }
       ],
       "gridPos": {
@@ -256,7 +256,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{level=\"error\", service_name=~\"loki|prometheus|grafana|alloy|docker|kernel\"} | json | line_format \"{{.timestamp}} [{{.level}}] {{.service_name}}: {{.message}}\""
+          "expr": "{level=\"error\"}"
         }
       ],
       "gridPos": {
