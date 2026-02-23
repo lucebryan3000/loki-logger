@@ -62,9 +62,16 @@ loki.source.docker "dockerlogs" {
 }
 
 // journald -> Loki (optional)
+// DISABLED: loki.source.journal "journald" - timeouts when accessing systemd journal from container
+// Alternative: journald logs are captured via rsyslog syslog relay on port 1514
+// The e2e check validates syslog path instead, which is working correctly
+// To re-enable, ensure host /run/systemd/journal is properly mounted and accessible
+/*
 loki.source.journal "journald" {
+  path = "/run/systemd/journal"
   forward_to = [loki.process.journald.receiver]
 }
+*/
 
 // rsyslog TCP syslog ingress (localhost port mapping on host)
 loki.source.syslog "rsyslog" {

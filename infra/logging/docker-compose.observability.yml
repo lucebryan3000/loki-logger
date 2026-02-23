@@ -227,6 +227,7 @@ services:
     - ${HOST_DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
     - ${HOST_VAR_LOG_JOURNAL:-/var/log/journal}:/var/log/journal:ro
     - ${HOST_RUN_LOG_JOURNAL:-/run/log/journal}:/run/log/journal:ro
+    - ${HOST_RUN_SYSTEMD_JOURNAL:-/run/systemd/journal}:/run/systemd/journal:ro
     - ${HOST_HOME:-/home/luce}:/host/home:ro
     - ${HOST_VAR_LOG:-/var/log}:/host/var/log:ro
     - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
