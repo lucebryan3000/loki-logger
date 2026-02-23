@@ -77,3 +77,43 @@ groups:
         expr: >
           sum(count_over_time({service_name="unknown_service", level="error"}[5m]))
           / (sum(count_over_time({service_name="unknown_service"}[5m])) + 1)
+
+      # --- Phase 2C Advanced Metrics ---
+      - record: sprint4:service_log_volume:rate1h
+        expr: >
+          sum by (service_name) (
+            rate(count_over_time({log_source="rsyslog_syslog"}[1h])[1h:1m])
+          )
+
+      - record: sprint4:service_error_rate:rate1h
+        expr: >
+          sum by (service_name) (
+            rate(count_over_time({level="error"}[1h])[1h:1m])
+          )
+
+      - record: sprint4:service_error_ratio:5m
+        expr: >
+          sum by (service_name) (
+            count_over_time({level="error"}[5m])
+          ) / (sum by (service_name) (count_over_time({log_source="rsyslog_syslog"}[5m])) + 1)
+
+      - record: sprint4:service_active_count:5m
+        expr: >
+          count(count by (service_name) (count_over_time({log_source="rsyslog_syslog"}[5m])))
+
+      - record: sprint4:unknown_service_ratio:5m
+        expr: >
+          sum(count_over_time({service_name="unknown_service"}[5m]))
+          / (sum(count_over_time({log_source="rsyslog_syslog"}[5m])) + 1)
+
+      - record: sprint4:critical_errors_count:1m
+        expr: >
+          sum(count_over_time(
+            {service_name=~"mcp-server.service|logging-e2e-check.service", level="error"}[1m]
+          ))
+
+      - record: sprint4:security_events_rate:rate1h
+        expr: >
+          sum by (service_name) (
+            rate(count_over_time({service_name=~"ufw|sudo|sshd|cron"}[1h])[1h:1m])
+          )
