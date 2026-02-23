@@ -1,0 +1,202 @@
+{
+  "uid": "loki-query-explorer",
+  "title": "Loki Query Explorer & Templates (Phase 2C)",
+  "timezone": "America/Chicago",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "editable": true,
+  "tags": [
+    "phase2c",
+    "queries",
+    "explorer",
+    "templates",
+    "logging"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "rsyslog_syslog",
+          "value": "rsyslog_syslog"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "definition": "label_values(log_source)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Log Source",
+        "multi": false,
+        "name": "log_source",
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": ".+"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
+        "definition": "label_values({log_source=\"$log_source\"}, service_name)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service Name",
+        "multi": false,
+        "name": "service_name",
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tagsQuery": "",
+        "type": "query"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "Loki Query Explorer - Common Patterns",
+      "options": {
+        "mode": "markdown",
+        "content": "# Loki Query Explorer & Templates\n\n## Common Query Patterns\n\n### By Service\n```\n{log_source=\"$log_source\", service_name=\"$service_name\"}\n```\n\n### By Level\n```\n{log_source=\"$log_source\"} | json | level=~\"error|warning\"\n```\n\n### By Pattern\n```\n{log_source=\"$log_source\"} |~ \"pattern\"\n```\n\n### By Rate (Errors)\n```\nrate(count_over_time({log_source=\"$log_source\", level=\"error\"}[5m])[5m:1m])\n```\n\n### Service Distribution\n```\ntopk(20, sum by(service_name) (count_over_time({log_source=\\\"$log_source\\\"}[15m])))\n```"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 6
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Logs in Selected Scope",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"$log_source\", service_name=~\"$service_name\"}[6h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Errors in Scope",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"$log_source\", service_name=~\"$service_name\", level=\"error\"}[6h]))"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 6,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Error Rate",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=\"$log_source\", service_name=~\"$service_name\", level=\"error\"}[1h])) / (sum(count_over_time({log_source=\"$log_source\", service_name=~\"$service_name\"}[1h])) + 1) * 100"
+        }
+      ],
+      "units": "percent",
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Service Count",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (service_name) (count_over_time({log_source=\"$log_source\"}[6h])))"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 6,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Log Stream ($log_source / $service_name)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{log_source=\"$log_source\", service_name=~\"$service_name\"}",
+          "format": "logs"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 12
+      }
+    }
+  ]
+}
