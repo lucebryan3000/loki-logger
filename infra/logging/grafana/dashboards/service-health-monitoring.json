@@ -72,7 +72,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(count by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[7d])))"
+          "expr": "count(count by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"${service:regex}\"}[7d])))"
         }
       ],
       "gridPos": {
@@ -92,7 +92,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(count by (service_name) (count_over_time({level=\"error\", service_name=~\"$service\"}[7d])))"
+          "expr": "count(count by (service_name) (count_over_time({level=\"error\", service_name=~\"${service:regex}\"}[7d])))"
         }
       ],
       "gridPos": {
@@ -112,7 +112,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "avg(sum by (service_name) (count_over_time({level=\"error\", service_name=~\"$service\"}[5m]))) / 300"
+          "expr": "avg(sum by (service_name) (count_over_time({level=\"error\", service_name=~\"${service:regex}\"}[5m]))) / 300"
         }
       ],
       "gridPos": {
@@ -132,7 +132,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(count by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[1h])))"
+          "expr": "count(count by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"${service:regex}\"}[1h])))"
         }
       ],
       "gridPos": {
@@ -152,7 +152,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[1h]))",
+          "expr": "sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"${service:regex}\"}[1h]))",
           "legendFormat": "{{ service_name }}"
         }
       ],
@@ -173,7 +173,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (service_name) (count_over_time({level=\"error\", service_name=~\"$service\"}[1h]))",
+          "expr": "sum by (service_name) (count_over_time({level=\"error\", service_name=~\"${service:regex}\"}[1h]))",
           "legendFormat": "{{ service_name }}"
         }
       ],
@@ -194,7 +194,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(30, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"$service\"}[7d])))",
+          "expr": "topk(30, sum by (service_name) (count_over_time({log_source=\"rsyslog_syslog\", service_name=~\"${service:regex}\"}[7d])))",
           "format": "table",
           "instant": true
         }

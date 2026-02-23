@@ -222,7 +222,7 @@ services:
     - /etc/alloy/config.alloy
     user: "0:0"
     ports:
-    - "127.0.0.1:1514:1514"
+    - "${ALLOY_SYSLOG_HOST:-127.0.0.1}:${ALLOY_SYSLOG_PORT:-1514}:1514"
     volumes:
     - ${HOST_DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
     - ${HOST_VAR_LOG_JOURNAL:-/var/log/journal}:/var/log/journal:ro

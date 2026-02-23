@@ -869,6 +869,17 @@ loki.process "docker" {
 
   stage.decolorize {}
 
+  // --- label cardinality management ---
+  // Drop high-cardinality internal Docker labels to reduce cardinality
+  stage.label_drop {
+    values = [
+      "__meta_docker_container_name",
+      "__meta_docker_container_log_stream_stderr",
+      "__meta_docker_container_log_stream_stdout",
+    ]
+  }
+  // --- end label management ---
+
   forward_to = [loki.write.default.receiver]
 }
 
@@ -1170,6 +1181,7 @@ loki.process "gpu_telemetry_proc" {
 }
 
 loki.write "default" {
+  // Optimized batching for log throughput
   endpoint {
     url                 = "http://loki:3100/loki/api/v1/push"
     batch_wait          = "1s"
@@ -1178,6 +1190,11 @@ loki.write "default" {
     max_backoff_period  = "5m"
     max_backoff_retries = 20
   }
+
+  // Enable client authentication if needed (commented out for local setup)
+  // http_client_config {
+  //   bearer_token = "${LOKI_BEARER_TOKEN}"
+  // }
 
   external_labels = {
     cluster  = "codeswarm-sandbox",
