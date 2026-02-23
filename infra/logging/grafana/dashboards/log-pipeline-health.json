@@ -1,0 +1,223 @@
+{
+  "uid": "log-pipeline-health",
+  "title": "Log Pipeline Health (Phase 3C)",
+  "timezone": "America/Chicago",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "editable": true,
+  "tags": [
+    "phase3c",
+    "pipeline",
+    "health",
+    "alloy",
+    "loki",
+    "ingestion"
+  ],
+  "panels": [
+    {
+      "type": "text",
+      "title": "Dashboard Purpose",
+      "options": {
+        "mode": "markdown",
+        "content": "# Log Pipeline Health (Phase 3C)\n\nMonitors Alloy → Loki log ingestion pipeline:\n- Data flow status by log source\n- Ingestion rates and volumes\n- Error rates in pipeline\n- Log source health (active vs dormant)\n\n**Data Sources**:\n- Loki log metadata (log_source label)\n- Error counts per source\n- Service identification quality (unknown_service ratio)\n\n**Use Case**: Detect pipeline failures, data loss, or ingestion issues"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Active Log Sources",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (log_source) (count_over_time({log_source=~\".*\"}[5m]) > 0))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "background",
+        "decimals": 0,
+        "unit": "short"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Total Logs (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({log_source=~\".*\"}[5m]))"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pipeline Errors (5m)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({level=\"error\"}[5m]))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Unknown Service %",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(count_over_time({service_name=\"unknown_service\"}[5m])) / sum(count_over_time({log_source=~\".*\"}[5m])) * 100)"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "table",
+      "title": "Log Source Status (1h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (log_source) (count_over_time({log_source=~\".*\"}[1h])))",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      }
+    },
+    {
+      "type": "table",
+      "title": "Error Count by Source (1h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (log_source) (count_over_time({level=\"error\"}[1h])))",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Log Volume Trend by Source (6h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (log_source) (rate(count_over_time({log_source=~\".*\"}[5m])[5m:1m]))",
+          "legendFormat": "{{ log_source }}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate by Source (6h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (log_source) (rate(count_over_time({level=\"error\"}[5m])[5m:1m]))",
+          "legendFormat": "{{ log_source }}"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "placement": "bottom"
+        }
+      }
+    }
+  ]
+}
