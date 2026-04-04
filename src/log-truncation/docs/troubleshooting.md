@@ -185,7 +185,7 @@ systemctl list-timers logrotate.timer
 ## Testing Strategy
 
 **Approach:**
-1. **Unit test each script** (Phase 2) before integration test
+1. **Unit test each script** (Step 2) before integration test
 2. **Dry-run validation**: Use `logrotate -d` to validate syntax before deploying
 3. **Staged rollout**: Install on dev/sandbox first, observe 7 days, then prod (if applicable)
 

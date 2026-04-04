@@ -1,0 +1,190 @@
+groups:
+  - name: service_alerts_v1
+    interval: 30s
+    rules:
+      # Service-specific alert rules for actionable errors.
+      # These complement generic infrastructure alerts with service-specific visibility
+
+      # --- Critical Service Failures ---
+      - alert: MCPServerRepeatedFailures
+        expr: >
+          sum(increase(loki_write_dropped_entries_total[10m])) > 0
+          or (count(count_over_time({service_name="mcp-server.service", level="error"}[5m])) > 10)
+        for: 2m
+        labels:
+          severity: critical
+          service: mcp-server
+          category: service
+        annotations:
+          runbook_url: "docs/troubleshooting.md#mcp-server-failures"
+          summary: "MCP Server repeated failures detected"
+          description: "mcp-server.service has shown {{ $value }} failure events in the last 5 minutes (threshold: >10)"
+
+      - alert: E2ECheckServiceFailure
+        expr: count(count_over_time({service_name="logging-e2e-check.service", level="error"}[5m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+          service: logging-e2e-check
+          category: service
+        annotations:
+          runbook_url: "docs/operations.md#e2e-checks"
+          summary: "Logging E2E check service failure"
+          description: "logging-e2e-check.service has {{ $value }} errors (threshold: >3). Monitoring validation may be impacted."
+
+      # --- Security Event Monitoring ---
+      - alert: UnusualUFWBlockActivity
+        expr: >
+          sum(rate(loki_write_failures_discarded_total[5m])) > 0
+          or (sum(count_over_time({service_name="ufw", level="error"}[5m])) > 100)
+        for: 5m
+        labels:
+          severity: info
+          service: ufw
+          category: security
+        annotations:
+          runbook_url: "docs/security.md#firewall-events"
+          summary: "Unusual firewall (UFW) block activity"
+          description: "UFW has blocked {{ $value }} connections in the last 5 minutes"
+
+      # --- Unknown Service Error Spike ---
+      - alert: UnknownServiceErrorSpike
+        expr: >
+          (
+            sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total{service_name="unknown_service"}[5m]))
+            / (
+              sum(increase(loki_process_custom_codeswarm_syslog_lines_total{service_name="unknown_service"}[30m])) / 6
+              + 1
+            )
+          ) > 2
+        for: 3m
+        labels:
+          severity: info
+          service: unknown_service
+          category: service
+        annotations:
+          runbook_url: "docs/troubleshooting.md#unknown-service-errors"
+          summary: "Error rate spike in unknown_service entries"
+          description: "unknown_service error rate has more than doubled in the last 5 minutes. Investigate service_name extraction coverage."
+
+      # --- Recording Rules for Dashboard Queries ---
+      - record: service:mcp_server_errors:rate5m
+        expr: rate(count_over_time({service_name="mcp-server.service", level="error"}[5m])[5m:1m])
+
+      - record: service:e2e_check_errors:rate5m
+        expr: rate(count_over_time({service_name="logging-e2e-check.service", level="error"}[5m])[5m:1m])
+
+      - record: service:security_events:total_5m
+        expr: sum(count_over_time({service_name=~"ufw|sudo|sshd|cron"}[5m]))
+
+      - record: service:unknown_service_error_ratio:5m
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total{service_name="unknown_service"}[5m]))
+          / (sum(increase(loki_process_custom_codeswarm_syslog_lines_total{service_name="unknown_service"}[5m])) + 1)
+
+      # Note: service metrics were grouped here to avoid aggregation conflicts.
+
+  # --- service health recording rules ---
+  - name: service_health_v1
+    interval: 60s
+    rules:
+      # Alloy currently emits aggregate syslog counters rather than a fully attributed
+      # per-service series, so record these metrics as a single syslog service.
+      - record: service:service_log_count:1h
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_lines_total[1h]))
+        labels:
+          service_name: syslog
+
+      - record: service:service_error_ratio:1h
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total[1h]))
+          / clamp_min(sum(increase(loki_process_custom_codeswarm_syslog_lines_total[1h])), 1)
+        labels:
+          service_name: syslog
+
+      - record: service:critical_service_errors:1h
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total[1h]))
+        labels:
+          service_name: syslog
+
+      - record: service:high_error_services:1h
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total[1h])) > bool 10
+        labels:
+          service_name: syslog
+
+      - record: service:infra_error_count:5m
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total[5m]))
+
+  # --- service availability and health metrics ---
+  - name: service_availability_v1
+    interval: 60s
+    rules:
+      - record: service:service_is_active:5m
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_lines_total[5m])) > bool 0
+        labels:
+          service_name: syslog
+
+      - record: service:service_availability_pct:1h
+        expr: >
+          100 * (sum(increase(loki_process_custom_codeswarm_syslog_lines_total[1h])) > bool 0)
+        labels:
+          service_name: syslog
+
+      - record: service:service_error_free:1h
+        expr: >
+          (
+            (sum(increase(loki_process_custom_codeswarm_syslog_lines_total[1h])) > bool 0)
+            unless
+            (sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total[1h])) > bool 0)
+          )
+        labels:
+          service_name: syslog
+
+      - record: service:service_health_score:1h
+        expr: >
+          100 * clamp_min(
+            1 - (
+              sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total[1h]))
+              / clamp_min(sum(increase(loki_process_custom_codeswarm_syslog_lines_total[1h])), 1)
+            ),
+            0
+          )
+        labels:
+          service_name: syslog
+
+      - record: service:critical_service_uptime:1h
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_lines_total[1h])) > bool 0
+        labels:
+          service_name: syslog
+
+      - record: service:service_log_volume_per_hour:1h
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_lines_total[1h]))
+        labels:
+          service_name: syslog
+
+      - record: service:service_error_count_1h:1h
+        expr: >
+          sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total[1h]))
+        labels:
+          service_name: syslog
+
+      - record: service:stable_services:1h
+        expr: >
+          (
+            (sum(increase(loki_process_custom_codeswarm_syslog_lines_total[1h])) > bool 0)
+            unless
+            (sum(increase(loki_process_custom_codeswarm_syslog_error_lines_total[1h])) > bool 0)
+          )
+        labels:
+          service_name: syslog
+
+  # --- log pipeline health metrics ---
+  # Note: Pipeline health monitoring is tracked via Loki queries in dashboards
+  # Prometheus can track write_dropped/write_failures from Loki exporter if available

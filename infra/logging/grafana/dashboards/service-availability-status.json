@@ -1,6 +1,6 @@
 {
   "uid": "service-availability-status",
-  "title": "Service Availability Status (Phase 3B)",
+  "title": "Service Availability Status ",
   "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
@@ -11,7 +11,7 @@
   },
   "editable": true,
   "tags": [
-    "phase3b",
+    "service-availability",
     "availability",
     "health",
     "services",
@@ -23,7 +23,7 @@
       "title": "Dashboard Purpose",
       "options": {
         "mode": "markdown",
-        "content": "# Service Availability Status (Phase 3B)\n\nTracks real-time service health based on log activity:\n- Service availability (is it logging?)\n- Error distribution by service\n- Log volume per service\n- Stable vs problematic services\n\n**Data Sources**: Loki log activity and error tracking\n\n**Use Case**: Quick identification of unhealthy services needing investigation"
+        "content": "# Service Availability Status \n\nTracks real-time service health based on log activity:\n- Service availability (is it logging?)\n- Error distribution by service\n- Log volume per service\n- Stable vs problematic services\n\n**Data Sources**: Loki log activity and error tracking\n\n**Use Case**: Quick identification of unhealthy services needing investigation"
       },
       "gridPos": {
         "x": 0,

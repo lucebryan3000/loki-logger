@@ -96,7 +96,7 @@ else
 fi
 
 LOKI_CID="$(docker compose -p "$PROJECT" -f "$OBS" ps -q loki)"
-if [[ -n "$LOKI_CID" ]] && retry_cmd 5 docker exec "$LOKI_CID" sh -lc 'wget -qO- http://127.0.0.1:3100/ready' | grep -Eiq '^ready$'; then
+if [[ -n "$LOKI_CID" ]] && retry_cmd 5 docker exec "$LOKI_CID" /bin/wget -q -O - http://127.0.0.1:3100/ready | grep -Eiq '^ready$'; then
   echo "loki_ready_ok=1"
 else
   echo "loki_ready_ok=0"

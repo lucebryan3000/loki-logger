@@ -1,8 +1,8 @@
 groups:
-- name: sprint3_minimum_v1
+- name: prometheus_minimum_v1
   rules:
   - alert: PrometheusScrapeFailure
-    expr: sprint3:prometheus_scrape_failures:rate5m > 0
+    expr: logging:prometheus_scrape_failures:rate5m > 0
     for: 5m
     labels:
       severity: warning
@@ -10,7 +10,7 @@ groups:
       runbook_url: "docs/troubleshooting.md#prometheus-issues"
       summary: "Prometheus scrape sample limit exceeded"
   - alert: PrometheusTargetDown
-    expr: sprint3:targets_down:count > 0
+    expr: logging:targets_down:count > 0
     for: 5m
     labels:
       severity: critical
@@ -18,7 +18,7 @@ groups:
       runbook_url: "docs/troubleshooting.md#prometheus-issues"
       summary: "Prometheus target is down"
   - alert: LokiIngestionErrors
-    expr: sprint3:loki_ingestion_errors:increase10m > 0
+    expr: logging:loki_ingestion_errors:increase10m > 0
     for: 5m
     labels:
       severity: warning

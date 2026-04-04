@@ -1,6 +1,6 @@
 {
   "uid": "log-pipeline-health",
-  "title": "Log Pipeline Health (Phase 3C)",
+  "title": "Log Pipeline Health ",
   "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
@@ -11,7 +11,7 @@
   },
   "editable": true,
   "tags": [
-    "phase3c",
+    "pipeline-health",
     "pipeline",
     "health",
     "alloy",
@@ -24,7 +24,7 @@
       "title": "Dashboard Purpose",
       "options": {
         "mode": "markdown",
-        "content": "# Log Pipeline Health (Phase 3C)\n\nMonitors Alloy → Loki log ingestion pipeline:\n- Data flow status by log source\n- Ingestion rates and volumes\n- Error rates in pipeline\n- Log source health (active vs dormant)\n\n**Data Sources**:\n- Loki log metadata (log_source label)\n- Error counts per source\n- Service identification quality (unknown_service ratio)\n\n**Use Case**: Detect pipeline failures, data loss, or ingestion issues"
+        "content": "# Log Pipeline Health \n\nMonitors Alloy → Loki log ingestion pipeline:\n- Data flow status by log source\n- Ingestion rates and volumes\n- Error rates in pipeline\n- Log source health (active vs dormant)\n\n**Data Sources**:\n- Loki log metadata (log_source label)\n- Error counts per source\n- Service identification quality (unknown_service ratio)\n\n**Use Case**: Detect pipeline failures, data loss, or ingestion issues"
       },
       "gridPos": {
         "x": 0,

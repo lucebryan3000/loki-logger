@@ -194,6 +194,22 @@ check_grep "prometheus rules: alerting rules present (alert:)" \
 check_grep "prometheus rules: ADR-146 'or vector(0)' guard present (advisory)" \
   'or vector\(0\)' "${RULES_CFG}" "false"
 
+# --- prometheus/rules layout after naming normalization ---
+PROM_MIN_RULES_CFG="${INFRA_DIR}/prometheus/rules/prometheus_minimum_alerts.yml"
+SERVICE_RULES_CFG="${INFRA_DIR}/prometheus/rules/service_observability_alerts.yml"
+
+check_file_exists "prometheus rules: prometheus_minimum_alerts.yml exists" \
+  "${PROM_MIN_RULES_CFG}"
+
+check_file_exists "prometheus rules: service_observability_alerts.yml exists" \
+  "${SERVICE_RULES_CFG}"
+
+check_grep "prometheus rules: logging namespace recording rules present" \
+  'logging:' "${RULES_CFG}"
+
+check_grep "prometheus rules: service namespace recording rules present" \
+  'service:' "${SERVICE_RULES_CFG}"
+
 # --- grafana/provisioning/alerting/logging-pipeline-rules.yml ---
 ALERT_CFG="${INFRA_DIR}/grafana/provisioning/alerting/logging-pipeline-rules.yml"
 check_grep "grafana alerting: noDataState present" \
@@ -308,6 +324,35 @@ else
     fi
   else
     fail "${label}" "could not query Prometheus /api/v1/query"
+  fi
+
+  # Prometheus normalized recording rule contract
+  label="Prometheus recording rule logging:targets_up:count present"
+  LOGGING_UP_RESULT="$(curl -sfG --data-urlencode 'query=logging:targets_up:count' "${PROM_BASE}/api/v1/query" 2>/dev/null)" || LOGGING_UP_RESULT=""
+  if [[ -n "${LOGGING_UP_RESULT}" ]]; then
+    LOGGING_UP_COUNT="$(printf '%s' "${LOGGING_UP_RESULT}" | python3 -c \
+      "import sys,json; d=json.load(sys.stdin); print(len(d.get('data',{}).get('result',[])))" 2>/dev/null)" || LOGGING_UP_COUNT=0
+    if [[ "${LOGGING_UP_COUNT}" -ge 1 ]]; then
+      pass "${label}"
+    else
+      fail "${label}" "query returned no series"
+    fi
+  else
+    fail "${label}" "could not query logging:targets_up:count"
+  fi
+
+  label="Prometheus recording rule service:service_is_active:5m present"
+  SERVICE_ACTIVE_RESULT="$(curl -sfG --data-urlencode 'query=service:service_is_active:5m' "${PROM_BASE}/api/v1/query" 2>/dev/null)" || SERVICE_ACTIVE_RESULT=""
+  if [[ -n "${SERVICE_ACTIVE_RESULT}" ]]; then
+    SERVICE_ACTIVE_COUNT="$(printf '%s' "${SERVICE_ACTIVE_RESULT}" | python3 -c \
+      "import sys,json; d=json.load(sys.stdin); print(len(d.get('data',{}).get('result',[])))" 2>/dev/null)" || SERVICE_ACTIVE_COUNT=0
+    if [[ "${SERVICE_ACTIVE_COUNT}" -ge 1 ]]; then
+      pass "${label}"
+    else
+      fail "${label}" "query returned no series"
+    fi
+  else
+    fail "${label}" "could not query service:service_is_active:5m"
   fi
 
   # Loki labels: confirm env label

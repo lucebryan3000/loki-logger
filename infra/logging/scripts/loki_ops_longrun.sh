@@ -276,9 +276,9 @@ lines=open(p).read().splitlines()
 out=[]
 mode=None
 for ln in lines:
-    if 'record: sprint3:loki_ingestion_errors:rate5m' in ln:
+    if 'record: logging:loki_ingestion_errors:rate5m' in ln:
         mode='rate'; out.append(ln); continue
-    if 'record: sprint3:loki_ingestion_errors:increase10m' in ln:
+    if 'record: logging:loki_ingestion_errors:increase10m' in ln:
         mode='inc'; out.append(ln); continue
     if mode=='rate' and ln.strip().startswith('expr:'):
         out.append('        expr: sum(rate(loki_write_dropped_entries_total[5m])) + sum(rate(loki_write_failures_discarded_total[5m]))')

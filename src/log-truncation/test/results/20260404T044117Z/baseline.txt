@@ -1,5 +1,5 @@
 === Baseline Disk Usage ===
-Timestamp: 2026-04-04 04:39:34 UTC
+Timestamp: 2026-04-04 04:41:17 UTC
 
 Archived and active journals take up 852.9M in the file system.
 93M	/home/luce/_telemetry

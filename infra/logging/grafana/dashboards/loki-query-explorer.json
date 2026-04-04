@@ -1,6 +1,6 @@
 {
   "uid": "loki-query-explorer",
-  "title": "Loki Query Explorer & Templates (Phase 2C)",
+  "title": "Loki Query Explorer & Templates ",
   "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
@@ -11,7 +11,7 @@
   },
   "editable": true,
   "tags": [
-    "phase2c",
+    "service-observability",
     "queries",
     "explorer",
     "templates",

@@ -51,19 +51,19 @@ EXAMPLES:
 WHAT THIS DOES:
     1. Discovers log files at the specified path
     2. Generates Claude Code prompt to invoke playbook
-    3. Guides you through the 8-phase setup process
+    3. Guides you through the 8-step setup process
     4. Verifies logs appear in Loki with proper labels
 
-PLAYBOOK PHASES:
-    Phase 1: Discovery       - Find logs, check format, volume
-    Phase 2: Mount Check     - Verify Alloy can access the path
-    Phase 3: Label Design    - Choose labels (env, log_source, etc)
-    Phase 4: Processor       - Dedicated vs shared processor
-    Phase 5: Alloy Config    - Add file_match, source, process blocks
-    Phase 6: Restart         - Apply changes, check for errors
-    Phase 7: Audit           - Run full validation checklist
-    Phase 7b: Remediate      - Auto-fix any audit failures
-    Phase 8: Rollback        - (if needed) Revert changes
+PLAYBOOK STEPS:
+    Step 1: Discovery       - Find logs, check format, volume
+    Step 2: Mount Check     - Verify Alloy can access the path
+    Step 3: Label Design    - Choose labels (env, log_source, etc)
+    Step 4: Processor       - Dedicated vs shared processor
+    Step 5: Alloy Config    - Add file_match, source, process blocks
+    Step 6: Restart         - Apply changes, check for errors
+    Step 7: Audit           - Run full validation checklist
+    Step 7b: Remediate      - Auto-fix any audit failures
+    Step 8: Rollback        - (if needed) Revert changes
 
 OUTPUT:
     - Updated infra/logging/alloy-config.alloy
@@ -160,7 +160,7 @@ Use the loki-logging-setup playbook (v2.2) at:
 Reference guide at:
   $PLAYBOOK_REFERENCE
 
-Follow all 8 phases:
+Follow all 8 steps:
 1. Discovery — Find logs, check format, volume, sensitivity
 2. Mount Check — Verify Alloy can access the path
 3. Label Design — Choose bounded labels (env, log_source)

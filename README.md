@@ -27,7 +27,7 @@ The current runtime and operational contract is defined by these files:
 - `infra/logging/docker-compose.observability.yml`
 - `infra/logging/alloy-config.alloy`
 - `infra/logging/prometheus/rules/loki_logging_rules.yml`
-- `infra/logging/prometheus/rules/sprint3_minimum_alerts.yml`
+- `infra/logging/prometheus/rules/prometheus_minimum_alerts.yml`
 - `infra/logging/grafana/dashboards/*.json`
 - `scripts/prod/mcp/logging_stack_health.sh`
 - `scripts/prod/mcp/logging_stack_audit.sh`

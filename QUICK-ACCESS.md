@@ -9,7 +9,7 @@ Use these files as the contract for current behavior and runtime checks:
 - `infra/logging/docker-compose.observability.yml`
 - `infra/logging/alloy-config.alloy`
 - `infra/logging/prometheus/rules/loki_logging_rules.yml`
-- `infra/logging/prometheus/rules/sprint3_minimum_alerts.yml`
+- `infra/logging/prometheus/rules/prometheus_minimum_alerts.yml`
 - `infra/logging/grafana/dashboards/*.json`
 - `scripts/prod/mcp/logging_stack_health.sh`
 - `scripts/prod/mcp/logging_stack_audit.sh`
@@ -85,14 +85,14 @@ docker run --rm --network obs curlimages/curl:8.6.0 -sf http://loki:3100/ready
 
 ```promql
 # Recording-rule based target health
-sprint3:targets_up:count
-sprint3:targets_down:count
+logging:targets_up:count
+logging:targets_down:count
 
 # Scrape failure rate
-sprint3:prometheus_scrape_failures:rate5m
+logging:prometheus_scrape_failures:rate5m
 
 # Container memory usage
-topk(10, sprint3:container_memory_workingset_bytes)
+topk(10, logging:container_memory_workingset_bytes)
 ```
 
 ## Stack Control (SSH)

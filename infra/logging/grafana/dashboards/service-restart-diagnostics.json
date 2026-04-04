@@ -1,6 +1,6 @@
 {
   "uid": "service-restart-diagnostics",
-  "title": "Service Restart Diagnostics (Phase 3A)",
+  "title": "Service Restart Diagnostics ",
   "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
@@ -11,7 +11,7 @@
   },
   "editable": true,
   "tags": [
-    "phase3a",
+    "service-restarts",
     "diagnostics",
     "reliability",
     "restarts",
@@ -55,7 +55,7 @@
       "title": "Dashboard Purpose",
       "options": {
         "mode": "markdown",
-        "content": "# Service Restart Diagnostics (Phase 3A)\n\nTracks service availability and restart patterns to identify reliability issues.\n\n**Key Metrics**:\n- Service uptime timeline\n- Restart frequency and patterns\n- Time-to-healthy recovery\n- Service availability percentage\n\n**Data Sources**:\n- Prometheus `up` metric from service scrapers\n- Container health check status\n- Service-specific error patterns from Loki\n\n**Action**: Use to identify services with high restart rates or prolonged downtime"
+        "content": "# Service Restart Diagnostics \n\nTracks service availability and restart patterns to identify reliability issues.\n\n**Key Metrics**:\n- Service uptime timeline\n- Restart frequency and patterns\n- Time-to-healthy recovery\n- Service availability percentage\n\n**Data Sources**:\n- Prometheus `up` metric from service scrapers\n- Container health check status\n- Service-specific error patterns from Loki\n\n**Action**: Use to identify services with high restart rates or prolonged downtime"
       },
       "gridPos": {
         "x": 0,

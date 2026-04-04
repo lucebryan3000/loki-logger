@@ -1,6 +1,6 @@
 {
   "uid": "system-events-by-service",
-  "title": "System Events by Service (Phase 2B)",
+  "title": "System Events by Service ",
   "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
@@ -11,7 +11,7 @@
   },
   "editable": true,
   "tags": [
-    "phase2b",
+    "service-alerts",
     "system",
     "events",
     "kernel",
@@ -54,7 +54,7 @@
       "title": "Dashboard Purpose",
       "options": {
         "mode": "markdown",
-        "content": "# System Events Dashboard (Phase 2B)\n\nThis dashboard focuses on **system-level events** from core services:\n- Kernel messages (system events, network changes)\n- systemd/init (service lifecycle)\n- System daemons (rsyslog, cron, etc.)\n\n**Use case**: Troubleshooting system behavior, service restarts, and infrastructure changes\n\n**Visibility**: All log levels (info, warning, error) for comprehensive system view"
+        "content": "# System Events Dashboard \n\nThis dashboard focuses on **system-level events** from core services:\n- Kernel messages (system events, network changes)\n- systemd/init (service lifecycle)\n- System daemons (rsyslog, cron, etc.)\n\n**Use case**: Troubleshooting system behavior, service restarts, and infrastructure changes\n\n**Visibility**: All log levels (info, warning, error) for comprehensive system view"
       },
       "gridPos": {
         "x": 0,

@@ -26,7 +26,7 @@ discovery.relabel "docker_filtered" {
     regex         = "^logging$"
   }
 
-  // --- label schema (Sprint-3 Phase 2) ---
+  // --- label schema ---
   // Stable low-cardinality labels derived from compose metadata.
   // stack = compose project (vllm|hex)
   rule {
@@ -130,7 +130,7 @@ loki.source.file "gpu_telemetry_proc" {
   forward_to    = [loki.process.gpu_telemetry_proc.receiver]
 }
 
-// --- NVIDIA telemetry-as-logs (Sprint-3 Phase 4a) ---
+// --- NVIDIA telemetry-as-logs ---
 local.file_match "nvidia_telem" {
   path_targets = [
     { "__path__" = "/host/home/luce/apps/vLLM/logs/telemetry/nvidia/raw-30s.jsonl" },
@@ -160,7 +160,7 @@ loki.process "nvidia_telem" {
     }
   }
 
-  // --- redaction (phase 7b remediation) ---
+  // --- redaction remediation ---
   stage.replace {
     expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
     replace    = "[REDACTED]"
@@ -265,6 +265,7 @@ loki.source.file "host_apt_history" {
   stage.static_labels {
     values = {
       env            = "sandbox",
+      service_name   = "unknown_service",
       syslog_channel = "general",
       syslog_level   = "info",
     }
@@ -367,7 +368,7 @@ loki.source.file "host_apt_history" {
 
   // SSH authentication and generic auth
   stage.match {
-    selector = "{source_type=\"syslog\"} |~ \"(?i)(sshd|authentication failure|session opened for user|session closed for user)\""
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(sshd|pam_unix[(]sshd:|authentication failure|failed password|accepted (password|publickey))\""
     stage.static_labels {
       values = {
         syslog_channel  = "auth",
@@ -387,9 +388,39 @@ loki.source.file "host_apt_history" {
     }
   }
 
+  // rsyslog forwarding/connectivity diagnostics
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(rsyslogd:|omfwd:|ptcp network driver|cannot connect to [0-9.]+:[0-9]+|action .* suspended|resumed)\""
+    stage.static_labels {
+      values = {
+        service_name = "rsyslog",
+      }
+    }
+  }
+
+  // Docker daemon JSON log decoding warnings
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)Error decoding log file\""
+    stage.static_labels {
+      values = {
+        service_name = "dockerd",
+      }
+    }
+  }
+
+  // NetworkManager transient veth lookup warnings
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)Failed to determine whether the interface is managed\""
+    stage.static_labels {
+      values = {
+        service_name = "NetworkManager",
+      }
+    }
+  }
+
   // Network interface state changes (kernel networking)
   stage.match {
-    selector = "{source_type=\"syslog\"} |~ \"(?i)(renamed from|entered.*state|device|interface)\""
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(kernel|docker0:|br-[0-9a-f]+:|veth[0-9a-f]+|entered disabled state|left promiscuous mode|left allmulticast mode|link (up|down)|renamed from)\""
     stage.static_labels {
       values = {
         service_name = "kernel",
@@ -456,7 +487,7 @@ loki.source.file "host_apt_history" {
     }
   }
 
-  // --- Service name attribution (Sprint-4 Phase 1) ---
+  // --- service name attribution ---
   // Extract service names from syslog to reduce unknown_service volume.
 
   // Internal daemon cycle markers (loki_ops orchestration)
@@ -508,9 +539,20 @@ loki.source.file "host_apt_history" {
     }
   }
 
-  // Node.js errors (SyntaxError, Error:, stack traces)
+  // logrotate file-open permission failures
   stage.match {
-    selector = "{source_type=\"syslog\"} |~ \"(?i)SyntaxError|Error:|at .*nodejs\" "
+    selector = "{source_type=\"syslog\"} |~ \"(?i)^error: error opening .*: Permission denied$\""
+    stage.static_labels {
+      values = {
+        service_name = "logrotate.service",
+        level        = "error",
+      }
+    }
+  }
+
+  // Node.js errors (syntax errors, stack traces)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(SyntaxError|nodejs[(][0-9]+[)]:|at .*nodejs)\" "
     stage.static_labels {
       values = {
         service_name = "nodejs",
@@ -579,7 +621,7 @@ loki.source.file "host_apt_history" {
     }
   }
 
-  // --- redaction (Sprint-3 Phase 1) ---
+  // --- redaction ---
   // Fake-secret patterns only; prevent credentials from being stored in Loki.
   stage.replace {
     expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"
@@ -595,7 +637,7 @@ loki.source.file "host_apt_history" {
   }
   // --- end redaction ---
 
-  // --- noise suppression (Sprint-4 Phase 2B) ---
+  // --- noise suppression ---
   // Drop low-value operational noise to improve dashboard signal-to-noise ratio.
 
   // Suppress VSCode DEBUG/INFO messages (verbose extension logs not actionable)
@@ -632,7 +674,7 @@ loki.source.file "host_apt_history" {
 
   // --- end noise suppression ---
 
-  // --- additional service extraction (Sprint-4 Phase 2C) ---
+  // --- additional service extraction ---
   // Remaining unknown_service patterns discovered through sampling
 
   // Log truncation scheduler (codeswarm/luce automation)
@@ -647,7 +689,7 @@ loki.source.file "host_apt_history" {
 
   // Docker network interface events (container lifecycle)
   stage.match {
-    selector = "{source_type=\"syslog\"} |~ \"veth.*Link|Gained|promiscuous|allmulticast\" "
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(veth.*Link|veth.*entered (disabled|blocking|forwarding) state|br-[0-9a-f]+: port [0-9]+[(]veth[0-9a-f]+[)] entered (disabled|blocking|forwarding) state|Gained carrier|promiscuous|allmulticast|left promiscuous mode|left allmulticast mode)\" "
     stage.static_labels {
       values = {
         service_name = "docker-network",
@@ -661,6 +703,78 @@ loki.source.file "host_apt_history" {
     stage.static_labels {
       values = {
         service_name = "docker-container",
+      }
+    }
+  }
+
+  // containerd lifecycle chatter (frequent but informational)
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(namespace=moby|shim disconnected|cleaning up dead shim|cleaning up after shim disconnected|connecting to shim|module=libcontainerd)\""
+    stage.static_labels {
+      values = {
+        service_name = "containerd",
+      }
+    }
+  }
+
+  // sudo-triggered wg status commands
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"COMMAND=/usr/bin/wg show\""
+    stage.static_labels {
+      values = {
+        service_name = "wg-stats.service",
+      }
+    }
+  }
+
+  // session lifecycle lines without daemon prefix
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(Removed session [0-9]+|New session [0-9]+ of user)\""
+    stage.static_labels {
+      values = {
+        service_name = "systemd-logind",
+      }
+    }
+  }
+
+  // additional session lifecycle and disconnect lines
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(Started session-[0-9]+[.]scope|session-[0-9]+[.]scope: Deactivated successfully|Session [0-9]+ logged out)\""
+    stage.static_labels {
+      values = {
+        service_name = "systemd-logind",
+      }
+    }
+  }
+
+  stage.match {
+    selector = "{source_type=\"syslog\"} |~ \"(?i)(Received disconnect from|Disconnected from user)\""
+    stage.static_labels {
+      values = {
+        service_name = "sshd",
+      }
+    }
+  }
+
+  stage.metrics {
+    metric.counter {
+      name              = "codeswarm_syslog_service_lines_total"
+      description       = "Total syslog lines processed after service attribution"
+      action            = "inc"
+      match_all         = true
+      max_idle_duration = "24h"
+    }
+  }
+
+  stage.match {
+    selector = "{source_type=\"syslog\", level=\"error\"}"
+    stage.metrics {
+      metric.counter {
+        name              = "codeswarm_syslog_service_error_lines_total"
+        description       = "Total syslog lines marked error after service attribution"
+        action            = "inc"
+        match_all         = true
+        max_idle_duration = "24h"
       }
     }
   }
@@ -686,7 +800,7 @@ loki.process "codeswarm" {
     max_lines     = 256
   }
 
-  // --- safe JSON parsing (Sprint-3 Phase 3) ---
+  // --- safe JSON parsing ---
   // Parse JSON lines; do not drop malformed lines.
   stage.decolorize {}
 
@@ -729,7 +843,7 @@ loki.process "codeswarm" {
     }
   }
 
-  // --- redaction (Sprint-3 Phase 1) ---
+  // --- redaction ---
   // Fake-secret patterns only; prevent credentials from being stored in Loki.
   stage.replace {
     expression = "(?i)\\bbearer\\s+([A-Za-z0-9._~-]+)\\b"

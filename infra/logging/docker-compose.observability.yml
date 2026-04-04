@@ -23,7 +23,7 @@ services:
       options:
         max-size: "25m"
         max-file: "5"
-    image: ${GRAFANA_IMAGE:-grafana/grafana:11.1.0}
+    image: ${GRAFANA_IMAGE:-grafana/grafana:11.5.2}
     env_file:
     - ../../.env
     environment:
@@ -73,7 +73,12 @@ services:
       options:
         max-size: "25m"
         max-file: "5"
-    image: ${LOKI_IMAGE:-grafana/loki:3.0.0}
+    build:
+      context: ../..
+      dockerfile: infra/logging/loki-runtime/Dockerfile
+      args:
+        LOKI_BASE_IMAGE: ${LOKI_IMAGE:-grafana/loki:3.6.10}
+    image: logging/loki-with-wget:3.6.10
     command:
     - -config.file=/etc/loki/loki-config.yml
     volumes:
@@ -86,7 +91,7 @@ services:
     healthcheck:
       test:
       - CMD
-      - wget
+      - /bin/wget
       - -q
       - -O
       - '-'
@@ -148,12 +153,13 @@ services:
       options:
         max-size: "25m"
         max-file: "5"
-    image: ${NODE_EXPORTER_IMAGE:-prom/node-exporter:v1.8.1}
+    image: ${NODE_EXPORTER_IMAGE:-prom/node-exporter:v1.10.2}
     command:
     - --path.rootfs=/host
     pid: host
     volumes:
     - ${HOST_ROOTFS:-/}:/host:ro,rslave
+    - ${HOST_RUN_UDEV_DATA:-/run/udev/data}:/run/udev/data:ro
     networks:
     - obs
     restart: unless-stopped
@@ -170,7 +176,7 @@ services:
       options:
         max-size: "5m"
         max-file: "3"
-    image: hashicorp/http-echo:0.2.3
+    image: hashicorp/http-echo:1.0.0
     command:
     - -listen=:8080
     - -text=ok
@@ -189,7 +195,7 @@ services:
       options:
         max-size: "25m"
         max-file: "5"
-    image: ${CADVISOR_IMAGE:-gcr.io/cadvisor/cadvisor:v0.49.1}
+    image: ${CADVISOR_IMAGE:-gcr.io/cadvisor/cadvisor:v0.55.1}
     privileged: true
     devices:
     - ${HOST_KMSG:-/dev/kmsg}:/dev/kmsg
@@ -214,7 +220,7 @@ services:
       options:
         max-size: "25m"
         max-file: "5"
-    image: ${ALLOY_IMAGE:-grafana/alloy:v1.2.1}
+    image: ${ALLOY_IMAGE:-grafana/alloy:v1.15.0}
     command:
     - run
     - --server.http.listen-addr=0.0.0.0:12345

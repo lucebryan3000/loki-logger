@@ -1,6 +1,6 @@
 {
   "uid": "security-events-by-service",
-  "title": "Security Events by Service (Phase 2B)",
+  "title": "Security Events by Service ",
   "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
@@ -11,7 +11,7 @@
   },
   "editable": true,
   "tags": [
-    "phase2b",
+    "service-alerts",
     "security",
     "events",
     "firewall",
@@ -54,7 +54,7 @@
       "title": "Dashboard Purpose",
       "options": {
         "mode": "markdown",
-        "content": "# Security Events Dashboard (Phase 2B)\n\nThis dashboard focuses on **security-relevant events**:\n- UFW (firewall) - blocked connections\n- sudo (privilege escalation) - command execution\n- sshd (SSH auth) - login attempts and auth events\n- cron (scheduled tasks) - job execution\n\n**Use case**: Security monitoring, audit trails, and threat detection\n\n**Security domains**: Firewall, Authentication, Privilege Escalation, Task Execution"
+        "content": "# Security Events Dashboard \n\nThis dashboard focuses on **security-relevant events**:\n- UFW (firewall) - blocked connections\n- sudo (privilege escalation) - command execution\n- sshd (SSH auth) - login attempts and auth events\n- cron (scheduled tasks) - job execution\n\n**Use case**: Security monitoring, audit trails, and threat detection\n\n**Security domains**: Firewall, Authentication, Privilege Escalation, Task Execution"
       },
       "gridPos": {
         "x": 0,

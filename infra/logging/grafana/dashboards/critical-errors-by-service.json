@@ -1,6 +1,6 @@
 {
   "uid": "critical-errors-by-service",
-  "title": "Critical Errors by Service (Phase 2B)",
+  "title": "Critical Errors by Service ",
   "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
@@ -11,7 +11,7 @@
   },
   "editable": true,
   "tags": [
-    "phase2b",
+    "service-alerts",
     "critical",
     "errors",
     "actionable",
@@ -53,7 +53,7 @@
       "title": "Dashboard Purpose",
       "options": {
         "mode": "markdown",
-        "content": "# Critical Errors Dashboard (Phase 2B)\n\nThis dashboard focuses on **actionable errors** that require investigation:\n- mcp-server.service failures (repeated exit codes)\n- logging-e2e-check.service startup failures\n- Other service-specific critical events\n\n**Filtered out**: VSCode debug logs, DNS warnings, Node.js trace warnings (low-value noise)\n\n**Goal**: Signal-to-noise ratio improvement from 27% → 90% actionable errors"
+        "content": "# Critical Errors Dashboard \n\nThis dashboard focuses on **actionable errors** that require investigation:\n- mcp-server.service failures (repeated exit codes)\n- logging-e2e-check.service startup failures\n- Other service-specific critical events\n\n**Filtered out**: VSCode debug logs, DNS warnings, Node.js trace warnings (low-value noise)\n\n**Goal**: Signal-to-noise ratio improvement from 27% → 90% actionable errors"
       },
       "gridPos": {
         "x": 0,

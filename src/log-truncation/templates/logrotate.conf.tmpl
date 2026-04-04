@@ -44,7 +44,9 @@
     copytruncate
     dateext
     dateformat -%Y%m%d
-    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+    # Some MCP log files are produced as root in this sandbox.
+    # Rotate as root to avoid permission-denied copytruncate failures.
+    su root root
 }
 
 # NVIDIA telemetry
@@ -74,7 +76,9 @@
     copytruncate
     dateext
     dateformat -%Y%m%d
-    su {{LOG_OWNER_USER}} {{LOG_OWNER_GROUP}}
+    # GPU CSV files may be root-owned depending on telemetry runtime.
+    # Rotate as root to avoid permission-denied copytruncate failures.
+    su root root
 }
 
 # Codex TUI log

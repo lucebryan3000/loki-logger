@@ -18,6 +18,7 @@ scrape_configs:
   - targets:
     - host-monitor:9100
 - job_name: docker-metrics
+  honor_timestamps: false
   static_configs:
   - targets:
     - docker-metrics:8080

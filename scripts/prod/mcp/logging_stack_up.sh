@@ -42,13 +42,46 @@ set +a
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-logging}"
 
 command -v docker >/dev/null
-command -v timeout >/dev/null
+
+run_with_timeout() {
+  local duration="$1"
+  shift
+
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "$duration" "$@"
+    return $?
+  fi
+
+  if command -v gtimeout >/dev/null 2>&1; then
+    gtimeout "$duration" "$@"
+    return $?
+  fi
+
+  "$@" &
+  local cmd_pid=$!
+  (
+    sleep "$duration"
+    kill -TERM "$cmd_pid" 2>/dev/null || true
+  ) &
+  local timer_pid=$!
+
+  wait "$cmd_pid"
+  local cmd_ec=$?
+  kill "$timer_pid" 2>/dev/null || true
+  wait "$timer_pid" 2>/dev/null || true
+
+  if [[ "$cmd_ec" -eq 143 ]]; then
+    return 124
+  fi
+
+  return "$cmd_ec"
+}
 
 # Preflight 1: compose config render
 docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$ENV_FILE" -f "$OBS" config >/dev/null
 
 # Preflight 2: Loki config validation (fail closed on invalid keys/values)
-LOKI_IMAGE="${LOKI_IMAGE:-grafana/loki:3.0.0}"
+LOKI_IMAGE="${LOKI_IMAGE:-grafana/loki:3.6.10}"
 docker run --rm \
   -v "$PWD/$LOKI_CFG:/etc/loki/loki-config.yml:ro" \
   "$LOKI_IMAGE" \
@@ -57,10 +90,10 @@ docker run --rm \
 
 # Preflight 3: Alloy config parse gate.
 # `alloy run` exits immediately on config errors; a healthy run is bounded by timeout.
-ALLOY_IMAGE="${ALLOY_IMAGE:-grafana/alloy:v1.2.1}"
+ALLOY_IMAGE="${ALLOY_IMAGE:-grafana/alloy:v1.15.0}"
 alloy_preflight_log="$(mktemp)"
 set +e
-timeout 8s docker run --rm \
+run_with_timeout 8s docker run --rm \
   -v "$PWD/$ALLOY_CFG:/etc/alloy/config.alloy:ro" \
   "$ALLOY_IMAGE" \
   run \
@@ -76,4 +109,4 @@ if [[ "$alloy_ec" -ne 0 && "$alloy_ec" -ne 124 ]]; then
 fi
 rm -f "$alloy_preflight_log"
 
-docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$ENV_FILE" -f "$OBS" up -d
+docker compose -p "$COMPOSE_PROJECT_NAME" --env-file "$ENV_FILE" -f "$OBS" up -d --build
