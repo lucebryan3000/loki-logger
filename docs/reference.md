@@ -392,7 +392,7 @@ The CodeSwarm host runs several custom systemd services that interact with or su
 **Status:** Running (enabled)
 
 **Key Details:**
-- Script: `/home/luce/apps/loki-logging/scripts/telemetry/telemetry_writer.py`
+- Script: `/home/luce/apps/loki-logging/scripts/prod/telemetry/telemetry_writer.py`
 - Output: `/home/luce/_telemetry/telemetry.jsonl`
 - Interval: 10 seconds
 - User: `luce`

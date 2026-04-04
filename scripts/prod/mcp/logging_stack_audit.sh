@@ -116,7 +116,8 @@ proof_json=""
 nvidia_loki_json=""
 sem_total_json=""
 sem_level_json=""
-trap 'rm -f "$CHECKS_NDJSON" "$targets_json" "$up_json" "$targets_down_json" "$targets_up_json" "$flags_json" "$rules_json" "$proof_json" "$nvidia_loki_json" "$sem_total_json" "$sem_level_json"' EXIT
+suppression_decay_err=""
+trap 'rm -f "$CHECKS_NDJSON" "$targets_json" "$up_json" "$targets_down_json" "$targets_up_json" "$flags_json" "$rules_json" "$proof_json" "$nvidia_loki_json" "$sem_total_json" "$sem_level_json" "$suppression_decay_err"' EXIT
 
 add_result() {
   local name="$1" status="$2" severity="$3" detail="$4"
@@ -199,33 +200,33 @@ else
 fi
 
 targets_down_json="$(mktemp)"
-if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sprint3:targets_down:count' >| "$targets_down_json"; then
+if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=logging:targets_down:count' >| "$targets_down_json"; then
   td_val="$(jq -r '.data.result[0].value[1] // ""' "$targets_down_json")"
   if [[ -z "$td_val" ]]; then
     td_val="$(curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sum(1-up)' | jq -r '.data.result[0].value[1] // ""' || true)"
   fi
   if [[ "$td_val" =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ "$td_val" == "0" || "$td_val" == "0.0" ]]; then
-    pass prom_rule_targets_down critical "sprint3:targets_down:count is 0"
+    pass prom_rule_targets_down critical "logging:targets_down:count is 0"
   else
-    fail prom_rule_targets_down critical "sprint3:targets_down:count unexpected value=${td_val:-missing}"
+    fail prom_rule_targets_down critical "logging:targets_down:count unexpected value=${td_val:-missing}"
   fi
 else
-  fail prom_rule_targets_down critical "unable to query sprint3:targets_down:count"
+  fail prom_rule_targets_down critical "unable to query logging:targets_down:count"
 fi
 
 targets_up_json="$(mktemp)"
-if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sprint3:targets_up:count' >| "$targets_up_json"; then
+if curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=logging:targets_up:count' >| "$targets_up_json"; then
   tu_val="$(jq -r '.data.result[0].value[1] // ""' "$targets_up_json")"
   if [[ -z "$tu_val" ]]; then
     tu_val="$(curl -sfG --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/query" --data-urlencode 'query=sum(up)' | jq -r '.data.result[0].value[1] // ""' || true)"
   fi
   if [[ "$tu_val" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-    pass prom_rule_targets_up critical "sprint3:targets_up:count value=${tu_val}"
+    pass prom_rule_targets_up critical "logging:targets_up:count value=${tu_val}"
   else
-    fail prom_rule_targets_up critical "sprint3:targets_up:count missing/non-numeric"
+    fail prom_rule_targets_up critical "logging:targets_up:count missing/non-numeric"
   fi
 else
-  fail prom_rule_targets_up critical "unable to query sprint3:targets_up:count"
+  fail prom_rule_targets_up critical "unable to query logging:targets_up:count"
 fi
 
 # 4) Retention + rules
@@ -243,8 +244,8 @@ fi
 
 rules_json="$(mktemp)"
 if curl -sf --connect-timeout 5 --max-time 20 "http://${PROM_HOST:-127.0.0.1}:${PROM_PORT:-9004}/api/v1/rules" >| "$rules_json"; then
-  has_core_groups="$(jq -r '[(.data.groups[]?.name // empty)] | (index("loki_logging_v1") != null and index("sprint3_minimum_v1") != null)' "$rules_json")"
-  has_recording_rules="$(jq -r '[.data.groups[]?.rules[]? | select(.type=="recording") | .name] | (index("sprint3:targets_up:count") != null and index("sprint3:targets_down:count") != null and index("sprint3:host_cpu_usage_percent") != null and index("sprint3:host_memory_usage_percent") != null and index("sprint3:host_disk_usage_percent") != null)' "$rules_json")"
+  has_core_groups="$(jq -r '[(.data.groups[]?.name // empty)] | (index("loki_logging_v1") != null and index("prometheus_minimum_v1") != null)' "$rules_json")"
+  has_recording_rules="$(jq -r '[.data.groups[]?.rules[]? | select(.type=="recording") | .name] | (index("logging:targets_up:count") != null and index("logging:targets_down:count") != null and index("logging:host_cpu_usage_percent") != null and index("logging:host_memory_usage_percent") != null and index("logging:host_disk_usage_percent") != null)' "$rules_json")"
   has_min_alerts="$(jq -r '[.data.groups[]?.rules[]? | select(.type=="alerting") | .name] | (index("PrometheusScrapeFailure") != null and index("PrometheusTargetDown") != null and index("LokiIngestionErrors") != null)' "$rules_json")"
   if [[ "$has_core_groups" == "true" && "$has_recording_rules" == "true" && "$has_min_alerts" == "true" ]]; then
     pass prometheus_rules critical "required groups, recording rules, and minimum alerts are loaded"
@@ -275,25 +276,33 @@ proof_line="healthproof-$(date -u +%Y%m%dT%H%M%SZ)"
 proof_file="${HOST_VLLM:-/home/luce/apps/vLLM}/_data/mcp-logs/mcp-test.log"
 if [[ -w "$proof_file" ]]; then
   echo "$proof_line" >> "$proof_file"
-  sleep 3
-  now_ns="$(date +%s%N)"
-  from_ns="$((now_ns - 15*60*1000000000))"
-  proof_json="$(mktemp)"
-  if docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
-      --data-urlencode "query={env=~\".+\",log_source=\"codeswarm_mcp\"} |= \"${proof_line}\"" \
-      --data-urlencode "start=${from_ns}" \
-      --data-urlencode "end=${now_ns}" \
-      --data-urlencode 'limit=20' \
-      --data-urlencode 'direction=BACKWARD' \
-      'http://loki:3100/loki/api/v1/query_range' >| "$proof_json"; then
-    matches="$(jq -r '.data.result | length' "$proof_json")"
-    if [[ "$matches" =~ ^[0-9]+$ ]] && (( matches > 0 )); then
-      pass loki_ingest_proof critical "ingest proof found matches=$matches"
-    else
-      fail loki_ingest_proof critical "ingest proof not found"
+  matches=""
+  query_ok=0
+  for _attempt in 1 2 3 4 5; do
+    sleep 2
+    now_ns="$(date +%s%N)"
+    from_ns="$((now_ns - 20*60*1000000000))"
+    proof_json="$(mktemp)"
+    if docker run --rm --network obs curlimages/curl:8.6.0 -sfG --connect-timeout 5 --max-time 20 \
+        --data-urlencode "query={env=~\".+\",log_source=\"codeswarm_mcp\"} |= \"${proof_line}\"" \
+        --data-urlencode "start=${from_ns}" \
+        --data-urlencode "end=${now_ns}" \
+        --data-urlencode 'limit=20' \
+        --data-urlencode 'direction=BACKWARD' \
+        'http://loki:3100/loki/api/v1/query_range' >| "$proof_json"; then
+      query_ok=1
+      matches="$(jq -r '.data.result | length' "$proof_json")"
+      if [[ "$matches" =~ ^[0-9]+$ ]] && (( matches > 0 )); then
+        break
+      fi
     fi
-  else
+  done
+  if [[ "$query_ok" -eq 0 ]]; then
     fail loki_ingest_proof critical "loki query for ingest proof failed"
+  elif [[ "$matches" =~ ^[0-9]+$ ]] && (( matches > 0 )); then
+    pass loki_ingest_proof critical "ingest proof found matches=$matches"
+  else
+    fail loki_ingest_proof critical "ingest proof not found after retries"
   fi
 else
   warn loki_ingest_proof warning "proof file not writable: $proof_file"
@@ -474,7 +483,8 @@ fi
 # 6e) Suppression-decay per-ADR artifact (2m/15m/1h/24h)
 SUPPRESSION_REPORT_SCRIPT="infra/logging/scripts/suppression_decay_report.sh"
 if [[ -x "$SUPPRESSION_REPORT_SCRIPT" ]]; then
-  suppression_out="$("$SUPPRESSION_REPORT_SCRIPT" 2>/tmp/suppression_decay_report.err || true)"
+  suppression_decay_err="$(mktemp)"
+  suppression_out="$("$SUPPRESSION_REPORT_SCRIPT" 2>|"$suppression_decay_err" || true)"
   sup_json="$(printf '%s\n' "$suppression_out" | awk -F= '/^SUPPRESSION_DECAY_JSON=/{print $2}' | tail -n 1)"
   sup_2m="$(printf '%s\n' "$suppression_out" | awk -F= '/^SUPPRESSION_DECAY_2M_PASS=/{print $2}' | tail -n 1)"
   sup_1h="$(printf '%s\n' "$suppression_out" | awk -F= '/^SUPPRESSION_DECAY_1H_PASS=/{print $2}' | tail -n 1)"
@@ -488,6 +498,31 @@ if [[ -x "$SUPPRESSION_REPORT_SCRIPT" ]]; then
   fi
 else
   warn suppression_decay_report warning "suppression decay report script missing or not executable"
+fi
+
+# 6f) Host-side service and journald parser health (warning-only)
+if systemctl list-unit-files --type=service --no-legend 2>/dev/null | grep -q '^loki-telemetry-writer\.service'; then
+  if systemctl is-active --quiet loki-telemetry-writer.service; then
+    pass telemetry_writer_service warning "loki-telemetry-writer.service is active"
+  else
+    warn telemetry_writer_service warning "loki-telemetry-writer.service is not active"
+  fi
+else
+  warn telemetry_writer_service warning "loki-telemetry-writer.service not installed on host"
+fi
+
+journald_parse_count="$(
+  journalctl -u systemd-journald --since "15 minutes ago" --no-pager -o cat 2>/dev/null \
+    | grep -E -c 'Failed to parse .*/journald\.conf\.d/.*Invalid argument' || true
+)"
+if [[ "$journald_parse_count" =~ ^[0-9]+$ ]]; then
+  if (( journald_parse_count == 0 )); then
+    pass journald_dropin_parse warning "no journald drop-in parse errors in last 15m"
+  else
+    warn journald_dropin_parse warning "journald drop-in parse errors in last 15m: ${journald_parse_count}"
+  fi
+else
+  warn journald_dropin_parse warning "unable to query journald parse errors"
 fi
 
 # 7) Restart counters + disk
