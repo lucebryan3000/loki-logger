@@ -47,6 +47,7 @@ import re
 import sys
 import time
 import urllib.parse
+import urllib.error
 import urllib.request
 
 idx_json, grafana_url, g_user, g_pass, prom_url, loki_url, start_ns, end_ns, md_path, js_path, audit_mode = sys.argv[1:]
@@ -80,6 +81,15 @@ def prom_count(expr: str, retries: int = 4):
             with urllib.request.urlopen(url, timeout=15) as r:
                 data = json.loads(r.read().decode())
             return len(data.get("data", {}).get("result", []))
+        except urllib.error.HTTPError as exc:
+            body = ""
+            try:
+                body = exc.read().decode()
+            except Exception:
+                body = ""
+            if 400 <= exc.code < 500 and exc.code != 429:
+                raise RuntimeError(f"prom_query_failed expr={expr} code={exc.code} body={body[:400]}")
+            last = RuntimeError(f"prom_query_failed expr={expr} code={exc.code} body={body[:400]}")
         except Exception as exc:
             last = exc
             if attempt < retries:
@@ -104,6 +114,15 @@ def loki_count(expr: str, retries: int = 4):
             with urllib.request.urlopen(url, timeout=15) as r:
                 data = json.loads(r.read().decode())
             return len(data.get("data", {}).get("result", []))
+        except urllib.error.HTTPError as exc:
+            body = ""
+            try:
+                body = exc.read().decode()
+            except Exception:
+                body = ""
+            if 400 <= exc.code < 500 and exc.code != 429:
+                raise RuntimeError(f"loki_query_failed expr={expr} code={exc.code} body={body[:400]}")
+            last = RuntimeError(f"loki_query_failed expr={expr} code={exc.code} body={body[:400]}")
         except Exception as exc:
             last = exc
             if attempt < retries:
@@ -133,12 +152,26 @@ def vars_map_for_dashboard(dashboard: dict):
 
 def substitute_vars(expr: str, vmap: dict):
     out = expr
+    # Grafana globals used by query expressions in this stack.
+    globals_map = {
+        "__range": "30m",
+        "__interval": "1m",
+        "__rate_interval": "1m",
+        "__range_s": "1800",
+        "__range_ms": "1800000",
+    }
+    for k, v in globals_map.items():
+        out = out.replace("${" + k + "}", v)
+        out = re.sub(r"\$" + re.escape(k) + r"\b", lambda _m, vv=v: vv, out)
+
     # ${var}
     for k, v in vmap.items():
         out = out.replace("${" + k + "}", v)
+        # ${var:format}
+        out = re.sub(r"\$\{" + re.escape(k) + r":[^}]+\}", lambda _m, vv=v: vv, out)
     # $var boundary-safe
     for k, v in sorted(vmap.items(), key=lambda kv: len(kv[0]), reverse=True):
-        out = re.sub(r"\$" + re.escape(k) + r"\b", v, out)
+        out = re.sub(r"\$" + re.escape(k) + r"\b", lambda _m, vv=v: vv, out)
     return out
 
 
@@ -148,6 +181,7 @@ errors = []
 expected_empty = []
 per_dashboard = {}
 checked = 0
+dashboards_scanned = 0
 provisioned_scanned = 0
 
 for d in idx:
@@ -157,12 +191,11 @@ for d in idx:
 
     dash_payload = http_json(f"{grafana_url}/api/dashboards/uid/{uid}")
     meta = dash_payload.get("meta", {})
-    if not bool(meta.get("provisioned")):
-        continue
-
+    dashboards_scanned += 1
+    if bool(meta.get("provisioned")):
+        provisioned_scanned += 1
     dashboard = dash_payload.get("dashboard", {})
     title = dashboard.get("title", "")
-    provisioned_scanned += 1
     vmap = vars_map_for_dashboard(dashboard)
 
     def walk(ps):
@@ -279,6 +312,7 @@ summary = {
     "mode": audit_mode,
     "pass": pass_flag,
     "dashboards_total": len(idx),
+    "dashboards_scanned": dashboards_scanned,
     "dashboards_provisioned_scanned": provisioned_scanned,
     "queries_checked": checked,
     "empty_panels": len(empty),
@@ -293,6 +327,7 @@ with open(js_path, "w") as f:
 with open(md_path, "w") as f:
     f.write(f"# Dashboard Query Audit ({summary['ts']})\n\n")
     f.write(f"- dashboards_total: {summary['dashboards_total']}\n")
+    f.write(f"- dashboards_scanned: {summary['dashboards_scanned']}\n")
     f.write(f"- dashboards_provisioned_scanned: {summary['dashboards_provisioned_scanned']}\n")
     f.write(f"- queries_checked: {summary['queries_checked']}\n")
     f.write(f"- empty_panels: {summary['empty_panels']}\n")

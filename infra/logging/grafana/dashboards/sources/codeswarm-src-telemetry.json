@@ -869,13 +869,13 @@
         "current": {
           "selected": true,
           "text": "all",
-          "value": ""
+          "value": "|~ \"(?i).*\""
         },
         "options": [
           {
             "selected": true,
             "text": "all",
-            "value": ""
+            "value": "|~ \"(?i).*\""
           },
           {
             "selected": false,

@@ -380,7 +380,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (level) (count_over_time({log_source=~\"$log_source\"} | regexp \"(?i)(?P<level>debug|info|warn|warning|error|err|fatal|panic)\" [$__range])) !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"Stopped atlas-mcp[.]service\" !~ \"Started atlas-mcp[.]service\" !~ \"throw err;\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\"",
+          "expr": "sum by (level) (count_over_time({log_source=~\"$log_source\"} !~ \"/home/luce/apps/hex/dist/mcp/server/index[.]js\" !~ \"atlas-mcp[.]service: Main process exited, code=exited, status=1/FAILURE\" !~ \"atlas-mcp[.]service: Failed with result 'exit-code'[.]\" !~ \"atlas-mcp[.]service: Scheduled restart job\" !~ \"Stopped atlas-mcp[.]service\" !~ \"Started atlas-mcp[.]service\" !~ \"throw err;\" !~ \"atlas-mcp[.]service\" !~ \"(?i)^Finished update-notifier-download[.]service\" | regexp \"(?i)(?P<level>debug|info|warn|warning|error|err|fatal|panic)\" [$__range]))",
           "legendFormat": "debug"
         },
         {
@@ -1512,19 +1512,19 @@
         "label": "Log Type",
         "type": "custom",
         "hide": 0,
-        "query": "all : , debug : |~ \"(?i)debug\", info : |~ \"(?i)info\", warn : |~ \"(?i)(warn|warning)\", error : |~ \"(?i)(error|err|fatal|panic|fail|failed|exit-code|oom|segfault|crash|denied|refused|timeout)\"",
+        "query": "all,debug,info,warn,error/fail",
         "includeAll": false,
         "multi": false,
         "current": {
           "selected": true,
           "text": "all",
-          "value": ""
+          "value": "|~ \"(?i).*\""
         },
         "options": [
           {
             "selected": true,
             "text": "all",
-            "value": ""
+            "value": "|~ \"(?i).*\""
           },
           {
             "selected": false,
