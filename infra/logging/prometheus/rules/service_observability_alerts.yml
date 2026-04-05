@@ -9,7 +9,7 @@ groups:
       - alert: MCPServerRepeatedFailures
         expr: >
           sum(increase(loki_write_dropped_entries_total[10m])) > 0
-          or (count(count_over_time({service_name="mcp-server.service", level="error"}[5m])) > 10)
+          or (sum(count_over_time({service_name="mcp-server.service", level="error"}[5m])) > 10)
         for: 2m
         labels:
           severity: critical
@@ -21,7 +21,7 @@ groups:
           description: "mcp-server.service has shown {{ $value }} failure events in the last 5 minutes (threshold: >10)"
 
       - alert: E2ECheckServiceFailure
-        expr: count(count_over_time({service_name="logging-e2e-check.service", level="error"}[5m])) > 3
+        expr: sum(count_over_time({service_name="logging-e2e-check.service", level="error"}[5m])) > 3
         for: 5m
         labels:
           severity: warning
@@ -69,10 +69,10 @@ groups:
 
       # --- Recording Rules for Dashboard Queries ---
       - record: service:mcp_server_errors:rate5m
-        expr: rate(count_over_time({service_name="mcp-server.service", level="error"}[5m])[5m:1m])
+        expr: sum(rate({service_name="mcp-server.service", level="error"}[5m]))
 
       - record: service:e2e_check_errors:rate5m
-        expr: rate(count_over_time({service_name="logging-e2e-check.service", level="error"}[5m])[5m:1m])
+        expr: sum(rate({service_name="logging-e2e-check.service", level="error"}[5m]))
 
       - record: service:security_events:total_5m
         expr: sum(count_over_time({service_name=~"ufw|sudo|sshd|cron"}[5m]))
